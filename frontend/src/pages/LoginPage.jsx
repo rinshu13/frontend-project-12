@@ -83,7 +83,7 @@ const LoginPage = () => {
             </Button>
           </Form>
           <p className="text-center mt-3">
-            <Link to="/signup">{t('login.signupLink')}</Link>
+            Нет аккаунта? <Link to="/signup">{t('login.signupLink')}</Link>
           </p>
         </Col>
       </Row>

@@ -14,7 +14,7 @@ const resources = {
       'login.usernameLabel': 'Ваш ник',
       'login.passwordLabel': 'Пароль',
       'login.submit': 'Войти',
-      'login.signupLink': 'Регистрация',
+      'login.signupLink': 'Регистрация',  // Исправлено: Только для <Link>, полный текст в JSX
       'errors.required': 'Обязательно',
       'errors.min3': 'От 3 до 20 символов',
       'errors.min6': 'Не менее 6 символов',
