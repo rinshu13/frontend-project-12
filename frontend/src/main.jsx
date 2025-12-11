@@ -5,8 +5,7 @@ import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import { store } from './store.js';
-import { ErrorBoundary } from '@rollbar/react';  // Rollbar ErrorBoundary
-// import { Rollbar } from '@rollbar/react';  // Rollbar init
+import { ErrorBoundary } from '@rollbar/react';  // ErrorBoundary — ES import
 import { Header } from './components/Header.jsx';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -17,21 +16,22 @@ import NotFoundPage from './pages/NotFoundPage.jsx'
 import './index.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+// Rollbar init через require (CommonJS для класса Rollbar)
+const Rollbar = require('@rollbar/react').Rollbar;  // Исправлено: require вместо import
+
 // Rollbar config из .env
 const rollbarConfig = {
-  accessToken: process.env.REACT_APP_ROLLBAR_TOKEN,  // Теперь из .env!
-  environment: 'production',  // Для Render
-  captureUncaught: true,  // Лови uncaught errors
-  captureUnhandledRejections: true,  // Лови promise rejections
-  // Replay сессий (опционально)
+  accessToken: process.env.REACT_APP_ROLLBAR_TOKEN,
+  environment: 'production',
+  captureUncaught: true,
+  captureUnhandledRejections: true,
   replay: {
     enabled: true,
   },
-  // Версия кода
   payload: {
     client: {
       javascript: {
-        code_version: '1.0.0',  // Из package.json
+        code_version: '1.0.0',
       },
     },
   },
@@ -44,7 +44,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>
       <I18nextProvider i18n={i18n}>
-        <ErrorBoundary Rollbar={RollbarComponent}>  {/* Ловит ошибки */}
+        <ErrorBoundary Rollbar={RollbarComponent}>
           <BrowserRouter>
             <Header />
             <Routes>
