@@ -1,36 +1,10 @@
-<!doctype html>
-<html lang="ru">
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hexlet Chat</title>
-    <!-- Rollbar Snippet: Config + dynamic CDN load (no minified) -->
-    <script>
-      var _rollbarConfig = {
-        accessToken: "51358373459bbcb2bdac77409c2576f9",
-        captureUncaught: true,
-        captureUnhandledRejections: true,
-        replay: { enabled: true },
-        payload: {
-          environment: "production",
-          client: {
-            javascript: {
-              code_version: '1.0.0'
-            }
-          }
-        }
-      };
-      // Dynamic load Rollbar from CDN
-      var _rollbar = _rollbar || [];
-      _rollbar.push(["config", _rollbarConfig]);
-      var e = document.createElement("script");
-      e.defer = true;
-      e.src = "https://cdn.rollbar.com/rollbarjs/refs/tags/v3.0.0/rollbar.min.js";
-      e.onload = function() { _rollbar.push(["global", window.rollbar]); };
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(e, s);
-    </script>
+    <title>Chat</title>
   </head>
   <body>
     <div id="root"></div>
