@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, ListGroup, Form, Button, Card, Alert, Dropdown } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import leoProfanity from 'leo-profanity';  // Фильтрация мата
-import { sendMessage, fetchMessagesByChannel } from './api';  // Исправлено: './api'
-import { connectSocket, disconnectSocket, joinChannel, leaveChannel, emitNewMessage } from './socket';  // Исправлено: './socket'
-import { setChannels, setCurrentChannelId } from '../features/channels/channelsSlice';
-import { setMessages } from '../features/messages/messagesSlice';
-import api from './api';  // Исправлено: './api'
+import leoProfanity from 'leo-profanity';
+import { sendMessage, fetchMessagesByChannel } from './api';
+import { connectSocket, disconnectSocket, joinChannel, leaveChannel, emitNewMessage } from './socket';
+import { setChannels, setCurrentChannelId } from './features/channels/channelsSlice';  // Исправлено: './features...'
+import { setMessages } from './features/messages/messagesSlice';  // Исправлено: './features...'
+import api from './api';
 import AddChannelModal from './components/AddChannelModal';
 import RenameChannelModal from './components/RenameChannelModal';
 import RemoveChannelModal from './components/RemoveChannelModal';

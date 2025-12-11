@@ -6,7 +6,7 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import { store } from './store.js';
 import { ErrorBoundary } from '@rollbar/react';  // Rollbar ErrorBoundary
-import { Rollbar } from '@rollbar/react';  // Rollbar init
+// import { Rollbar } from '@rollbar/react';  // Rollbar init
 import { Header } from './components/Header.jsx';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
