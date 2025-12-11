@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { useFormik } from 'formik';
-import * as Yup from 'yap';
+import * as Yup from 'yup';  // Исправлено: 'yup', не 'yap'
 import { useDispatch, useSelector } from 'react-redux';
-import { useTranslation } from 'react-i18next';  // Импорт для t
-import { toast } from 'react-toastify';  // Импорт toast
-import leoProfanity from 'leo-profanity';  // Импорт для фильтрации
+import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
+import leoProfanity from 'leo-profanity';
 import { createChannel } from '../api';
 import { setChannels, setCurrentChannelId } from '../features/channels/channelsSlice';
 import { joinChannel } from '../socket';
@@ -19,7 +19,7 @@ const AddChannelSchema = Yup.object().shape({
 
 const AddChannelModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
-  const { t } = useTranslation();  // Переводы
+  const { t } = useTranslation();
   const channels = useSelector((state) => state.channels.channels);
   const inputRef = useRef(null);
 
@@ -41,11 +41,11 @@ const AddChannelModal = ({ isOpen, onClose }) => {
 
       try {
         const response = await createChannel(values.name);
-        const newChannel = response.data;  // {id, name, removable: true}
+        const newChannel = response.data;
         dispatch(setChannels([...channels, newChannel]));
-        dispatch(setCurrentChannelId(newChannel.id));  // Перемести в новый
-        joinChannel(newChannel.id);  // Join room
-        toast.success(t('toast.success.createChannel'));  // Success toast
+        dispatch(setCurrentChannelId(newChannel.id));
+        joinChannel(newChannel.id);
+        toast.success(t('toast.success.createChannel'));
         onClose();
         resetForm();
       } catch (error) {

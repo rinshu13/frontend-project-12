@@ -16,11 +16,10 @@ export const connectSocket = (token) => {
     store.dispatch(addMessage(message));  // Добавь в Redux
   });
 
-  // Ошибки (альтернатива: toast в App useEffect)
+  // Ошибки
   socket.on('connect_error', (err) => {
     console.error('Socket connect error:', err);
-    // Для toast: Обработать в App useEffect после connectSocket
-    // socket.on('connect_error', () => toast.error(t('toast.error.network')));
+    // Toast в App
   });
 
   return socket;
@@ -33,7 +32,7 @@ export const disconnectSocket = () => {
   }
 };
 
-// Промисификация emit (по подсказке)
+// Промисификация emit
 export const promisifyEmit = (event, data) => {
   return new Promise((resolve, reject) => {
     socket.emit(event, data, (ack) => {
@@ -46,7 +45,7 @@ export const promisifyEmit = (event, data) => {
   });
 };
 
-// Join channel room
+// Join channel
 export const joinChannel = async (channelId) => {
   try {
     await promisifyEmit('joinChannel', { channelId });
@@ -55,7 +54,7 @@ export const joinChannel = async (channelId) => {
   }
 };
 
-// Leave channel room (для смены канала)
+// Leave channel
 export const leaveChannel = async (channelId) => {
   try {
     await promisifyEmit('leaveChannel', { channelId });
@@ -64,12 +63,12 @@ export const leaveChannel = async (channelId) => {
   }
 };
 
-// Emit newMessage с ack
+// Emit newMessage
 export const emitNewMessage = async (data) => {
   try {
     await promisifyEmit('newMessage', data);
   } catch (error) {
     console.error('Emit message error:', error);
-    throw error;  // Для retry в handleSubmit
+    throw error;
   }
 };

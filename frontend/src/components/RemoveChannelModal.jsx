@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
-import { useTranslation } from 'react-i18next';  // Импорт для t
-import { toast } from 'react-toastify';  // Импорт toast
+import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 import { deleteChannel } from '../api';
 import { setChannels, setCurrentChannelId } from '../features/channels/channelsSlice';
 import { setMessages } from '../features/messages/messagesSlice';
@@ -12,7 +12,7 @@ import { joinChannel } from '../socket';
 
 const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
   const dispatch = useDispatch();
-  const { t } = useTranslation();  // Переводы
+  const { t } = useTranslation();
   const channels = useSelector((state) => state.channels.channels);
   const [loading, setLoading] = useState(false);
 
@@ -22,17 +22,16 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
       await deleteChannel(channelId);
       const updatedChannels = channels.filter((c) => c.id !== channelId);
       dispatch(setChannels(updatedChannels));
-      leaveChannel(channelId);  // Leave room
-      const generalId = 1;  // Дефолт #general
+      leaveChannel(channelId);
+      const generalId = 1;
       dispatch(setCurrentChannelId(generalId));
       joinChannel(generalId);
       const response = await fetchMessagesByChannel(generalId);
       dispatch(setMessages(response.data.messages));
-      toast.success(t('toast.success.deleteChannel'));  // Success toast
+      toast.success(t('toast.success.deleteChannel'));
       onClose();
     } catch (error) {
       console.error('Delete channel error:', error);
-      // Alert error, но по UX — console
     } finally {
       setLoading(false);
     }
