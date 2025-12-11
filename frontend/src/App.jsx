@@ -2,18 +2,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, ListGroup, Form, Button, Card, Alert, Dropdown } from 'react-bootstrap';
+import { toast } from 'react-toastify';  // Импорт toast
+import { useTranslation } from 'react-i18next';  // Для t
 import { sendMessage, fetchMessagesByChannel } from '../api';
 import { connectSocket, disconnectSocket, joinChannel, leaveChannel, emitNewMessage } from '../socket';
 import { setChannels, setCurrentChannelId } from '../features/channels/channelsSlice';
 import { setMessages } from '../features/messages/messagesSlice';
 import api from '../api';
-import { useTranslation } from 'react-i18next';  // Хук
 import AddChannelModal from './components/AddChannelModal';
 import RenameChannelModal from './components/RenameChannelModal';
 import RemoveChannelModal from './components/RemoveChannelModal';
 
 const App = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation();  // t для toast
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const inputRef = useRef(null);
@@ -40,13 +41,15 @@ const App = () => {
       joinChannel(generalId);
       fetchMessagesByChannel(generalId).then((response) => {
         dispatch(setMessages(response.data.messages));
+      }).catch((error) => {
+        toast.error(t('toast.error.fetchMessages'));
       });
     }).catch((error) => {
-      console.error('Error fetching channels:', error);
+      toast.error(t('toast.error.fetchChannels'));
     });
 
     return () => disconnectSocket();
-  }, [token, dispatch, navigate]);
+  }, [token, dispatch, navigate, t]);
 
   const handleChannelClick = async (channelId) => {
     if (currentChannelId === channelId) return;
@@ -60,7 +63,7 @@ const App = () => {
       const response = await fetchMessagesByChannel(channelId);
       dispatch(setMessages(response.data.messages));
     } catch (error) {
-      console.error('Error fetching messages for channel:', error);
+      toast.error(t('toast.error.fetchMessages'));
     }
   };
 
@@ -78,12 +81,14 @@ const App = () => {
     } catch (error) {
       console.error('Send message error:', error);
       setSubmitError(t('app.sendError'));
+      toast.error(t('toast.error.network'));  // Для сети
       setTimeout(async () => {
         try {
           await emitNewMessage({ text, channelId: currentChannelId, username });
           setSubmitError(null);
         } catch (retryError) {
           setSubmitError(t('app.retryError'));
+          toast.error(t('toast.error.generic'));
         }
       }, 1000);
     }

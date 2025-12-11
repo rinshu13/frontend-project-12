@@ -3,6 +3,8 @@ import { Modal, Button, Form } from 'react-bootstrap';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';  // Импорт для t
+import { toast } from 'react-toastify';  // Импорт toast
 import { createChannel } from '../api';
 import { setChannels, setCurrentChannelId } from '../features/channels/channelsSlice';
 import { joinChannel } from '../socket';
@@ -16,6 +18,7 @@ const AddChannelSchema = Yup.object().shape({
 
 const AddChannelModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();  // Переводы
   const channels = useSelector((state) => state.channels.channels);
   const inputRef = useRef(null);
 
@@ -35,6 +38,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
         dispatch(setChannels([...channels, newChannel]));
         dispatch(setCurrentChannelId(newChannel.id));  // Перемести в новый
         joinChannel(newChannel.id);  // Join room
+        toast.success(t('toast.success.createChannel'));  // Success toast
         onClose();
         resetForm();
       } catch (error) {
@@ -58,12 +62,12 @@ const AddChannelModal = ({ isOpen, onClose }) => {
   return (
     <Modal show={isOpen} onHide={onClose} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Добавить канал</Modal.Title>
+        <Modal.Title>{t('modal.addTitle')}</Modal.Title>
       </Modal.Header>
       <Form onSubmit={formik.handleSubmit} onKeyDown={handleKeyDown}>
         <Modal.Body>
           <Form.Group>
-            <Form.Label>Имя канала</Form.Label>
+            <Form.Label>{t('modal.addNameLabel')}</Form.Label>
             <Form.Control
               ref={inputRef}
               type="text"
@@ -81,10 +85,10 @@ const AddChannelModal = ({ isOpen, onClose }) => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={onClose} disabled={formik.isSubmitting}>
-            Отменить
+            {t('modal.addCancel')}
           </Button>
           <Button variant="primary" type="submit" disabled={formik.isSubmitting}>
-            {formik.isSubmitting ? 'Создание...' : 'Добавить'}
+            {formik.isSubmitting ? t('modal.addLoading') : t('modal.addSubmit')}
           </Button>
         </Modal.Footer>
       </Form>

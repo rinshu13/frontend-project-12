@@ -16,9 +16,11 @@ export const connectSocket = (token) => {
     store.dispatch(addMessage(message));  // Добавь в Redux
   });
 
-  // Ошибки
+  // Ошибки (альтернатива: toast в App useEffect)
   socket.on('connect_error', (err) => {
     console.error('Socket connect error:', err);
+    // Для toast: Обработать в App useEffect после connectSocket
+    // socket.on('connect_error', () => toast.error(t('toast.error.network')));
   });
 
   return socket;

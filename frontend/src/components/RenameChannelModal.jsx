@@ -3,6 +3,8 @@ import { Modal, Button, Form } from 'react-bootstrap';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';  // Импорт для t
+import { toast } from 'react-toastify';  // Импорт toast
 import { renameChannel } from '../api';
 import { setChannels } from '../features/channels/channelsSlice';
 import { leaveChannel, joinChannel } from '../socket';
@@ -16,6 +18,7 @@ const RenameChannelSchema = Yup.object().shape({
 
 const RenameChannelModal = ({ channel, isOpen, onClose }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();  // Переводы
   const channels = useSelector((state) => state.channels.channels);
   const inputRef = useRef(null);
 
@@ -38,6 +41,7 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
         dispatch(setChannels(updatedChannels));
         leaveChannel(channel.id);  // Leave old room
         joinChannel(channel.id);  // Re-join (server uses id, not name)
+        toast.success(t('toast.success.renameChannel'));  // Success toast
         onClose();
         resetForm();
       } catch (error) {
@@ -63,12 +67,12 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
   return (
     <Modal show={isOpen} onHide={onClose} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Переименовать канал</Modal.Title>
+        <Modal.Title>{t('modal.renameTitle')}</Modal.Title>
       </Modal.Header>
       <Form onSubmit={formik.handleSubmit} onKeyDown={handleKeyDown}>
         <Modal.Body>
           <Form.Group>
-            <Form.Label>Имя канала</Form.Label>
+            <Form.Label>{t('modal.renameNameLabel')}</Form.Label>
             <Form.Control
               ref={inputRef}
               type="text"
@@ -86,10 +90,10 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={onClose} disabled={formik.isSubmitting}>
-            Отменить
+            {t('modal.renameCancel')}
           </Button>
           <Button variant="primary" type="submit" disabled={formik.isSubmitting}>
-            {formik.isSubmitting ? 'Сохранение...' : 'Сохранить'}
+            {formik.isSubmitting ? t('modal.renameLoading') : t('modal.renameSubmit')}
           </Button>
         </Modal.Footer>
       </Form>

@@ -76,6 +76,15 @@ const resources = {
       // Dropdown
       'dropdown.rename': 'Переименовать',
       'dropdown.remove': 'Удалить',
+
+      // Toast (новые ключи для Шага 9)
+      'toast.success.createChannel': 'Канал создан',
+      'toast.success.renameChannel': 'Канал переименован',
+      'toast.success.deleteChannel': 'Канал удалён',
+      'toast.error.fetchChannels': 'Ошибка загрузки каналов',
+      'toast.error.fetchMessages': 'Ошибка загрузки сообщений',
+      'toast.error.network': 'Сеть недоступна',
+      'toast.error.generic': 'Произошла ошибка',
     },
   },
 };
