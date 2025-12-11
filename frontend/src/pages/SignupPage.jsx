@@ -1,37 +1,33 @@
+// src/pages/SignupPage.jsx
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
 import api from '../api';
 import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
 
 const SignupPage = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { t } = useTranslation();
   const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    confirmPassword: ''
-  });
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    const { username, password, confirmPassword } = formData;
+    const form = e.target;
+    const username = form.username.value.trim();
+    const password = form.password.value;
+    const confirmPassword = form.confirmPassword.value;
 
-    if (!username || username.length < 3 || username.length > 20) {
+    // Минимальная валидация (как в требованиях)
+    if (username.length < 3 || username.length > 20) {
       setError(t('errors.min3'));
       return;
     }
-    if (!password || password.length < 6) {
+    if (password.length < 6) {
       setError(t('errors.min6'));
       return;
     }
@@ -41,12 +37,11 @@ const SignupPage = () => {
     }
 
     try {
-      // Отправляем только username и password
       const response = await api.post('/signup', { username, password });
-      const { token } = response.data; // ← только token возвращается!
+      const { token } = response.data;
 
       if (!token) {
-        throw new Error('No token in response');
+        throw new Error('No token');
       }
 
       // username берём из формы, а не из ответа!
@@ -70,33 +65,15 @@ const SignupPage = () => {
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
               <Form.Label>{t('signup.usernameLabel')}</Form.Label>
-              <Form.Control
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                required
-              />
+              <Form.Control type="text" name="username" required />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>{t('signup.passwordLabel')}</Form.Label>
-              <Form.Control
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
+              <Form.Control type="password" name="password" required />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>{t('signup.confirmPasswordLabel')}</Form.Label>
-              <Form.Control
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
+              <Form.Control type="password" name="confirmPassword" required />
             </Form.Group>
             <Button variant="primary" type="submit" className="w-100 mb-3">
               {t('signup.submit')}
