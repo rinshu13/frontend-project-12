@@ -10,7 +10,8 @@ const channelsSlice = createSlice({
   initialState,
   reducers: {
     setChannels: (state, action) => {
-      state.channels = action.payload;
+      // ✅ Гарантируем массив даже при action.payload === undefined
+      state.channels = Array.isArray(action.payload) ? action.payload : [];
     },
     setCurrentChannelId: (state, action) => {
       state.currentChannelId = action.payload;

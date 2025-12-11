@@ -3,10 +3,9 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
-import axios from 'axios';
+import api from '../api'; // ✅ Используем настроенный api вместо axios
 import { Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
 
 const SignupPage = () => {
@@ -38,14 +37,23 @@ const SignupPage = () => {
     onSubmit: async (values) => {
       setError(null);
       try {
-        const response = await axios.post('/api/v1/signup', {
+        // ✅ Правильный путь — /signup (baseURL уже /api/v1)
+        const response = await api.post('/signup', {
           username: values.username,
           password: values.password,
         });
+
         const { token, username } = response.data;
+
+        // ✅ Защита: если сервер вернул некорректный ответ
+        if (!token || !username) {
+          throw new Error('Invalid server response: missing token or username');
+        }
+
         dispatch(login({ token, username }));
         navigate('/');
       } catch (error) {
+        console.error('Signup error:', error);
         if (error.response?.status === 409) {
           setError(t('errors.conflict'));
         } else {
@@ -107,10 +115,10 @@ const SignupPage = () => {
             <Button variant="primary" type="submit" className="w-100 mb-3">
               {t('signup.submit')}
             </Button>
+            <div className="text-center">
+              <a href="/login">{t('signup.loginLink')}</a>
+            </div>
           </Form>
-          <p className="text-center">
-            {t('signup.loginLink')}
-          </p>
         </Col>
       </Row>
     </Container>

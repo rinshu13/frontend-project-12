@@ -9,10 +9,14 @@ const messagesSlice = createSlice({
   initialState,
   reducers: {
     setMessages: (state, action) => {
-      state.messages = action.payload;
+      // ✅ Гарантируем массив
+      state.messages = Array.isArray(action.payload) ? action.payload : [];
     },
     addMessage: (state, action) => {
-      state.messages.push(action.payload);  // Для будущей отправки
+      // ✅ Добавляем только если это объект (сообщение)
+      if (action.payload && typeof action.payload === 'object' && !Array.isArray(action.payload)) {
+        state.messages.push(action.payload);
+      }
     },
   },
 });

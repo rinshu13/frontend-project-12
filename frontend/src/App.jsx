@@ -7,8 +7,8 @@ import { useTranslation } from 'react-i18next';
 import leoProfanity from 'leo-profanity';
 import { sendMessage, fetchMessagesByChannel } from './api';
 import { connectSocket, disconnectSocket, joinChannel, leaveChannel, emitNewMessage } from './socket';
-import { setChannels, setCurrentChannelId } from './features/channels/channelsSlice';  // Исправлено: './features...'
-import { setMessages } from './features/messages/messagesSlice';  // Исправлено: './features...'
+import { setChannels, setCurrentChannelId } from './features/channels/channelsSlice';
+import { setMessages } from './features/messages/messagesSlice';
 import api from './api';
 import AddChannelModal from './components/AddChannelModal';
 import RenameChannelModal from './components/RenameChannelModal';
@@ -27,6 +27,12 @@ const App = () => {
   const [showRenameModal, setShowRenameModal] = useState(null);
   const [showRemoveModal, setShowRemoveModal] = useState(null);
 
+  // Защита на случай некорректного состояния (для отладки)
+  if (process.env.NODE_ENV === 'development') {
+    if (!Array.isArray(channels)) console.error('channels is not an array:', channels);
+    if (!Array.isArray(messages)) console.error('messages is not an array:', messages);
+  }
+
   useEffect(() => {
     if (!token) {
       navigate('/login');
@@ -35,26 +41,38 @@ const App = () => {
 
     connectSocket(token);
 
-    api.get('/channels').then((response) => {
-      dispatch(setChannels(response.data.channels));
-      const generalId = response.data.channels.find(c => c.name === 'general')?.id || 1;
-      dispatch(setCurrentChannelId(generalId));
-      joinChannel(generalId);
-      fetchMessagesByChannel(generalId).then((response) => {
-        dispatch(setMessages(response.data.messages));
-      }).catch((error) => {
-        toast.error(t('toast.error.fetchMessages'));
-      });
-    }).catch((error) => {
-      toast.error(t('toast.error.fetchChannels'));
-    });
+    api.get('/channels')
+      .then((response) => {
+        const channelsList = Array.isArray(response.data.channels) ? response.data.channels : [];
+        dispatch(setChannels(channelsList));
 
-    // Socket error handling
+        const generalId = channelsList.find(c => c.name === 'general')?.id || 1;
+        dispatch(setCurrentChannelId(generalId));
+        joinChannel(generalId);
+
+        fetchMessagesByChannel(generalId)
+          .then((res) => {
+            const messagesList = Array.isArray(res.data.messages) ? res.data.messages : [];
+            dispatch(setMessages(messagesList));
+          })
+          .catch((error) => {
+            console.error('Fetch messages failed:', error);
+            toast.error(t('toast.error.fetchMessages'));
+            dispatch(setMessages([]));
+          });
+      })
+      .catch((error) => {
+        console.error('Fetch channels failed:', error);
+        toast.error(t('toast.error.fetchChannels'));
+        dispatch(setChannels([]));
+      });
+
     const socket = connectSocket(token);
     const handleConnectError = () => {
       toast.error(t('toast.error.network'));
     };
     socket.on('connect_error', handleConnectError);
+
     return () => {
       socket.off('connect_error', handleConnectError);
       disconnectSocket();
@@ -71,9 +89,12 @@ const App = () => {
     joinChannel(channelId);
     try {
       const response = await fetchMessagesByChannel(channelId);
-      dispatch(setMessages(response.data.messages));
+      const messagesList = Array.isArray(response.data.messages) ? response.data.messages : [];
+      dispatch(setMessages(messagesList));
     } catch (error) {
+      console.error('Fetch messages error:', error);
       toast.error(t('toast.error.fetchMessages'));
+      dispatch(setMessages([]));
     }
   };
 
@@ -83,7 +104,6 @@ const App = () => {
     let text = e.target.message.value.trim();
     if (!text || !currentChannelId) return;
 
-    // Фильтрация мата
     if (leoProfanity.check(text)) {
       text = leoProfanity.clean(text);
       toast.warning(t('toast.warning.profanity'));
@@ -123,7 +143,7 @@ const App = () => {
             </Button>
           </div>
           <ListGroup className="channels-list flex-grow-1 overflow-auto">
-            {channels.map((channel) => (
+            {channels?.map((channel) => (
               <ListGroup.Item
                 key={channel.id}
                 active={currentChannelId === channel.id}
@@ -147,12 +167,12 @@ const App = () => {
                   </Dropdown>
                 )}
               </ListGroup.Item>
-            ))}
+            )) || <p className="text-center text-muted">{t('app.loadingChannels')}</p>}
           </ListGroup>
         </Col>
         <Col md={9} className="d-flex flex-column">
           <div className="flex-grow-1 p-3 overflow-auto bg-light" style={{ height: 'calc(100vh - 120px)' }}>
-            {messages.map((message) => (
+            {messages?.map((message) => (
               <Card key={message.id} className="mb-2">
                 <Card.Body>
                   <Card.Subtitle className="mb-2 text-muted">{message.username}</Card.Subtitle>
@@ -160,8 +180,7 @@ const App = () => {
                   <Card.Footer className="text-muted small">{new Date(message.createdAt).toLocaleString()}</Card.Footer>
                 </Card.Body>
               </Card>
-            ))}
-            {messages.length === 0 && <p className="text-center text-muted">{t('app.noMessages')}</p>}
+            )) || <p className="text-center text-muted">{t('app.noMessages')}</p>}
           </div>
           <Form onSubmit={handleSubmit} className="border-top p-3">
             {submitError && <Alert variant="danger" className="mb-2">{submitError}</Alert>}
@@ -187,7 +206,7 @@ const App = () => {
       <AddChannelModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
       {showRenameModal && (
         <RenameChannelModal
-          channel={channels.find(c => c.id === showRenameModal)}
+          channel={channels?.find(c => c.id === showRenameModal)}
           isOpen={true}
           onClose={() => setShowRenameModal(null)}
         />
