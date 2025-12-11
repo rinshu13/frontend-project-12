@@ -1,67 +1,65 @@
 import React, { useState } from 'react';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
-import api from '../api'; // ✅ Используем настроенный api вместо axios
-import { Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
+import api from '../api';
+import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
 
 const SignupPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [error, setError] = useState(null);
-
-  const SignupSchema = Yup.object().shape({
-    username: Yup.string()
-      .min(3, t('errors.min3'))
-      .max(20, t('errors.max20'))
-      .required(t('errors.required')),
-    password: Yup.string()
-      .min(6, t('errors.min6'))
-      .required(t('errors.required')),
-    confirmPassword: Yup.string()
-      .oneOf([Yup.ref('password'), null], t('errors.passwordMismatch'))
-      .required(t('errors.required')),
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    confirmPassword: ''
   });
 
-  const formik = useFormik({
-    initialValues: {
-      username: '',
-      password: '',
-      confirmPassword: '',
-    },
-    validationSchema: SignupSchema,
-    onSubmit: async (values) => {
-      setError(null);
-      try {
-        // ✅ Правильный путь — /signup (baseURL уже /api/v1)
-        const response = await api.post('/signup', {
-          username: values.username,
-          password: values.password,
-        });
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-        const { token, username } = response.data;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
 
-        // ✅ Защита: если сервер вернул некорректный ответ
-        if (!token || !username) {
-          throw new Error('Invalid server response: missing token or username');
-        }
+    const { username, password, confirmPassword } = formData;
 
-        dispatch(login({ token, username }));
-        navigate('/');
-      } catch (error) {
-        console.error('Signup error:', error);
-        if (error.response?.status === 409) {
-          setError(t('errors.conflict'));
-        } else {
-          setError(t('errors.signup'));
-        }
+    if (!username || username.length < 3 || username.length > 20) {
+      setError(t('errors.min3'));
+      return;
+    }
+    if (!password || password.length < 6) {
+      setError(t('errors.min6'));
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError(t('errors.passwordMismatch'));
+      return;
+    }
+
+    try {
+      // Отправляем только username и password
+      const response = await api.post('/signup', { username, password });
+      const { token } = response.data; // ← только token возвращается!
+
+      if (!token) {
+        throw new Error('No token in response');
       }
-    },
-  });
+
+      // username берём из формы, а не из ответа!
+      dispatch(login({ token, username }));
+      navigate('/');
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setError(t('errors.conflict'));
+      } else {
+        setError(t('errors.signup'));
+      }
+    }
+  };
 
   return (
     <Container className="signup-page">
@@ -69,56 +67,44 @@ const SignupPage = () => {
         <Col md={6}>
           <h1 className="text-center mb-4">{t('signup.title')}</h1>
           {error && <Alert variant="danger" className="mb-3">{error}</Alert>}
-          <Form onSubmit={formik.handleSubmit}>
+          <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
               <Form.Label>{t('signup.usernameLabel')}</Form.Label>
               <Form.Control
                 type="text"
                 name="username"
-                value={formik.values.username}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                isInvalid={formik.touched.username && !!formik.errors.username}
+                value={formData.username}
+                onChange={handleChange}
+                required
               />
-              <Form.Control.Feedback type="invalid">
-                {formik.errors.username}
-              </Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>{t('signup.passwordLabel')}</Form.Label>
               <Form.Control
                 type="password"
                 name="password"
-                value={formik.values.password}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                isInvalid={formik.touched.password && !!formik.errors.password}
+                value={formData.password}
+                onChange={handleChange}
+                required
               />
-              <Form.Control.Feedback type="invalid">
-                {formik.errors.password}
-              </Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>{t('signup.confirmPasswordLabel')}</Form.Label>
               <Form.Control
                 type="password"
                 name="confirmPassword"
-                value={formik.values.confirmPassword}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                isInvalid={formik.touched.confirmPassword && !!formik.errors.confirmPassword}
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
               />
-              <Form.Control.Feedback type="invalid">
-                {formik.errors.confirmPassword}
-              </Form.Control.Feedback>
             </Form.Group>
             <Button variant="primary" type="submit" className="w-100 mb-3">
               {t('signup.submit')}
             </Button>
-            <div className="text-center">
-              <a href="/login">{t('signup.loginLink')}</a>
-            </div>
           </Form>
+          <div className="text-center">
+            <a href="/login">{t('signup.loginLink')}</a>
+          </div>
         </Col>
       </Row>
     </Container>
