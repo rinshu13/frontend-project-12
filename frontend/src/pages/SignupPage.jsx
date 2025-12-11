@@ -22,7 +22,7 @@ const SignupPage = () => {
     const password = form.password.value;
     const confirmPassword = form.confirmPassword.value;
 
-    // Валидация по требованиям
+    // Валидация по требованиям проекта
     if (username.length < 3 || username.length > 20) {
       setError(t('errors.min3'));
       return;
@@ -40,13 +40,14 @@ const SignupPage = () => {
       const response = await api.post('/signup', { username, password });
       const { token } = response.data;
 
-      if (!token) {
-        throw new Error('No token');
+      if (!token || typeof token !== 'string') {
+        throw new Error('Invalid token in response');
       }
 
-      // Сохраняем данные
+      // username берём из формы — бэкенд его НЕ возвращает
       dispatch(login({ token, username }));
-      navigate('/');
+      // Используем полную перезагрузку, чтобы гарантировать инициализацию состояния
+      window.location.href = '/';
     } catch (err) {
       if (err.response?.status === 409) {
         setError(t('errors.conflict'));

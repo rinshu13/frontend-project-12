@@ -1,3 +1,4 @@
+// src/features/auth/authSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -10,10 +11,16 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     login: (state, action) => {
-      state.token = action.payload.token;
-      state.username = action.payload.username;
-      localStorage.setItem('token', state.token);
-      localStorage.setItem('username', state.username);
+      const { token, username } = action.payload;
+      // Защита: сохраняем только валидные строки
+      if (token && typeof token === 'string' && username && typeof username === 'string') {
+        state.token = token;
+        state.username = username;
+        localStorage.setItem('token', token);
+        localStorage.setItem('username', username);
+      } else {
+        console.error('Invalid login payload:', action.payload);
+      }
     },
     logout: (state) => {
       state.token = null;
