@@ -11,7 +11,7 @@ const resources = {
 
       // Login
       'login.title': 'Авторизация',
-      'login.usernameLabel': 'Ваш ник',
+      'login.usernameLabel': 'Имя пользователя',
       'login.passwordLabel': 'Пароль',
       'login.submit': 'Войти',
       'login.signupLink': 'Регистрация',  // Исправлено: Только для <Link>, полный текст в JSX
@@ -22,7 +22,7 @@ const resources = {
 
       // Signup
       'signup.title': 'Регистрация',
-      'signup.usernameLabel': 'Ваш ник',
+      'signup.usernameLabel': 'Имя пользователя',
       'signup.passwordLabel': 'Пароль',
       'signup.confirmPasswordLabel': 'Подтвердите пароль',
       'signup.submit': 'Зарегистрироваться',
