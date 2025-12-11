@@ -22,7 +22,7 @@ const SignupPage = () => {
     const password = form.password.value;
     const confirmPassword = form.confirmPassword.value;
 
-    // Минимальная валидация (как в требованиях)
+    // Валидация по требованиям
     if (username.length < 3 || username.length > 20) {
       setError(t('errors.min3'));
       return;
@@ -44,7 +44,7 @@ const SignupPage = () => {
         throw new Error('No token');
       }
 
-      // username берём из формы, а не из ответа!
+      // Сохраняем данные
       dispatch(login({ token, username }));
       navigate('/');
     } catch (err) {
