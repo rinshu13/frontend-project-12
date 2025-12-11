@@ -4,7 +4,7 @@ import * as Yup from 'yup';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';  // Хук
+import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
 import axios from 'axios';
 import { Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
@@ -12,7 +12,7 @@ import { Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
 const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { t } = useTranslation();  // Переводы
+  const { t } = useTranslation();
   const [error, setError] = useState(null);
 
   const LoginSchema = Yup.object().shape({
@@ -83,7 +83,7 @@ const LoginPage = () => {
             </Button>
           </Form>
           <p className="text-center mt-3">
-            {t('login.signupLink')}
+            <Link to="/signup">{t('login.signupLink')}</Link>
           </p>
         </Col>
       </Row>
