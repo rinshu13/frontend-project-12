@@ -11,30 +11,30 @@ const resources = {
 
       // Login
       'login.title': 'Авторизация',
-      'login.usernameLabel': 'Имя пользователя:',
-      'login.passwordLabel': 'Пароль:',
+      'login.usernameLabel': 'Ваш ник',
+      'login.passwordLabel': 'Пароль',
       'login.submit': 'Войти',
-      'login.signupLink': 'Нет аккаунта? Зарегистрируйтесь',
+      'login.signupLink': 'Регистрация',
       'errors.required': 'Обязательно',
-      'errors.min3': 'Не короче 3 символов',
-      'errors.min6': 'Не короче 6 символов',
-      'errors.unauthorized': 'Ошибка авторизации',
+      'errors.min3': 'От 3 до 20 символов',
+      'errors.min6': 'Не менее 6 символов',
+      'errors.unauthorized': 'Неверные имя пользователя или пароль',
 
       // Signup
       'signup.title': 'Регистрация',
-      'signup.usernameLabel': 'Имя пользователя:',
-      'signup.passwordLabel': 'Пароль:',
-      'signup.confirmPasswordLabel': 'Подтверждение пароля:',
+      'signup.usernameLabel': 'Ваш ник',
+      'signup.passwordLabel': 'Пароль',
+      'signup.confirmPasswordLabel': 'Подтвердите пароль',
       'signup.submit': 'Зарегистрироваться',
-      'signup.loginLink': 'Уже есть аккаунт? Войти',
-      'errors.max20': 'Не длиннее 20 символов',
-      'errors.passwordMismatch': 'Пароли не совпадают',
+      'signup.loginLink': 'Войти',
+      'errors.max20': 'От 3 до 20 символов',
+      'errors.passwordMismatch': 'Пароли должны совпадать',
       'errors.conflict': 'Пользователь с таким именем уже существует',
       'errors.signup': 'Ошибка регистрации. Попробуйте позже.',
 
       // App/Chat
       'app.channelsTitle': 'Каналы',
-      'app.addChannel': '+ Добавить канал',
+      'app.addChannel': '+',
       'app.noMessages': 'Нет сообщений',
       'app.messagePlaceholder': 'Введите сообщение...',
       'app.send': 'Отправить',
@@ -53,6 +53,7 @@ const resources = {
       'modal.addErrorRequired': 'Имя канала обязательно',
       'modal.addErrorUnique': 'Имя канала уже существует',
       'modal.addError': 'Ошибка создания канала',
+      'modal.addErrorProfanity': 'Нецензурное слово в имени канала',
 
       'modal.renameTitle': 'Переименовать канал',
       'modal.renameNameLabel': 'Имя канала',
@@ -61,6 +62,7 @@ const resources = {
       'modal.renameLoading': 'Сохранение...',
       'modal.renameErrorUnique': 'Имя канала уже существует',
       'modal.renameError': 'Ошибка переименования',
+      'modal.renameErrorProfanity': 'Нецензурное слово в имени канала',
 
       'modal.removeTitle': 'Удалить канал?',
       'modal.removeBody': 'Подтвердите удаление канала. Это действие нельзя отменить.',
@@ -77,13 +79,13 @@ const resources = {
       'dropdown.rename': 'Переименовать',
       'dropdown.remove': 'Удалить',
 
-      // Toast (новые ключи для Шага 9)
+      // Toast
       'toast.success.createChannel': 'Канал создан',
       'toast.success.renameChannel': 'Канал переименован',
       'toast.success.deleteChannel': 'Канал удалён',
       'toast.error.fetchChannels': 'Ошибка загрузки каналов',
       'toast.error.fetchMessages': 'Ошибка загрузки сообщений',
-      'toast.error.network': 'Сеть недоступна',
+      'toast.error.network': 'Ошибка соединения',
       'toast.error.generic': 'Произошла ошибка',
       'toast.warning.profanity': 'Нецензурное слово заменено',
     },
@@ -91,13 +93,13 @@ const resources = {
 };
 
 i18n
-  .use(initReactI18next)  // React bindings
+  .use(initReactI18next)
   .init({
     resources,
-    lng: 'ru',  // Default locale
+    lng: 'ru',  // Фиксированная локаль ru для тестов
     fallbackLng: 'ru',
     interpolation: {
-      escapeValue: false,  // React already escapes
+      escapeValue: false,
     },
   });
 
