@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, ListGroup, Form, Button, Card, Alert, Dropdown } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import leoProfanity from 'leo-profanity';  // Импорт библиотеки
+import leoProfanity from 'leo-profanity';  // Фильтрация мата
 import { sendMessage, fetchMessagesByChannel } from '../api';
 import { connectSocket, disconnectSocket, joinChannel, leaveChannel, emitNewMessage } from '../socket';
 import { setChannels, setCurrentChannelId } from '../features/channels/channelsSlice';
@@ -48,6 +48,9 @@ const App = () => {
     }).catch((error) => {
       toast.error(t('toast.error.fetchChannels'));
     });
+
+    // ТЕСТОВАЯ ОШИБКА ДЛЯ ROLLBAR — УДАЛИ ПОСЛЕ ПРОВЕРКИ!
+    throw new Error('Test Rollbar error');  // Это вызовет ошибку, Rollbar поймает
 
     // Socket error handling
     const socket = connectSocket(token);
