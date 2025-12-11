@@ -5,6 +5,7 @@ import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';  // Импорт для t
 import { toast } from 'react-toastify';  // Импорт toast
+import leoProfanity from 'leo-profanity';  // Импорт для фильтрации
 import { renameChannel } from '../api';
 import { setChannels } from '../features/channels/channelsSlice';
 import { leaveChannel, joinChannel } from '../socket';
@@ -34,6 +35,12 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
     initialValues: { name: channel?.name || '' },
     validationSchema: RenameChannelSchema,
     onSubmit: async (values, { setSubmitting, resetForm }) => {
+      // Фильтрация мата в имени канала
+      if (leoProfanity.check(values.name)) {
+        formik.setFieldError('name', t('modal.renameErrorProfanity') || 'Нецензурное слово в имени канала');
+        return;
+      }
+
       try {
         const response = await renameChannel(channel.id, values.name);
         const updatedChannel = response.data;
@@ -46,9 +53,9 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
         resetForm();
       } catch (error) {
         if (error.response?.status === 409) {
-          formik.setFieldError('name', 'Имя канала уже существует');
+          formik.setFieldError('name', t('modal.renameErrorUnique') || 'Имя канала уже существует');
         } else {
-          formik.setFieldError('name', 'Ошибка переименования');
+          formik.setFieldError('name', t('modal.renameError') || 'Ошибка переименования');
         }
       } finally {
         setSubmitting(false);

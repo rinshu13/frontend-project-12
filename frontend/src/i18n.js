@@ -85,6 +85,7 @@ const resources = {
       'toast.error.fetchMessages': 'Ошибка загрузки сообщений',
       'toast.error.network': 'Сеть недоступна',
       'toast.error.generic': 'Произошла ошибка',
+      'toast.warning.profanity': 'Нецензурное слово заменено',
     },
   },
 };

@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, ListGroup, Form, Button, Card, Alert, Dropdown } from 'react-bootstrap';
-import { toast } from 'react-toastify';  // Импорт toast
-import { useTranslation } from 'react-i18next';  // Для t
+import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
+import leoProfanity from 'leo-profanity';  // Импорт библиотеки
 import { sendMessage, fetchMessagesByChannel } from '../api';
 import { connectSocket, disconnectSocket, joinChannel, leaveChannel, emitNewMessage } from '../socket';
 import { setChannels, setCurrentChannelId } from '../features/channels/channelsSlice';
@@ -14,7 +15,7 @@ import RenameChannelModal from './components/RenameChannelModal';
 import RemoveChannelModal from './components/RemoveChannelModal';
 
 const App = () => {
-  const { t } = useTranslation();  // t для toast
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const inputRef = useRef(null);
@@ -48,7 +49,16 @@ const App = () => {
       toast.error(t('toast.error.fetchChannels'));
     });
 
-    return () => disconnectSocket();
+    // Socket error handling
+    const socket = connectSocket(token);
+    const handleConnectError = () => {
+      toast.error(t('toast.error.network'));
+    };
+    socket.on('connect_error', handleConnectError);
+    return () => {
+      socket.off('connect_error', handleConnectError);
+      disconnectSocket();
+    };
   }, [token, dispatch, navigate, t]);
 
   const handleChannelClick = async (channelId) => {
@@ -70,8 +80,14 @@ const App = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError(null);
-    const text = e.target.message.value.trim();
+    let text = e.target.message.value.trim();
     if (!text || !currentChannelId) return;
+
+    // Фильтрация мата
+    if (leoProfanity.check(text)) {
+      text = leoProfanity.clean(text);
+      toast.warning(t('toast.warning.profanity'));
+    }
 
     try {
       await sendMessage({ text, channelId: currentChannelId });
@@ -81,7 +97,7 @@ const App = () => {
     } catch (error) {
       console.error('Send message error:', error);
       setSubmitError(t('app.sendError'));
-      toast.error(t('toast.error.network'));  // Для сети
+      toast.error(t('toast.error.network'));
       setTimeout(async () => {
         try {
           await emitNewMessage({ text, channelId: currentChannelId, username });

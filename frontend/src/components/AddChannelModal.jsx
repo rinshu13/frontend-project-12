@@ -1,10 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { useFormik } from 'formik';
-import * as Yup from 'yup';
+import * as Yup from 'yap';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';  // Импорт для t
 import { toast } from 'react-toastify';  // Импорт toast
+import leoProfanity from 'leo-profanity';  // Импорт для фильтрации
 import { createChannel } from '../api';
 import { setChannels, setCurrentChannelId } from '../features/channels/channelsSlice';
 import { joinChannel } from '../socket';
@@ -32,6 +33,12 @@ const AddChannelModal = ({ isOpen, onClose }) => {
     initialValues: { name: '' },
     validationSchema: AddChannelSchema,
     onSubmit: async (values, { setSubmitting, resetForm }) => {
+      // Фильтрация мата в имени канала
+      if (leoProfanity.check(values.name)) {
+        formik.setFieldError('name', t('modal.addErrorProfanity') || 'Нецензурное слово в имени канала');
+        return;
+      }
+
       try {
         const response = await createChannel(values.name);
         const newChannel = response.data;  // {id, name, removable: true}
@@ -43,9 +50,9 @@ const AddChannelModal = ({ isOpen, onClose }) => {
         resetForm();
       } catch (error) {
         if (error.response?.status === 409) {
-          formik.setFieldError('name', 'Имя канала уже существует');
+          formik.setFieldError('name', t('modal.addErrorUnique') || 'Имя канала уже существует');
         } else {
-          formik.setFieldError('name', 'Ошибка создания канала');
+          formik.setFieldError('name', t('modal.addError') || 'Ошибка создания канала');
         }
       } finally {
         setSubmitting(false);
