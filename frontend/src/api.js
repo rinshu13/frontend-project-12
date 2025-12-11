@@ -17,4 +17,24 @@ export const sendMessage = async (data) => {
   return api.post('/messages', data);
 };
 
+// GET /messages?channelId=id для получения сообщений по каналу
+export const fetchMessagesByChannel = async (channelId) => {
+  return api.get(`/messages?channelId=${channelId}`);
+};
+
+// POST /channels для создания канала
+export const createChannel = async (name) => {
+  return api.post('/channels', { name });
+};
+
+// DELETE /channels/:id для удаления канала
+export const deleteChannel = async (channelId) => {
+  return api.delete(`/channels/${channelId}`);
+};
+
+// PUT /channels/:id для переименования канала
+export const renameChannel = async (channelId, name) => {
+  return api.put(`/channels/${channelId}`, { name });
+};
+
 export default api;

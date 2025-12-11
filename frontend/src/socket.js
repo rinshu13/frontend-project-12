@@ -53,6 +53,15 @@ export const joinChannel = async (channelId) => {
   }
 };
 
+// Leave channel room (для смены канала)
+export const leaveChannel = async (channelId) => {
+  try {
+    await promisifyEmit('leaveChannel', { channelId });
+  } catch (error) {
+    console.error('Leave channel error:', error);
+  }
+};
+
 // Emit newMessage с ack
 export const emitNewMessage = async (data) => {
   try {
