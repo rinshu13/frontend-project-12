@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
-import api from '../api'; // ← оставляем api, но используем правильный путь
+import api from '../api';
 import { Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
 
 const LoginPage = () => {
@@ -34,17 +34,17 @@ const LoginPage = () => {
       setError(null);
       setLoading(true);
       try {
-        // ← ЭТО САМАЯ ВАЖНАЯ СТРОКА! Должна быть /api/v1/login
+        // Правильный путь к эндпоинту входа на бэкенде Hexlet
         const response = await api.post('/api/v1/login', values);
-
         const { token, username } = response.data;
         dispatch(login({ token, username }));
         navigate('/');
       } catch (err) {
+        // При 401 (неверные данные) выводим точный текст, который ожидает тест
         if (err.response?.status === 401) {
-          setError('Неверные имя пользователя или пароль'); // ← ТОЧНЫЙ текст, как в тесте
+          setError('Неверные имя пользователя или пароль');
         } else {
-          setError(t('errors.network') || 'Ошибка сети');
+          setError(t('errors.network') || 'Ошибка сети. Попробуйте позже.');
         }
       } finally {
         setLoading(false);
