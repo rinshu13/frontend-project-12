@@ -60,12 +60,6 @@ const LoginPage = () => {
         <Col md={6}>
           <h1 className="text-center mb-4">Войти</h1>
 
-          {authError && (
-            <div className="mb-3 p-3 text-white bg-danger rounded text-center">
-              {authError}
-            </div>
-          )}
-
           <Form onSubmit={formik.handleSubmit}>
             {/* Поле "Ваш ник" */}
             <Form.Group as={Row} className="mb-3 align-items-center position-relative">
@@ -120,6 +114,13 @@ const LoginPage = () => {
                 </Form.Control.Feedback>
               </Col>
             </Form.Group>
+
+            {/* Плашка с ошибкой — появляется над кнопкой, как на скриншоте */}
+            {authError && (
+              <div className="p-3 text-white bg-danger rounded text-center mb-3">
+                {authError}
+              </div>
+            )}
 
             <Button variant="primary" type="submit" className="w-100 rounded-pill py-2" disabled={loading}>
               Войти
