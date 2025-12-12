@@ -11,7 +11,7 @@ const resources = {
 
       // Login
       'login.title': 'Авторизация',
-      'login.usernameLabel': 'Имя пользователя',
+      'login.usernameLabel': 'Ваш ник',
       'login.passwordLabel': 'Пароль',
       'login.submit': 'Войти',
       'login.loading': 'Вход...',
