@@ -61,63 +61,55 @@ const LoginPage = () => {
           <h1 className="text-center mb-4">Войти</h1>
 
           <Form onSubmit={formik.handleSubmit}>
-            {/* Поле "Ваш ник" */}
-            <Form.Group as={Row} className="mb-3 align-items-center position-relative">
-              <Form.Label column sm={4} className="text-muted text-end pe-3">
-                Ваш ник
-              </Form.Label>
-              <Col sm={8}>
-                <Form.Control
-                  type="text"
-                  name="username"
-                  value={formik.values.username}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  isInvalid={isUsernameInvalid}
-                  disabled={loading}
-                  className="pe-5"
-                />
-                {isUsernameInvalid && (
-                  <div className="position-absolute end-0 top-50 translate-middle-y me-3 text-danger fw-bold">
-                    !
-                  </div>
-                )}
-                <Form.Control.Feedback type="invalid">
-                  {formik.errors.username}
-                </Form.Control.Feedback>
-              </Col>
+            {/* Поле "Ваш ник" — надпись внутри поля */}
+            <Form.Group className="mb-3 position-relative">
+              <Form.Control
+                type="text"
+                name="username"
+                placeholder="Ваш ник"
+                value={formik.values.username}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                isInvalid={isUsernameInvalid}
+                disabled={loading}
+                className="pe-5"
+              />
+              {isUsernameInvalid && (
+                <div className="position-absolute end-0 top-50 translate-middle-y me-3 text-danger fw-bold">
+                  !
+                </div>
+              )}
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.username}
+              </Form.Control.Feedback>
             </Form.Group>
 
-            {/* Поле "Пароль" */}
-            <Form.Group as={Row} className="mb-4 align-items-center position-relative">
-              <Form.Label column sm={4} className="text-muted text-end pe-3">
-                Пароль
-              </Form.Label>
-              <Col sm={8}>
-                <Form.Control
-                  type="password"
-                  name="password"
-                  value={formik.values.password}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  isInvalid={isPasswordInvalid}
-                  disabled={loading}
-                  className="pe-5"
-                />
-                {isPasswordInvalid && (
-                  <div className="position-absolute end-0 top-50 translate-middle-y me-3 text-danger fw-bold">
-                    !
-                  </div>
-                )}
-                <Form.Control.Feedback type="invalid">
-                  {formik.errors.password}
-                </Form.Control.Feedback>
-              </Col>
+            {/* Поле "Пароль" — надпись внутри поля */}
+            <Form.Group className="mb-3 position-relative">
+              <Form.Control
+                type="password"
+                name="password"
+                placeholder="Пароль"
+                value={formik.values.password}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                isInvalid={isPasswordInvalid}
+                disabled={loading}
+                className="pe-5"
+              />
+              {isPasswordInvalid && (
+                <div className="position-absolute end-0 top-50 translate-middle-y me-3 text-danger fw-bold">
+                  !
+                </div>
+              )}
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.password}
+              </Form.Control.Feedback>
             </Form.Group>
 
-            {/* Плашка с ошибкой — появляется над кнопкой, как на скриншоте */}
+            {/* Красная плашка с ошибкой над кнопкой */}
             {authError && (
-              <div className="p-3 text-white bg-danger rounded text-center mb-3">
+              <div className="p-3 mb-3 text-white bg-danger rounded text-center">
                 {authError}
               </div>
             )}
