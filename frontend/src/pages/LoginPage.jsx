@@ -6,7 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
 import api from '../api';
-import { Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
+import { Form, Button, Container, Row, Col } from 'react-bootstrap';
 
 const LoginPage = () => {
   const dispatch = useDispatch();
@@ -40,7 +40,6 @@ const LoginPage = () => {
         navigate('/');
       } catch (err) {
         if (err.response?.status === 401) {
-          // Точный текст без дополнительных элементов внутри Alert
           setError('Неверные имя пользователя или пароль');
         } else {
           setError(t('errors.network') || 'Ошибка сети. Попробуйте позже.');
@@ -57,9 +56,9 @@ const LoginPage = () => {
         <Col md={6}>
           <h1 className="text-center mb-4">{t('login.title')}</h1>
           {error && (
-            <Alert variant="danger" className="mb-3">
+            <div className="alert alert-danger mb-3" role="alert">
               {error}
-            </Alert>
+            </div>
           )}
           <Form onSubmit={formik.handleSubmit}>
             <Form.Group className="mb-3">
