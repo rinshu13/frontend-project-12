@@ -7,11 +7,11 @@ let socket = null;
 export const connectSocket = (token) => {
   if (socket) return socket;
 
-  const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://frontend-chat-ru.hexlet.app';  // ИЗМЕНЕНО: Абсолютный URL backend'а (client appends /socket.io). Dev: прокси, prod: Hexlet
+  const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://frontend-chat-ru.hexlet.app/chat';  // ИЗМЕНЕНО: Добавлен /chat для namespace (фиксит "Invalid namespace")
 
   socket = io(SOCKET_URL, {
     auth: { token },  // Токен для auth на сервере
-    transports: ['websocket', 'polling'],  // ИЗМЕНЕНО: Fallback на polling для стабильности
+    transports: ['websocket', 'polling'],  // Fallback на polling для стабильности
     timeout: 20000,  // Таймаут подключения
   });
 
@@ -22,7 +22,7 @@ export const connectSocket = (token) => {
 
   // Ошибки
   socket.on('connect_error', (err) => {
-    console.error('Socket connect error:', err.message || err);  // ИЗМЕНЕНО: Улучшен лог для "Invalid namespace"
+    console.error('Socket connect error:', err.message || err);  // Улучшен лог для отладки
   });
 
   // Успешное подключение
@@ -93,4 +93,3 @@ export const emitNewMessage = async (data) => {
     throw error;
   }
 };
-export default socket; 
