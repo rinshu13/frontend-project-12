@@ -19,7 +19,6 @@ const resources = {
       'login.signupLink': 'Регистрация',
       'errors.required': 'Обязательно',
       'errors.min3': 'От 3 до 20 символов',
-      'errors.min6': 'Не менее 6 символов',
       'errors.unauthorized': 'Неверные имя пользователя или пароль',
 
       // Signup
