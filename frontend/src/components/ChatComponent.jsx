@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Container, Form, Button, Card, Alert, InputGroup } from 'react-bootstrap';
-import { ArrowRightSquare } from 'react-bootstrap-icons';  // Иконка стрелки (как в демо)
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import leoProfanity from 'leo-profanity';
@@ -160,9 +159,22 @@ const ChatComponent = () => {
               variant="link"
               type="submit"
               disabled={!isMessageValid()}
-              className="text-muted"
+              className="text-muted p-0"
             >
-              <ArrowRightSquare size={24} />
+              <svg 
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
               <span className="visually-hidden">{t('chat.sendButton')}</span>
             </Button>
           </InputGroup>
