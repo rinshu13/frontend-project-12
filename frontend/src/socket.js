@@ -93,4 +93,4 @@ export const emitNewMessage = async (data) => {
     throw error;
   }
 };
-export default socket;
+export default socket; 
