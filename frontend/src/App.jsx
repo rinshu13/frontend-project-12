@@ -1,15 +1,15 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';  // ИЗМЕНЕНО: добавлен useCallback
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, ListGroup, Form, Button, Card, Alert, Dropdown } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import leoProfanity from 'leo-profanity';
-import { sendMessage, fetchMessagesByChannel, getChannels } from './api';  // ИЗМЕНЕНО: добавлен импорт getChannels
+import { sendMessage, fetchMessagesByChannel, getChannels } from './api';
 import { connectSocket, disconnectSocket, joinChannel, leaveChannel, emitNewMessage } from './socket';
 import { setChannels, setCurrentChannelId } from './features/channels/channelsSlice';
 import { setMessages } from './features/messages/messagesSlice';
-import { logout } from './features/auth/authSlice';  // ИЗМЕНЕНО: добавлен импорт logout
+import { logout } from './features/auth/authSlice';
 import api from './api';
 import AddChannelModal from './components/AddChannelModal';
 import RenameChannelModal from './components/RenameChannelModal';
@@ -24,8 +24,8 @@ const App = () => {
   const { channels, currentChannelId } = useSelector((state) => state.channels);
   const { messages } = useSelector((state) => state.messages);
   const [submitError, setSubmitError] = useState(null);
-  const [messageError, setMessageError] = useState(null);  // ИЗМЕНЕНО: новый state для динамической ошибки
-  const [messageText, setMessageText] = useState('');  // ИЗМЕНЕНО: state для текста (чтобы контролировать input)
+  const [messageError, setMessageError] = useState(null);
+  const [messageText, setMessageText] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(null);
   const [showRemoveModal, setShowRemoveModal] = useState(null);
@@ -44,12 +44,32 @@ const App = () => {
 
     connectSocket(token);
 
-    // ИЗМЕНЕНО: Используем getChannels вместо api.get
     getChannels()
       .then((response) => {
-        const channelsList = Array.isArray(response.data?.channels) ? response.data.channels : [];
+        let channelsList = Array.isArray(response.data?.channels) ? response.data.channels : [];
+        console.log('Loaded channels from API:', channelsList);
+
+        // Fallback — если API пустой, создаём дефолтные каналы
+        if (channelsList.length === 0) {
+          channelsList = [
+            {
+              id: 1,
+              name: 'general',
+              removable: false,
+              private: false,
+            },
+            {
+              id: 2,
+              name: 'random',
+              removable: false,
+              private: false,
+            },
+          ];
+          console.log('Fallback: Created default channels');
+          toast.info(t('app.fallbackChannels'));
+        }
+
         dispatch(setChannels(channelsList));
-        console.log('Loaded channels:', channelsList);  // ИЗМЕНЕНО: Добавлен лог для отладки (удалите в проде)
 
         const generalId = channelsList.find(c => c.name === 'general')?.id || channelsList[0]?.id || 1;
         dispatch(setCurrentChannelId(generalId));
@@ -69,7 +89,28 @@ const App = () => {
       .catch((error) => {
         console.error('Fetch channels failed:', error);
         toast.error(t('toast.error.fetchChannels'));
-        dispatch(setChannels([]));
+        
+        // Fallback в catch
+        const fallbackChannels = [
+          {
+            id: 1,
+            name: 'general',
+            removable: false,
+            private: false,
+          },
+          {
+            id: 2,
+            name: 'random',
+            removable: false,
+            private: false,
+          },
+        ];
+        dispatch(setChannels(fallbackChannels));
+        const generalId = 1;
+        dispatch(setCurrentChannelId(generalId));
+        joinChannel(generalId);
+        dispatch(setMessages([]));
+        console.log('Fallback in catch: Created default channels');
       });
 
     const socket = connectSocket(token);
@@ -84,38 +125,34 @@ const App = () => {
     };
   }, [token, dispatch, navigate, t]);
 
-  // ИЗМЕНЕНО: Функция валидации (динамическая)
   const validateMessage = useCallback((text) => {
     if (!text || text.trim().length === 0) {
-      return t('validation.messageRequired');  // Добавьте ключ в i18n: "Сообщение обязательно"
+      return t('validation.messageRequired');
     }
-    if (text.trim().length > 500) {  // Опционально: max длина
-      return t('validation.messageTooLong');  // "Сообщение слишком длинное"
+    if (text.trim().length > 500) {
+      return t('validation.messageTooLong');
     }
     if (leoProfanity.check(text)) {
-      return t('validation.profanityDetected');  // "Обнаружен мат (очищается автоматически)"
+      return t('validation.profanityDetected');
     }
-    return null;  // Валидно
+    return null;
   }, [t]);
 
-  // ИЗМЕНЕНО: Обработчик onChange для динамической валидации
   const handleMessageChange = useCallback((e) => {
     const text = e.target.value;
-    setMessageText(text);  // Обновляем state
+    setMessageText(text);
 
-    // Проверяем мат сразу и очищаем (опционально)
     let cleanText = text;
     if (leoProfanity.check(text)) {
       cleanText = leoProfanity.clean(text);
-      setMessageText(cleanText);  // Авто-очистка
-      toast.warning(t('toast.warning.profanity'));  // Предупреждение
+      setMessageText(cleanText);
+      toast.warning(t('toast.warning.profanity'));
     }
 
     const error = validateMessage(cleanText);
     setMessageError(error);
   }, [validateMessage, t]);
 
-  // ИЗМЕНЕНО: Проверяем, валидно ли сообщение
   const isMessageValid = useCallback(() => {
     return messageText.trim().length > 0 && !messageError && currentChannelId;
   }, [messageText, messageError, currentChannelId]);
@@ -139,21 +176,20 @@ const App = () => {
     }
   };
 
-  // ИЗМЕНЕНО: handleSubmit — теперь без дублирующей валидации (только отправка)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError(null);
 
-    if (!isMessageValid()) return;  // Быстрая проверка (на всякий случай)
+    if (!isMessageValid()) return;
 
-    let text = messageText.trim();  // Берем из state
+    let text = messageText.trim();
     if (!text || !currentChannelId) return;
 
     try {
       await sendMessage({ text, channelId: currentChannelId });
       await emitNewMessage({ text, channelId: currentChannelId, username });
-      setMessageText('');  // Очищаем state
-      setMessageError(null);  // Сбрасываем ошибку
+      setMessageText('');
+      setMessageError(null);
       inputRef.current?.focus();
     } catch (error) {
       console.error('Send message error:', error);
@@ -171,11 +207,10 @@ const App = () => {
     }
   };
 
-  // ИЗМЕНЕНО: Обработчик logout
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');
-    toast.info(t('toast.info.logout'));  // Опционально: уведомление
+    toast.info(t('toast.info.logout'));
   };
 
   if (!token) return null;
@@ -189,7 +224,6 @@ const App = () => {
             <Button variant="success" onClick={() => setShowAddModal(true)} className="w-100 mb-2">
               {t('app.addChannel')}
             </Button>
-            {/* ИЗМЕНЕНО: Добавлена кнопка logout */}
             <Button variant="outline-secondary" onClick={handleLogout} className="w-100">
               {t('app.logout')}
             </Button>
@@ -236,7 +270,6 @@ const App = () => {
           </div>
           <Form onSubmit={handleSubmit} className="border-top p-3">
             {submitError && <Alert variant="danger" className="mb-2">{submitError}</Alert>}
-            {/* ИЗМЕНЕНО: Добавлена динамическая ошибка */}
             {messageError && <Alert variant="warning" className="mb-2">{messageError}</Alert>}
             <Row>
               <Col md={10}>
@@ -244,8 +277,8 @@ const App = () => {
                   ref={inputRef}
                   name="message"
                   type="text"
-                  value={messageText}  // ИЗМЕНЕНО: controlled input
-                  onChange={handleMessageChange}  // ИЗМЕНЕНО: добавлен onChange
+                  value={messageText}
+                  onChange={handleMessageChange}
                   placeholder={t('app.messagePlaceholder')}
                   disabled={!currentChannelId}
                 />
@@ -255,7 +288,7 @@ const App = () => {
                   variant="primary" 
                   type="submit" 
                   className="w-100" 
-                  disabled={!isMessageValid()}  // ИЗМЕНЕНО: динамический disabled
+                  disabled={!isMessageValid()}
                 >
                   {t('app.send')}
                 </Button>

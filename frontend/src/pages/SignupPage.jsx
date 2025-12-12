@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';  // ИЗМЕНЕНО: Добавлен для ссылки на login
 import { login } from '../features/auth/authSlice';
 import api from '../api';
 import { Container, Row, Col, Form, Button, Alert, FloatingLabel } from 'react-bootstrap';
@@ -107,6 +108,10 @@ const SignupPage = () => {
               {t('signup.submit')}
             </Button>
           </Form>
+          {/* ИЗМЕНЕНО: Добавлена ссылка на login */}
+          <p className="text-center mt-3">
+            {t('signup.loginLink')} <Link to="/login">{t('login.title')}</Link>
+          </p>
         </Col>
       </Row>
     </Container>

@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
-import api from '../api';  // ИЗМЕНЕНО: Используем api вместо axios
+import api from '../api';
 import { Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
 
 const LoginPage = () => {
@@ -14,7 +14,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);  // ИЗМЕНЕНО: Добавлен loading
+  const [loading, setLoading] = useState(false);
 
   const LoginSchema = Yup.object().shape({
     username: Yup.string()
@@ -33,16 +33,16 @@ const LoginPage = () => {
     validationSchema: LoginSchema,
     onSubmit: async (values) => {
       setError(null);
-      setLoading(true);  // ИЗМЕНЕНО: Loading on
+      setLoading(true);
       try {
-        const response = await api.post('/login', values);  // ИЗМЕНЕНО: api.post('/login')
-        const { token, username } = response.data;  // Предполагаем { token, username } в data
+        const response = await api.post('/login', values);
+        const { token, username } = response.data;
         dispatch(login({ token, username }));
         navigate('/');
       } catch (error) {
         setError(error.response?.data?.message || t('errors.unauthorized'));
       } finally {
-        setLoading(false);  // ИЗМЕНЕНО: Loading off
+        setLoading(false);
       }
     },
   });
@@ -63,7 +63,7 @@ const LoginPage = () => {
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 isInvalid={formik.touched.username && !!formik.errors.username}
-                disabled={loading}  // ИЗМЕНЕНО: Disabled on loading
+                disabled={loading}
               />
               <Form.Control.Feedback type="invalid">
                 {formik.errors.username}
@@ -78,18 +78,18 @@ const LoginPage = () => {
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 isInvalid={formik.touched.password && !!formik.errors.password}
-                disabled={loading}  // ИЗМЕНЕНО: Disabled on loading
+                disabled={loading}
               />
               <Form.Control.Feedback type="invalid">
                 {formik.errors.password}
               </Form.Control.Feedback>
             </Form.Group>
             <Button variant="primary" type="submit" className="w-100" disabled={loading}>
-              {loading ? t('login.loading') : t('login.submit')}  // ИЗМЕНЕНО: Loading text
+              {loading ? t('login.loading') : t('login.submit')}
             </Button>
           </Form>
           <p className="text-center mt-3">
-            {t('login.noAccount')} <Link to="/signup">{t('login.signupLink')}</Link>  // ИЗМЕНЕНО: Перевод
+            {t('login.noAccount')} <Link to="/signup">{t('login.signupLink')}</Link>
           </p>
         </Col>
       </Row>

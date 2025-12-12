@@ -1,4 +1,3 @@
-// src/features/auth/authSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -12,7 +11,6 @@ const authSlice = createSlice({
   reducers: {
     login: (state, action) => {
       const { token, username } = action.payload;
-      // Защита: сохраняем только валидные строки
       if (token && typeof token === 'string' && username && typeof username === 'string') {
         state.token = token;
         state.username = username;
@@ -28,11 +26,10 @@ const authSlice = createSlice({
       localStorage.removeItem('token');
       localStorage.removeItem('username');
     },
-    // Добавлен initAuth для инициализации из localStorage
     initAuth: (state) => {
       const token = localStorage.getItem('token');
       const username = localStorage.getItem('username');
-      if (token && username && !state.token) {  // Только если не инициализировано
+      if (token && username && !state.token) {
         state.token = token;
         state.username = username;
       }
@@ -40,5 +37,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { login, logout, initAuth } = authSlice.actions;  // ← Обязательно экспортируйте initAuth
+export const { login, logout, initAuth } = authSlice.actions;
 export default authSlice.reducer;
