@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
 import api from '../api';
-import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Alert, FloatingLabel } from 'react-bootstrap';
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -22,7 +22,6 @@ const SignupPage = () => {
     const password = form.password.value;
     const confirmPassword = form.confirmPassword.value;
 
-    // Валидация по требованиям проекта
     if (username.length < 3 || username.length > 20) {
       setError(t('errors.min3'));
       return;
@@ -44,9 +43,7 @@ const SignupPage = () => {
         throw new Error('Invalid token in response');
       }
 
-      // username берём из формы — бэкенд его НЕ возвращает
       dispatch(login({ token, username }));
-      // Используем полную перезагрузку, чтобы гарантировать инициализацию состояния
       window.location.href = '/';
     } catch (err) {
       if (err.response?.status === 409) {
@@ -59,24 +56,54 @@ const SignupPage = () => {
 
   return (
     <Container className="signup-page">
-      <Row className="justify-content-md-center">
-        <Col md={6}>
+      <Row className="justify-content-md-center mt-5">
+        <Col md={6} lg={5}>
           <h1 className="text-center mb-4">{t('signup.title')}</h1>
-          {error && <Alert variant="danger" className="mb-3">{error}</Alert>}
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>{t('signup.usernameLabel')}</Form.Label>
-              <Form.Control type="text" name="username" required />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>{t('signup.passwordLabel')}</Form.Label>
-              <Form.Control type="password" name="password" required />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>{t('signup.confirmPasswordLabel')}</Form.Label>
-              <Form.Control type="password" name="confirmPassword" required />
-            </Form.Group>
-            <Button variant="primary" type="submit" className="w-100 mb-3">
+
+          {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
+
+          <Form onSubmit={handleSubmit} noValidate>
+            <FloatingLabel
+              controlId="username"
+              label={t('signup.usernameLabel')}
+              className="mb-3"
+            >
+              <Form.Control
+                type="text"
+                name="username"
+                placeholder={t('signup.usernameLabel')}
+                required
+                autoFocus
+              />
+            </FloatingLabel>
+
+            <FloatingLabel
+              controlId="password"
+              label={t('signup.passwordLabel')}
+              className="mb-3"
+            >
+              <Form.Control
+                type="password"
+                name="password"
+                placeholder={t('signup.passwordLabel')}
+                required
+              />
+            </FloatingLabel>
+
+            <FloatingLabel
+              controlId="confirmPassword"
+              label={t('signup.confirmPasswordLabel')}
+              className="mb-4"
+            >
+              <Form.Control
+                type="password"
+                name="confirmPassword"
+                placeholder={t('signup.confirmPasswordLabel')}
+                required
+              />
+            </FloatingLabel>
+
+            <Button variant="primary" type="submit" size="lg" className="w-100">
               {t('signup.submit')}
             </Button>
           </Form>
