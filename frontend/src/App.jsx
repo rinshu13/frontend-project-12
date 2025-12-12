@@ -14,6 +14,7 @@ import api from './api';
 import AddChannelModal from './components/AddChannelModal';
 import RenameChannelModal from './components/RenameChannelModal';
 import RemoveChannelModal from './components/RemoveChannelModal';
+import ChatComponent from './components/ChatComponent';
 
 const App = () => {
   const { t } = useTranslation();
@@ -391,44 +392,7 @@ const App = () => {
           </ListGroup>
         </Col>
         <Col md={9} className="d-flex flex-column">
-          <div className="flex-grow-1 p-3 overflow-auto bg-light" style={{ height: 'calc(100vh - 120px)' }}>
-            {messages?.map((message) => (
-              <Card key={message.id} className="mb-2">
-                <Card.Body>
-                  <Card.Subtitle className="mb-2 text-muted">{message.username}</Card.Subtitle>
-                  <Card.Text className="chat-message">{message.text}</Card.Text>
-                  <Card.Footer className="text-muted small">{new Date(message.createdAt).toLocaleString()}</Card.Footer>
-                </Card.Body>
-              </Card>
-            )) || <p className="text-center text-muted">{t('app.noMessages')}</p>}
-          </div>
-          <Form onSubmit={handleSubmit} className="border-top p-3">
-            {submitError && <Alert variant="danger" className="mb-2">{submitError}</Alert>}
-            {messageError && <Alert variant="warning" className="mb-2">{messageError}</Alert>}
-            <Row>
-              <Col md={10}>
-                <Form.Control
-                  ref={inputRef}
-                  name="message"
-                  type="text"
-                  value={messageText}
-                  onChange={handleMessageChange}
-                  placeholder={t('app.messagePlaceholder')}
-                  disabled={!currentChannelId}
-                />
-              </Col>
-              <Col md={2}>
-                <Button 
-                  variant="primary" 
-                  type="submit" 
-                  className="w-100" 
-                  disabled={!isMessageValid()}
-                >
-                  {t('app.send')}
-                </Button>
-              </Col>
-            </Row>
-          </Form>
+          <ChatComponent />
         </Col>
       </Row>
       <AddChannelModal isOpen={showAddModal} onClose={handleAddModalClose} />
