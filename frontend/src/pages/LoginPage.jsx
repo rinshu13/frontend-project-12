@@ -12,7 +12,7 @@ const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [error, setError] = useState(null);
+  const [authError, setAuthError] = useState(null); // Ошибка аутентификации (401)
   const [loading, setLoading] = useState(false);
 
   const LoginSchema = Yup.object().shape({
@@ -31,7 +31,7 @@ const LoginPage = () => {
     },
     validationSchema: LoginSchema,
     onSubmit: async (values) => {
-      setError(null);
+      setAuthError(null);
       setLoading(true);
       try {
         const response = await api.post('/api/v1/login', values);
@@ -40,9 +40,9 @@ const LoginPage = () => {
         navigate('/');
       } catch (err) {
         if (err.response?.status === 401) {
-          setError('Неверные имя пользователя или пароль');
+          setAuthError('Неверные имя пользователя или пароль');
         } else {
-          setError(t('errors.network') || 'Ошибка сети. Попробуйте позже.');
+          setAuthError(t('errors.network') || 'Ошибка сети. Попробуйте позже.');
         }
       } finally {
         setLoading(false);
@@ -50,51 +50,70 @@ const LoginPage = () => {
     },
   });
 
+  // При ошибке аутентификации поля становятся invalid (красная обводка и !)
+  const hasAuthError = !!authError;
+  const isUsernameInvalid = hasAuthError || (formik.touched.username && !!formik.errors.username);
+  const isPasswordInvalid = hasAuthError || (formik.touched.password && !!formik.errors.password);
+
   return (
     <Container className="login-page">
       <Row className="justify-content-md-center">
         <Col md={6}>
-          <h1 className="text-center mb-4">{t('login.title')}</h1>
-          {error && (
-            <div className="alert alert-danger mb-3" role="alert">
-              {error}
+          <h1 className="text-center mb-4">Войти</h1>
+
+          {authError && (
+            <div className="mb-3 p-3 text-white bg-danger rounded">
+              {authError}
             </div>
           )}
+
           <Form onSubmit={formik.handleSubmit}>
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-3 position-relative">
+              <Form.Label>Ваш ник</Form.Label>
               <Form.Control
                 type="text"
                 name="username"
-                placeholder={t('login.usernameLabel')}
                 value={formik.values.username}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                isInvalid={formik.touched.username && !!formik.errors.username}
+                isInvalid={isUsernameInvalid}
                 disabled={loading}
+                className="pe-5" // Отступ для иконки !
               />
+              {isUsernameInvalid && (
+                <div className="position-absolute end-0 top-50 translate-middle-y me-3 text-danger">
+                  !
+                </div>
+              )}
               <Form.Control.Feedback type="invalid">
                 {formik.errors.username}
               </Form.Control.Feedback>
             </Form.Group>
 
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-3 position-relative">
+              <Form.Label>Пароль</Form.Label>
               <Form.Control
                 type="password"
                 name="password"
-                placeholder={t('login.passwordLabel')}
                 value={formik.values.password}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                isInvalid={formik.touched.password && !!formik.errors.password}
+                isInvalid={isPasswordInvalid}
                 disabled={loading}
+                className="pe-5"
               />
+              {isPasswordInvalid && (
+                <div className="position-absolute end-0 top-50 translate-middle-y me-3 text-danger">
+                  !
+                </div>
+              )}
               <Form.Control.Feedback type="invalid">
                 {formik.errors.password}
               </Form.Control.Feedback>
             </Form.Group>
 
             <Button variant="primary" type="submit" className="w-100" disabled={loading}>
-              {loading ? t('login.loading') : t('login.submit')}
+              Войти
             </Button>
           </Form>
 
