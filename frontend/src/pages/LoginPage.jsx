@@ -12,7 +12,6 @@ const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [error, setError] = useState(null);
   const [authError, setAuthError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +31,7 @@ const LoginPage = () => {
     },
     validationSchema: LoginSchema,
     onSubmit: async (values) => {
-      setError(null);
+      setAuthError(null);
       setLoading(true);
       try {
         const response = await api.post('/api/v1/login', values);
@@ -41,9 +40,9 @@ const LoginPage = () => {
         navigate('/');
       } catch (err) {
         if (err.response?.status === 401) {
-          setError('Неверные имя пользователя или пароль');
+          setAuthError('Неверные имя пользователя или пароль');
         } else {
-          setError(t('errors.network') || 'Ошибка сети. Попробуйте позже.');
+          setAuthError(t('errors.network') || 'Ошибка сети. Попробуйте позже.');
         }
       } finally {
         setLoading(false);
@@ -59,54 +58,77 @@ const LoginPage = () => {
     <Container className="login-page">
       <Row className="justify-content-md-center">
         <Col md={6}>
-          <h1 className="text-center mb-4">{t('login.title')}</h1>
-          {error && (
-            <div className="alert alert-danger mb-3" role="alert">
-              {error}
+          <h1 className="text-center mb-4">Войти</h1>
+
+          {authError && (
+            <div className="mb-3 p-3 text-white bg-danger rounded text-center">
+              {authError}
             </div>
           )}
+
           <Form onSubmit={formik.handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Control
-                type="text"
-                name="username"
-                placeholder={t('login.usernameLabel')}
-                value={formik.values.username}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                isInvalid={formik.touched.username && !!formik.errors.username}
-                disabled={loading}
-                className="pe-5"
-              />
-              <Form.Control.Feedback type="invalid">
-                {formik.errors.username}
-              </Form.Control.Feedback>
+            {/* Поле "Ваш ник" */}
+            <Form.Group as={Row} className="mb-3 align-items-center position-relative">
+              <Form.Label column sm={4} className="text-muted text-end pe-3">
+                Ваш ник
+              </Form.Label>
+              <Col sm={8}>
+                <Form.Control
+                  type="text"
+                  name="username"
+                  value={formik.values.username}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  isInvalid={isUsernameInvalid}
+                  disabled={loading}
+                  className="pe-5"
+                />
+                {isUsernameInvalid && (
+                  <div className="position-absolute end-0 top-50 translate-middle-y me-3 text-danger fw-bold">
+                    !
+                  </div>
+                )}
+                <Form.Control.Feedback type="invalid">
+                  {formik.errors.username}
+                </Form.Control.Feedback>
+              </Col>
             </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Control
-                type="password"
-                name="password"
-                placeholder={t('login.passwordLabel')}
-                value={formik.values.password}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                isInvalid={formik.touched.password && !!formik.errors.password}
-                disabled={loading}
-              />
-              <Form.Control.Feedback type="invalid">
-                {formik.errors.password}
-              </Form.Control.Feedback>
+            {/* Поле "Пароль" */}
+            <Form.Group as={Row} className="mb-4 align-items-center position-relative">
+              <Form.Label column sm={4} className="text-muted text-end pe-3">
+                Пароль
+              </Form.Label>
+              <Col sm={8}>
+                <Form.Control
+                  type="password"
+                  name="password"
+                  value={formik.values.password}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  isInvalid={isPasswordInvalid}
+                  disabled={loading}
+                  className="pe-5"
+                />
+                {isPasswordInvalid && (
+                  <div className="position-absolute end-0 top-50 translate-middle-y me-3 text-danger fw-bold">
+                    !
+                  </div>
+                )}
+                <Form.Control.Feedback type="invalid">
+                  {formik.errors.password}
+                </Form.Control.Feedback>
+              </Col>
             </Form.Group>
 
-            <Button variant="primary" type="submit" className="w-100" disabled={loading}>
-              {loading ? t('login.loading') : t('login.submit')}
+            <Button variant="primary" type="submit" className="w-100 rounded-pill py-2" disabled={loading}>
+              Войти
             </Button>
           </Form>
 
-          <p className="text-center mt-3">
-            {t('login.noAccount')} <Link to="/signup">{t('login.signupLink')}</Link>
-          </p>
+          <div className="text-center mt-4">
+            Нет аккаунта? <Link to="/signup">Регистрация</Link>
+          </div>
         </Col>
       </Row>
     </Container>
