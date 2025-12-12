@@ -28,11 +28,15 @@ const resources = {
       'signup.confirmPasswordLabel': 'Подтвердите пароль',
       'signup.submit': 'Зарегистрироваться',
       'signup.loginLink': 'Войти',
-      'errors.min6': "Не менее 6 символов",
       'errors.max20': 'От 3 до 20 символов',
       'errors.passwordMismatch': 'Пароли должны совпадать',
       'errors.conflict': 'Такой пользователь уже существует',
       'errors.signup': 'Ошибка регистрации. Попробуйте позже.',
+
+      // Общие ошибки валидации (вынесены в отдельный блок, чтобы избежать дублирования)
+      "errors": {
+        "min6": "Не менее 6 символов"
+      },
 
       // App/Chat
       'app.channelsTitle': 'Каналы',
@@ -47,7 +51,7 @@ const resources = {
       'app.fallbackChannels': 'Загружены дефолтные каналы (general, random)',
       'app.demoMessages': 'Добавлены демо-сообщения для канала',
 
-      // НОВЫЙ БЛОК ДЛЯ ЧАТА
+      // Новый блок для чата
       "chat": {
         "inputPlaceholder": "Введите сообщение...",
         "inputAriaLabel": "Новое сообщение",
