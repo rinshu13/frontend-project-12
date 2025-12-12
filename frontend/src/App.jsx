@@ -5,11 +5,11 @@ import { Container, Row, Col, ListGroup, Form, Button, Card, Alert, Dropdown } f
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import leoProfanity from 'leo-profanity';
-import { sendMessage, fetchMessagesByChannel, getChannels, createChannel } from './api';  // ИЗМЕНЕНО: добавлен createChannel для примера
+import { sendMessage, fetchMessagesByChannel, getChannels } from './api';
 import { connectSocket, disconnectSocket, joinChannel, leaveChannel, emitNewMessage } from './socket';
 import { setChannels, setCurrentChannelId } from './features/channels/channelsSlice';
 import { setMessages } from './features/messages/messagesSlice';
-import { logout } from './features/auth/authSlice';
+import { logout } from './features/auth/authSlice';  // Импорт logout (проверьте путь!)
 import api from './api';
 import AddChannelModal from './components/AddChannelModal';
 import RenameChannelModal from './components/RenameChannelModal';
@@ -36,14 +36,14 @@ const App = () => {
     if (!Array.isArray(messages)) console.error('messages is not an array:', messages);
   }
 
-  // ИЗМЕНЕНО: Функция refetch каналов (используется после модалок)
+  // ИЗМЕНЕНО: Функция refetch каналов (fallback для пустого API)
   const refetchChannels = useCallback(async () => {
     try {
       const response = await getChannels();
       let channelsList = Array.isArray(response.data?.channels) ? response.data.channels : [];
-      console.log('Refetched channels:', channelsList);
+      console.log('Loaded channels from API:', channelsList);
 
-      // Fallback, если после создания список пустой или не обновился
+      // Fallback — если API пустой, создаём дефолтные каналы
       if (channelsList.length === 0) {
         channelsList = [
           {
@@ -59,18 +59,19 @@ const App = () => {
             private: false,
           },
         ];
-        console.log('Fallback after refetch: Created default channels');
+        console.log('Fallback: Created default channels');
         toast.info(t('app.fallbackChannels'));
       }
 
       dispatch(setChannels(channelsList));
-      // Переустанавливаем currentChannelId, если изменилось
+
       const generalId = channelsList.find(c => c.name === 'general')?.id || channelsList[0]?.id || 1;
       dispatch(setCurrentChannelId(generalId));
       joinChannel(generalId);
     } catch (error) {
-      console.error('Refetch channels failed:', error);
+      console.error('Fetch channels failed:', error);
       toast.error(t('toast.error.fetchChannels'));
+      
       // Fallback в catch
       const fallbackChannels = [
         {
@@ -90,6 +91,8 @@ const App = () => {
       const generalId = 1;
       dispatch(setCurrentChannelId(generalId));
       joinChannel(generalId);
+      dispatch(setMessages([]));
+      console.log('Fallback in catch: Created default channels');
     }
   }, [dispatch, t]);
 
@@ -101,7 +104,7 @@ const App = () => {
 
     connectSocket(token);
 
-    refetchChannels();  // ИЗМЕНЕНО: Используем refetch вместо прямого getChannels
+    refetchChannels();
 
     const socket = connectSocket(token);
     const handleConnectError = () => {
@@ -113,24 +116,111 @@ const App = () => {
       socket.off('connect_error', handleConnectError);
       disconnectSocket();
     };
-  }, [token, dispatch, navigate, t, refetchChannels]);  // ИЗМЕНЕНО: Добавлен refetchChannels в deps
+  }, [token, dispatch, navigate, t, refetchChannels]);
 
-  // ... остальной код (validateMessage, handleMessageChange, isMessageValid, handleChannelClick, handleSubmit, handleLogout — без изменений)
+  const validateMessage = useCallback((text) => {
+    if (!text || text.trim().length === 0) {
+      return t('validation.messageRequired');
+    }
+    if (text.trim().length > 500) {
+      return t('validation.messageTooLong');
+    }
+    if (leoProfanity.check(text)) {
+      return t('validation.profanityDetected');
+    }
+    return null;
+  }, [t]);
 
-  // ИЗМЕНЕНО: Обработчики модалок с refetch после закрытия
+  const handleMessageChange = useCallback((e) => {
+    const text = e.target.value;
+    setMessageText(text);
+
+    let cleanText = text;
+    if (leoProfanity.check(text)) {
+      cleanText = leoProfanity.clean(text);
+      setMessageText(cleanText);
+      toast.warning(t('toast.warning.profanity'));
+    }
+
+    const error = validateMessage(cleanText);
+    setMessageError(error);
+  }, [validateMessage, t]);
+
+  const isMessageValid = useCallback(() => {
+    return messageText.trim().length > 0 && !messageError && currentChannelId;
+  }, [messageText, messageError, currentChannelId]);
+
+  const handleChannelClick = async (channelId) => {
+    if (currentChannelId === channelId) return;
+    const prevId = currentChannelId;
+    dispatch(setCurrentChannelId(channelId));
+    if (prevId) {
+      leaveChannel(prevId);
+    }
+    joinChannel(channelId);
+    try {
+      const response = await fetchMessagesByChannel(channelId);
+      const messagesList = Array.isArray(response.data.messages) ? response.data.messages : [];
+      dispatch(setMessages(messagesList));
+    } catch (error) {
+      console.error('Fetch messages error:', error);
+      toast.error(t('toast.error.fetchMessages'));
+      dispatch(setMessages([]));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitError(null);
+
+    if (!isMessageValid()) return;
+
+    let text = messageText.trim();
+    if (!text || !currentChannelId) return;
+
+    try {
+      await sendMessage({ text, channelId: currentChannelId });
+      await emitNewMessage({ text, channelId: currentChannelId, username });
+      setMessageText('');
+      setMessageError(null);
+      inputRef.current?.focus();
+    } catch (error) {
+      console.error('Send message error:', error);
+      setSubmitError(t('app.sendError'));
+      toast.error(t('toast.error.network'));
+      setTimeout(async () => {
+        try {
+          await emitNewMessage({ text, channelId: currentChannelId, username });
+          setSubmitError(null);
+        } catch (retryError) {
+          setSubmitError(t('app.retryError'));
+          toast.error(t('toast.error.generic'));
+        }
+      }, 1000);
+    }
+  };
+
+  // ИЗМЕНЕНО: handleLogout определена ДО return (scope fix)
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+    toast.info(t('toast.info.logout'));
+  };
+
+  // ИЗМЕНЕНО: Обработчики модалок с refetch
   const handleAddModalClose = async () => {
     setShowAddModal(false);
-    await refetchChannels();  // Refetch после создания
+    await refetchChannels();
   };
 
   const handleRenameModalClose = async () => {
     setShowRenameModal(null);
-    await refetchChannels();  // Refetch после переименования
+    await refetchChannels();
   };
 
   const handleRemoveModalClose = async () => {
     setShowRemoveModal(null);
-    await refetchChannels();  // Refetch после удаления
+    await refetchChannels();
   };
 
   if (!token) return null;
@@ -144,6 +234,7 @@ const App = () => {
             <Button variant="success" onClick={() => setShowAddModal(true)} className="w-100 mb-2">
               {t('app.addChannel')}
             </Button>
+            {/* ИЗМЕНЕНО: onClick={handleLogout} — функция в scope */}
             <Button variant="outline-secondary" onClick={handleLogout} className="w-100">
               {t('app.logout')}
             </Button>
@@ -156,7 +247,7 @@ const App = () => {
                 onClick={() => handleChannelClick(channel.id)}
                 className="d-flex justify-content-between align-items-center p-2"
               >
-                <span>{t('app.channelPrefix')}{channel.name || 'Unnamed'} </span>  // ИЗМЕНЕНО: Fallback 'Unnamed' если name undefined
+                <span>{t('app.channelPrefix')}{channel.name || 'Unnamed'}</span>
                 {channel.removable && (
                   <Dropdown>
                     <Dropdown.Toggle variant="link" id={`dropdown-${channel.id}`} size="sm" className="p-0 border-0">
@@ -176,21 +267,60 @@ const App = () => {
             )) || <p className="text-center text-muted">{t('app.loadingChannels')}</p>}
           </ListGroup>
         </Col>
-        {/* ... остальной JSX без изменений */}
+        <Col md={9} className="d-flex flex-column">
+          <div className="flex-grow-1 p-3 overflow-auto bg-light" style={{ height: 'calc(100vh - 120px)' }}>
+            {messages?.map((message) => (
+              <Card key={message.id} className="mb-2">
+                <Card.Body>
+                  <Card.Subtitle className="mb-2 text-muted">{message.username}</Card.Subtitle>
+                  <Card.Text className="chat-message">{message.text}</Card.Text>
+                  <Card.Footer className="text-muted small">{new Date(message.createdAt).toLocaleString()}</Card.Footer>
+                </Card.Body>
+              </Card>
+            )) || <p className="text-center text-muted">{t('app.noMessages')}</p>}
+          </div>
+          <Form onSubmit={handleSubmit} className="border-top p-3">
+            {submitError && <Alert variant="danger" className="mb-2">{submitError}</Alert>}
+            {messageError && <Alert variant="warning" className="mb-2">{messageError}</Alert>}
+            <Row>
+              <Col md={10}>
+                <Form.Control
+                  ref={inputRef}
+                  name="message"
+                  type="text"
+                  value={messageText}
+                  onChange={handleMessageChange}
+                  placeholder={t('app.messagePlaceholder')}
+                  disabled={!currentChannelId}
+                />
+              </Col>
+              <Col md={2}>
+                <Button 
+                  variant="primary" 
+                  type="submit" 
+                  className="w-100" 
+                  disabled={!isMessageValid()}
+                >
+                  {t('app.send')}
+                </Button>
+              </Col>
+            </Row>
+          </Form>
+        </Col>
       </Row>
-      <AddChannelModal isOpen={showAddModal} onClose={handleAddModalClose} />  // ИЗМЕНЕНО: onClose с refetch
+      <AddChannelModal isOpen={showAddModal} onClose={handleAddModalClose} />
       {showRenameModal && (
         <RenameChannelModal
           channel={channels?.find(c => c.id === showRenameModal)}
           isOpen={true}
-          onClose={handleRenameModalClose}  // ИЗМЕНЕНО: onClose с refetch
+          onClose={handleRenameModalClose}
         />
       )}
       {showRemoveModal && (
         <RemoveChannelModal
           channelId={showRemoveModal}
           isOpen={true}
-          onClose={handleRemoveModalClose}  // ИЗМЕНЕНО: onClose с refetch
+          onClose={handleRemoveModalClose}
         />
       )}
     </Container>
