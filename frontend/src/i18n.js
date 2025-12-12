@@ -45,6 +45,7 @@ const resources = {
       'app.retryError': 'Повторная отправка не удалась.',
       'app.channelPrefix': '# ',
       'app.fallbackChannels': 'Загружены дефолтные каналы (general, random)',
+      'app.demoMessages': 'Добавлены демо-сообщения для канала',
 
       // Validation для сообщений
       'validation.messageRequired': 'Сообщение обязательно',

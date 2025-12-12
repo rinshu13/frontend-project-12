@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',  // Prod: Hexlet, dev: прокси
 });
 
 api.interceptors.request.use((config) => {
@@ -27,7 +27,7 @@ export const getChannels = async () => {
   return api.get('/channels');
 };
 
-// POST /channels для создания канала (JSONAPI-структура для Hexlet)
+// POST /channels для создания канала
 export const createChannel = async (name) => {
   return api.post('/channels', {
     data: {
