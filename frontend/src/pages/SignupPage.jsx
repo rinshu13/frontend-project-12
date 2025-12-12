@@ -1,9 +1,11 @@
 // src/pages/SignupPage.jsx
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';  // ИЗМЕНЕНО: Добавлен для ссылки на login
+import { Link } from 'react-router-dom';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import { login } from '../features/auth/authSlice';
 import api from '../api';
 import { Container, Row, Col, Form, Button, Alert, FloatingLabel } from 'react-bootstrap';
@@ -12,48 +14,51 @@ const SignupPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { t } = useTranslation();
-  const [error, setError] = useState(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
+  const SignupSchema = Yup.object().shape({
+    username: Yup.string()
+      .min(3, 'errors.min3')
+      .max(20, 'errors.max20')
+      .required('errors.required'),
+    password: Yup.string()
+      .min(6, 'errors.min6')  // ← Ключ для ошибки "Не менее 6 символов"
+      .required('errors.required'),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref('password')], 'errors.passwordMismatch')
+      .required('errors.required'),
+  });
 
-    const form = e.target;
-    const username = form.username.value.trim();
-    const password = form.password.value;
-    const confirmPassword = form.confirmPassword.value;
+  const formik = useFormik({
+    initialValues: {
+      username: '',
+      password: '',
+      confirmPassword: '',
+    },
+    validationSchema: SignupSchema,
+    onSubmit: async (values, { setSubmitting, setErrors }) => {
+      try {
+        const response = await api.post('/signup', {
+          username: values.username,
+          password: values.password,
+        });
 
-    if (username.length < 3 || username.length > 20) {
-      setError(t('errors.min3'));
-      return;
-    }
-    if (password.length < 6) {
-      setError(t('errors.min6'));
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError(t('errors.passwordMismatch'));
-      return;
-    }
+        const { token } = response.data;
+        if (!token || typeof token !== 'string') {
+          throw new Error('Invalid token in response');
+        }
 
-    try {
-      const response = await api.post('/signup', { username, password });
-      const { token } = response.data;
-
-      if (!token || typeof token !== 'string') {
-        throw new Error('Invalid token in response');
+        dispatch(login({ token, username: values.username }));
+        navigate('/');
+      } catch (err) {
+        setSubmitting(false);
+        if (err.response?.status === 409) {
+          setErrors({ username: 'errors.conflict' });
+        } else {
+          setErrors({ username: 'errors.signup' });
+        }
       }
-
-      dispatch(login({ token, username }));
-      window.location.href = '/';
-    } catch (err) {
-      if (err.response?.status === 409) {
-        setError(t('errors.conflict'));
-      } else {
-        setError(t('errors.signup'));
-      }
-    }
-  };
+    },
+  });
 
   return (
     <Container className="signup-page">
@@ -61,9 +66,7 @@ const SignupPage = () => {
         <Col md={6} lg={5}>
           <h1 className="text-center mb-4">{t('signup.title')}</h1>
 
-          {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
-
-          <Form onSubmit={handleSubmit} noValidate>
+          <Form onSubmit={formik.handleSubmit} noValidate>
             <FloatingLabel
               controlId="username"
               label={t('signup.usernameLabel')}
@@ -73,9 +76,16 @@ const SignupPage = () => {
                 type="text"
                 name="username"
                 placeholder={t('signup.usernameLabel')}
+                value={formik.values.username}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                isInvalid={formik.touched.username && !!formik.errors.username}
                 required
                 autoFocus
               />
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.username && t(formik.errors.username)}
+              </Form.Control.Feedback>
             </FloatingLabel>
 
             <FloatingLabel
@@ -87,8 +97,15 @@ const SignupPage = () => {
                 type="password"
                 name="password"
                 placeholder={t('signup.passwordLabel')}
+                value={formik.values.password}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                isInvalid={formik.touched.password && !!formik.errors.password}
                 required
               />
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.password && t(formik.errors.password)}
+              </Form.Control.Feedback>
             </FloatingLabel>
 
             <FloatingLabel
@@ -100,15 +117,28 @@ const SignupPage = () => {
                 type="password"
                 name="confirmPassword"
                 placeholder={t('signup.confirmPasswordLabel')}
+                value={formik.values.confirmPassword}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                isInvalid={formik.touched.confirmPassword && !!formik.errors.confirmPassword}
                 required
               />
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.confirmPassword && t(formik.errors.confirmPassword)}
+              </Form.Control.Feedback>
             </FloatingLabel>
 
-            <Button variant="primary" type="submit" size="lg" className="w-100">
+            <Button
+              variant="primary"
+              type="submit"
+              size="lg"
+              className="w-100"
+              disabled={formik.isSubmitting}
+            >
               {t('signup.submit')}
             </Button>
           </Form>
-          {/* ИЗМЕНЕНО: Добавлена ссылка на login */}
+
           <p className="text-center mt-3">
             {t('signup.loginLink')} <Link to="/login">{t('login.title')}</Link>
           </p>
