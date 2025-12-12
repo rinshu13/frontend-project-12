@@ -62,10 +62,10 @@ const LoginPage = () => {
           )}
           <Form onSubmit={formik.handleSubmit}>
             <Form.Group className="mb-3">
-              <Form.Label>{t('login.usernameLabel')}</Form.Label>
               <Form.Control
                 type="text"
                 name="username"
+                placeholder={t('login.usernameLabel')}
                 value={formik.values.username}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
@@ -78,10 +78,10 @@ const LoginPage = () => {
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>{t('login.passwordLabel')}</Form.Label>
               <Form.Control
                 type="password"
                 name="password"
+                placeholder={t('login.passwordLabel')}
                 value={formik.values.password}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
