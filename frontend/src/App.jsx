@@ -5,10 +5,11 @@ import { Container, Row, Col, ListGroup, Form, Button, Card, Alert, Dropdown } f
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import leoProfanity from 'leo-profanity';
-import { sendMessage, fetchMessagesByChannel } from './api';
+import { sendMessage, fetchMessagesByChannel, getChannels } from './api';  // ИЗМЕНЕНО: добавлен импорт getChannels
 import { connectSocket, disconnectSocket, joinChannel, leaveChannel, emitNewMessage } from './socket';
 import { setChannels, setCurrentChannelId } from './features/channels/channelsSlice';
 import { setMessages } from './features/messages/messagesSlice';
+import { logout } from './features/auth/authSlice';  // ИЗМЕНЕНО: добавлен импорт logout
 import api from './api';
 import AddChannelModal from './components/AddChannelModal';
 import RenameChannelModal from './components/RenameChannelModal';
@@ -43,18 +44,20 @@ const App = () => {
 
     connectSocket(token);
 
-    api.get('/channels')
+    // ИЗМЕНЕНО: Используем getChannels вместо api.get
+    getChannels()
       .then((response) => {
-        const channelsList = Array.isArray(response.data.channels) ? response.data.channels : [];
+        const channelsList = Array.isArray(response.data?.channels) ? response.data.channels : [];
         dispatch(setChannels(channelsList));
+        console.log('Loaded channels:', channelsList);  // ИЗМЕНЕНО: Добавлен лог для отладки (удалите в проде)
 
-        const generalId = channelsList.find(c => c.name === 'general')?.id || 1;
+        const generalId = channelsList.find(c => c.name === 'general')?.id || channelsList[0]?.id || 1;
         dispatch(setCurrentChannelId(generalId));
         joinChannel(generalId);
 
         fetchMessagesByChannel(generalId)
           .then((res) => {
-            const messagesList = Array.isArray(res.data.messages) ? res.data.messages : [];
+            const messagesList = Array.isArray(res.data?.messages) ? res.data.messages : [];
             dispatch(setMessages(messagesList));
           })
           .catch((error) => {
@@ -168,6 +171,13 @@ const App = () => {
     }
   };
 
+  // ИЗМЕНЕНО: Обработчик logout
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+    toast.info(t('toast.info.logout'));  // Опционально: уведомление
+  };
+
   if (!token) return null;
 
   return (
@@ -178,6 +188,10 @@ const App = () => {
             <h5>{t('app.channelsTitle')}</h5>
             <Button variant="success" onClick={() => setShowAddModal(true)} className="w-100 mb-2">
               {t('app.addChannel')}
+            </Button>
+            {/* ИЗМЕНЕНО: Добавлена кнопка logout */}
+            <Button variant="outline-secondary" onClick={handleLogout} className="w-100">
+              {t('app.logout')}
             </Button>
           </div>
           <ListGroup className="channels-list flex-grow-1 overflow-auto">

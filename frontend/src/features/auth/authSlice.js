@@ -28,8 +28,17 @@ const authSlice = createSlice({
       localStorage.removeItem('token');
       localStorage.removeItem('username');
     },
+    // ИЗМЕНЕНО: Добавлен initAuth (для явной инициализации в store)
+    initAuth: (state) => {
+      const token = localStorage.getItem('token');
+      const username = localStorage.getItem('username');
+      if (token && username && !state.token) {  // Только если не инициализировано
+        state.token = token;
+        state.username = username;
+      }
+    },
   },
 });
 
-export const { login, logout } = authSlice.actions;
+export const { login, logout, initAuth } = authSlice.actions;  // ИЗМЕНЕНО: Экспорт initAuth
 export default authSlice.reducer;

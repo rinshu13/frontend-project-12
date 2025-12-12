@@ -14,6 +14,8 @@ const resources = {
       'login.usernameLabel': 'Имя пользователя',
       'login.passwordLabel': 'Пароль',
       'login.submit': 'Войти',
+      'login.loading': 'Вход...',  // ИЗМЕНЕНО: Добавлен для loading
+      'login.noAccount': 'Нет аккаунта?',  // ИЗМЕНЕНО: Добавлен для текста ссылки
       'login.signupLink': 'Регистрация',  // Исправлено: Только для <Link>, полный текст в JSX
       'errors.required': 'Обязательно',
       'errors.min3': 'От 3 до 20 символов',
@@ -26,7 +28,7 @@ const resources = {
       'signup.passwordLabel': 'Пароль',
       'signup.confirmPasswordLabel': 'Подтвердите пароль',
       'signup.submit': 'Зарегистрироваться',
-      'signup.loginLink': 'Войти',
+      'signup.loginLink': 'Войти',  // ИЗМЕНЕНО: Добавлен для ссылки в форме регистрации
       'errors.max20': 'От 3 до 20 символов',
       'errors.passwordMismatch': 'Пароли должны совпадать',
       'errors.conflict': 'Пользователь с таким именем уже существует',
@@ -35,12 +37,18 @@ const resources = {
       // App/Chat
       'app.channelsTitle': 'Каналы',
       'app.addChannel': '+',
+      'app.logout': 'Выйти',  // ИЗМЕНЕНО: Добавлен для кнопки logout
       'app.noMessages': 'Нет сообщений',
       'app.messagePlaceholder': 'Введите сообщение...',
       'app.send': 'Отправить',
       'app.sendError': 'Ошибка отправки. Повторите попытку.',
       'app.retryError': 'Повторная отправка не удалась.',
       'app.channelPrefix': '# ',
+
+      // Validation для сообщений (динамическая)
+      'validation.messageRequired': 'Сообщение обязательно',  // ИЗМЕНЕНО: Добавлен
+      'validation.messageTooLong': 'Сообщение слишком длинное (max 500)',  // ИЗМЕНЕНО: Добавлен
+      'validation.profanityDetected': 'Обнаружен мат — текст очищен',  // ИЗМЕНЕНО: Добавлен
 
       // Modals
       'modal.addTitle': 'Добавить канал',
@@ -83,11 +91,14 @@ const resources = {
       'toast.success.createChannel': 'Канал создан',
       'toast.success.renameChannel': 'Канал переименован',
       'toast.success.deleteChannel': 'Канал удалён',
+      'toast.success.login': 'Вход успешен!',  // ИЗМЕНЕНО: Добавлен для login/signup
       'toast.error.fetchChannels': 'Ошибка загрузки каналов',
       'toast.error.fetchMessages': 'Ошибка загрузки сообщений',
       'toast.error.network': 'Ошибка соединения',
       'toast.error.generic': 'Произошла ошибка',
+      'toast.error.login': 'Ошибка входа',  // ИЗМЕНЕНО: Добавлен
       'toast.warning.profanity': 'Нецензурное слово заменено',
+      'toast.info.logout': 'Вы вышли из аккаунта',  // ИЗМЕНЕНО: Добавлен для logout
     },
   },
 };
