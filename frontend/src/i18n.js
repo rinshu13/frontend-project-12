@@ -29,6 +29,7 @@ const resources = {
       'signup.confirmPasswordLabel': 'Подтвердите пароль',
       'signup.submit': 'Зарегистрироваться',
       'signup.loginLink': 'Войти',
+      'errors.min6': "Не менее 6 символов",
       'errors.max20': 'От 3 до 20 символов',
       'errors.passwordMismatch': 'Пароли должны совпадать',
       'errors.conflict': 'Такой пользователь уже существует',
