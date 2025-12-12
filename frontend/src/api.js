@@ -22,6 +22,11 @@ export const fetchMessagesByChannel = async (channelId) => {
   return api.get(`/messages?channelId=${channelId}`);
 };
 
+// GET /channels для получения всех каналов
+export const getChannels = async () => {
+  return api.get('/channels');
+};
+
 // POST /channels для создания канала
 export const createChannel = async (name) => {
   return api.post('/channels', { name });
