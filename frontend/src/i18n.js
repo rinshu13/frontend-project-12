@@ -31,7 +31,7 @@ const resources = {
       'signup.loginLink': 'Войти',
       'errors.max20': 'От 3 до 20 символов',
       'errors.passwordMismatch': 'Пароли должны совпадать',
-      'errors.conflict': 'Пользователь с таким именем уже существует',
+      'errors.conflict': 'Такой пользователь уже существует',
       'errors.signup': 'Ошибка регистрации. Попробуйте позже.',
 
       // App/Chat
