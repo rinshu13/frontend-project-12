@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';  // ИЗМЕНЕНО: добавлен useCallback
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, ListGroup, Form, Button, Card, Alert, Dropdown } from 'react-bootstrap';
@@ -23,6 +23,8 @@ const App = () => {
   const { channels, currentChannelId } = useSelector((state) => state.channels);
   const { messages } = useSelector((state) => state.messages);
   const [submitError, setSubmitError] = useState(null);
+  const [messageError, setMessageError] = useState(null);  // ИЗМЕНЕНО: новый state для динамической ошибки
+  const [messageText, setMessageText] = useState('');  // ИЗМЕНЕНО: state для текста (чтобы контролировать input)
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(null);
   const [showRemoveModal, setShowRemoveModal] = useState(null);
@@ -79,6 +81,42 @@ const App = () => {
     };
   }, [token, dispatch, navigate, t]);
 
+  // ИЗМЕНЕНО: Функция валидации (динамическая)
+  const validateMessage = useCallback((text) => {
+    if (!text || text.trim().length === 0) {
+      return t('validation.messageRequired');  // Добавьте ключ в i18n: "Сообщение обязательно"
+    }
+    if (text.trim().length > 500) {  // Опционально: max длина
+      return t('validation.messageTooLong');  // "Сообщение слишком длинное"
+    }
+    if (leoProfanity.check(text)) {
+      return t('validation.profanityDetected');  // "Обнаружен мат (очищается автоматически)"
+    }
+    return null;  // Валидно
+  }, [t]);
+
+  // ИЗМЕНЕНО: Обработчик onChange для динамической валидации
+  const handleMessageChange = useCallback((e) => {
+    const text = e.target.value;
+    setMessageText(text);  // Обновляем state
+
+    // Проверяем мат сразу и очищаем (опционально)
+    let cleanText = text;
+    if (leoProfanity.check(text)) {
+      cleanText = leoProfanity.clean(text);
+      setMessageText(cleanText);  // Авто-очистка
+      toast.warning(t('toast.warning.profanity'));  // Предупреждение
+    }
+
+    const error = validateMessage(cleanText);
+    setMessageError(error);
+  }, [validateMessage, t]);
+
+  // ИЗМЕНЕНО: Проверяем, валидно ли сообщение
+  const isMessageValid = useCallback(() => {
+    return messageText.trim().length > 0 && !messageError && currentChannelId;
+  }, [messageText, messageError, currentChannelId]);
+
   const handleChannelClick = async (channelId) => {
     if (currentChannelId === channelId) return;
     const prevId = currentChannelId;
@@ -98,21 +136,21 @@ const App = () => {
     }
   };
 
+  // ИЗМЕНЕНО: handleSubmit — теперь без дублирующей валидации (только отправка)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError(null);
-    let text = e.target.message.value.trim();
-    if (!text || !currentChannelId) return;
 
-    if (leoProfanity.check(text)) {
-      text = leoProfanity.clean(text);
-      toast.warning(t('toast.warning.profanity'));
-    }
+    if (!isMessageValid()) return;  // Быстрая проверка (на всякий случай)
+
+    let text = messageText.trim();  // Берем из state
+    if (!text || !currentChannelId) return;
 
     try {
       await sendMessage({ text, channelId: currentChannelId });
       await emitNewMessage({ text, channelId: currentChannelId, username });
-      e.target.message.value = '';
+      setMessageText('');  // Очищаем state
+      setMessageError(null);  // Сбрасываем ошибку
       inputRef.current?.focus();
     } catch (error) {
       console.error('Send message error:', error);
@@ -184,18 +222,27 @@ const App = () => {
           </div>
           <Form onSubmit={handleSubmit} className="border-top p-3">
             {submitError && <Alert variant="danger" className="mb-2">{submitError}</Alert>}
+            {/* ИЗМЕНЕНО: Добавлена динамическая ошибка */}
+            {messageError && <Alert variant="warning" className="mb-2">{messageError}</Alert>}
             <Row>
               <Col md={10}>
                 <Form.Control
                   ref={inputRef}
                   name="message"
                   type="text"
+                  value={messageText}  // ИЗМЕНЕНО: controlled input
+                  onChange={handleMessageChange}  // ИЗМЕНЕНО: добавлен onChange
                   placeholder={t('app.messagePlaceholder')}
                   disabled={!currentChannelId}
                 />
               </Col>
               <Col md={2}>
-                <Button variant="primary" type="submit" className="w-100" disabled={!currentChannelId}>
+                <Button 
+                  variant="primary" 
+                  type="submit" 
+                  className="w-100" 
+                  disabled={!isMessageValid()}  // ИЗМЕНЕНО: динамический disabled
+                >
                   {t('app.send')}
                 </Button>
               </Col>

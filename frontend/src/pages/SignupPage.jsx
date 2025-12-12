@@ -80,9 +80,6 @@ const SignupPage = () => {
               {t('signup.submit')}
             </Button>
           </Form>
-          <div className="text-center">
-            <a href="/login">{t('signup.loginLink')}</a>
-          </div>
         </Col>
       </Row>
     </Container>
