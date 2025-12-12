@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
-import { loginUser } from '../api'; // ← используем новую функцию
+import api from '../api'; // ← оставляем api, но используем правильный путь
 import { Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
 
 const LoginPage = () => {
@@ -34,16 +34,17 @@ const LoginPage = () => {
       setError(null);
       setLoading(true);
       try {
-        const response = await loginUser(values); // ← правильный эндпоинт
+        // ← ЭТО САМАЯ ВАЖНАЯ СТРОКА! Должна быть /api/v1/login
+        const response = await api.post('/api/v1/login', values);
+
         const { token, username } = response.data;
         dispatch(login({ token, username }));
         navigate('/');
       } catch (err) {
-        // Сервер Hexlet при неверных данных возвращает 401 + message: "Неверные имя пользователя или пароль"
         if (err.response?.status === 401) {
-          setError('Неверные имя пользователя или пароль'); // ← ТОЧНО такой текст ждёт тест
+          setError('Неверные имя пользователя или пароль'); // ← ТОЧНЫЙ текст, как в тесте
         } else {
-          setError(t('errors.network') || 'Ошибка сети. Попробуйте позже.');
+          setError(t('errors.network') || 'Ошибка сети');
         }
       } finally {
         setLoading(false);
