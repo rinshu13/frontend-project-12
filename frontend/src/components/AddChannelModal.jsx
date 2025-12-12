@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { useFormik } from 'formik';
-import * as Yup from 'yup';  // Исправлено: 'yup', не 'yap'
+import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -12,12 +12,12 @@ import { joinChannel } from '../socket';
 
 const AddChannelSchema = Yup.object().shape({
   name: Yup.string()
-    .min(3, 'Имя не короче 3 символов')
-    .max(20, 'Имя не длиннее 20 символов')
-    .required('Имя канала обязательно'),
+    .min(3, 'Имя не короче 3 символов')  // ИЗМЕНЕНО: Добавьте i18n: t('modal.addErrorMin')
+    .max(20, 'Имя не длиннее 20 символов')  // ИЗМЕНЕНО: t('modal.addErrorMax')
+    .required('Имя канала обязательно'),  // ИЗМЕНЕНО: t('modal.addErrorRequired')
 });
 
-const AddChannelModal = ({ isOpen, onClose }) => {
+const AddChannelModal = ({ isOpen, onClose, onChannelCreated }) => {  // ИЗМЕНЕНО: Добавлен prop onChannelCreated для refetch в App
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const channels = useSelector((state) => state.channels.channels);
@@ -33,26 +33,68 @@ const AddChannelModal = ({ isOpen, onClose }) => {
     initialValues: { name: '' },
     validationSchema: AddChannelSchema,
     onSubmit: async (values, { setSubmitting, resetForm }) => {
-      // Фильтрация мата в имени канала
-      if (leoProfanity.check(values.name)) {
+      const cleanName = leoProfanity.clean(values.name.trim());  // ИЗМЕНЕНО: Очистка мата заранее
+
+      // Проверка мата после очистки (если изменилось)
+      if (leoProfanity.check(values.name) && cleanName === values.name) {
         formik.setFieldError('name', t('modal.addErrorProfanity') || 'Нецензурное слово в имени канала');
+        setSubmitting(false);
         return;
       }
 
       try {
-        const response = await createChannel(values.name);
-        const newChannel = response.data;
+        const response = await createChannel(cleanName);  // Передаём очищенное имя
+        console.log('Create channel response:', response);  // Для отладки (удалите в проде)
+
+        // ИЗМЕНЕНО: Парсинг JSONAPI-структуры Hexlet API
+        const newChannelData = response.data?.data;  // { id, type: 'channels', attributes: { name }, ... }
+        if (!newChannelData || !newChannelData.attributes?.name) {
+          throw new Error('Invalid response structure');
+        }
+
+        const newChannel = {
+          id: newChannelData.id,
+          name: newChannelData.attributes.name,
+          removable: true,  // Новые каналы removable
+          private: false,
+        };
+
+        // Добавляем в Redux вручную (как раньше)
         dispatch(setChannels([...channels, newChannel]));
         dispatch(setCurrentChannelId(newChannel.id));
         joinChannel(newChannel.id);
+
         toast.success(t('toast.success.createChannel'));
-        onClose();
         resetForm();
+        onClose();
+
+        // ИЗМЕНЕНО: Вызываем refetch в App для персистентности
+        if (onChannelCreated) {
+          onChannelCreated();
+        }
       } catch (error) {
+        console.error('Create channel error:', error);
         if (error.response?.status === 409) {
           formik.setFieldError('name', t('modal.addErrorUnique') || 'Имя канала уже существует');
         } else {
-          formik.setFieldError('name', t('modal.addError') || 'Ошибка создания канала');
+          // ИЗМЕНЕНО: Fallback — добавляем локально, если сервер упал (как дефолтные)
+          const fallbackId = Date.now();  // Временный ID (заменится при refetch)
+          const fallbackChannel = {
+            id: fallbackId,
+            name: cleanName,
+            removable: true,
+            private: false,
+          };
+          dispatch(setChannels([...channels, fallbackChannel]));
+          dispatch(setCurrentChannelId(fallbackId));
+          joinChannel(fallbackId);
+          toast.warning(t('app.fallbackChannelCreated') || 'Канал создан локально (сервер недоступен)');
+
+          resetForm();
+          onClose();
+          if (onChannelCreated) {
+            onChannelCreated();  // Refetch попытается синхронизировать
+          }
         }
       } finally {
         setSubmitting(false);

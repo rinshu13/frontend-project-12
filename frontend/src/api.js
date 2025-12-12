@@ -27,9 +27,13 @@ export const getChannels = async () => {
   return api.get('/channels');
 };
 
-// POST /channels для создания канала
+// POST /channels для создания канала (JSONAPI)
 export const createChannel = async (name) => {
-  return api.post('/channels', { name });
+  return api.post('/channels', { 
+    data: { 
+      attributes: { name } 
+    } 
+  });
 };
 
 // DELETE /channels/:id для удаления канала
