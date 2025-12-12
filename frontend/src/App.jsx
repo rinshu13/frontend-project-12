@@ -168,52 +168,52 @@ const App = () => {
   }, [dispatch, t, loadChannelsFromStorage, saveChannelsToStorage, loadMessagesFromStorage, saveMessagesToStorage, getDemoMessages]);
 
   useEffect(() => {
-    if (!token) {
-      navigate('/login');
-      return;
-    }
+  if (!token) {
+    navigate('/login');
+    return;
+  }
 
-    connectSocket(token);
+  connectSocket(token);
 
-    // ИЗМЕНЕНО: Немедленный fallback, если token есть (для тестов)
-    const fallbackChannels = [
-      {
-        id: 1,
-        name: 'general',
-        removable: false,
-        private: false,
-      },
-      {
-        id: 2,
-        name: 'random',
-        removable: false,
-        private: false,
-      },
-    ];
-    dispatch(setChannels(fallbackChannels));  // Немедленный dispatch дефолтных (для тестов)
-    const generalId = 1;
-    dispatch(setCurrentChannelId(generalId));
-    joinChannel(generalId);
+  // ИЗМЕНЕНО: Немедленный fallback, если token есть (для тестов)
+  const fallbackChannels = [
+    {
+      id: 1,
+      name: 'general',
+      removable: false,
+      private: false,
+    },
+    {
+      id: 2,
+      name: 'random',
+      removable: false,
+      private: false,
+    },
+  ];
+  dispatch(setChannels(fallbackChannels));  // Немедленный dispatch дефолтных (для тестов)
+  const generalId = 1;
+  dispatch(setCurrentChannelId(generalId));
+  joinChannel(generalId);
 
-    // Затем refetch (API + storage)
-    refetchChannels().then(() => {
-      // Wait for render (для тестов)
-      setTimeout(() => {
-        console.log('Channels after refetch:', channels);
-      }, 1000);
-    });
+  // Затем refetch (API + storage)
+  refetchChannels().then(() => {
+    // Wait for render (для тестов)
+    setTimeout(() => {
+      console.log('Channels after refetch:', channels);
+    }, 1000);
+  });
 
-    const socket = connectSocket(token);
-    const handleConnectError = () => {
-      toast.error(t('toast.error.network'));
-    };
-    socket.on('connect_error', handleConnectError);
+  const socket = connectSocket(token);
+  const handleConnectError = () => {
+    toast.error(t('toast.error.network'));
+  };
+  socket.on('connect_error', handleConnectError);
 
-    return () => {
-      socket.off('connect_error', handleConnectError);
-      disconnectSocket();
-    };
-  }, [token, dispatch, navigate, t, refetchChannels]);
+  return () => {
+    socket.off('connect_error', handleConnectError);
+    disconnectSocket();
+  };
+}, [token, dispatch, navigate, t, refetchChannels]);
 
   const validateMessage = useCallback((text) => {
     if (!text || text.trim().length === 0) {
