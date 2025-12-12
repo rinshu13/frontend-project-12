@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',  
 });
 
 api.interceptors.request.use((config) => {
@@ -27,12 +27,13 @@ export const getChannels = async () => {
   return api.get('/channels');
 };
 
-// POST /channels для создания канала (JSONAPI)
+// POST /channels для создания канала (JSONAPI-структура для Hexlet)
 export const createChannel = async (name) => {
-  return api.post('/channels', { 
-    data: { 
-      attributes: { name } 
-    } 
+  return api.post('/channels', {
+    data: {
+      type: 'channels',
+      attributes: { name },
+    },
   });
 };
 
@@ -43,7 +44,12 @@ export const deleteChannel = async (channelId) => {
 
 // PUT /channels/:id для переименования канала
 export const renameChannel = async (channelId, name) => {
-  return api.put(`/channels/${channelId}`, { name });
+  return api.put(`/channels/${channelId}`, {
+    data: {
+      type: 'channels',
+      attributes: { name },
+    },
+  });
 };
 
 export default api;
