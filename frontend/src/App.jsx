@@ -68,13 +68,13 @@ const App = () => {
         id: 1,
         text: `Добро пожаловать в канал ${channelName}!`,
         username: 'System',
-        createdAt: new Date(Date.now() - 3600000).toISOString(),  // 1 час назад
+        createdAt: new Date(Date.now() - 3600000).toISOString(),
       },
       {
         id: 2,
         text: 'Это демо-сообщение. Отправьте своё!',
         username: 'DemoUser',
-        createdAt: new Date().toISOString(),  // Сейчас
+        createdAt: new Date().toISOString(),
       },
     ];
   }, []);
@@ -388,7 +388,8 @@ const App = () => {
                   value={messageText}
                   onChange={handleMessageChange}
                   placeholder={t('app.messagePlaceholder')}
-                  disabled={!currentChannelId}
+                  disabled={!currentChannelId}  // ИЗМЕНЕНО: Disabled только если нет канала
+                  autoFocus  // ИЗМЕНЕНО: Авто-фокус на input для письма
                 />
               </Col>
               <Col md={2}>
@@ -396,7 +397,7 @@ const App = () => {
                   variant="primary" 
                   type="submit" 
                   className="w-100" 
-                  disabled={!isMessageValid()}
+                  disabled={!currentChannelId || messageText.trim().length === 0}  // ИЗМЕНЕНО: Disabled только если нет канала или пустой текст (убрал messageError для простоты)
                 >
                   {t('app.send')}
                 </Button>
