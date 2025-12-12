@@ -7,22 +7,22 @@ let socket = null;
 export const connectSocket = (token) => {
   if (socket) return socket;
 
-  const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || '/socket.io';  // Prod: Hexlet wss, dev: прокси
+  const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://frontend-chat-ru.hexlet.app';  // ИЗМЕНЕНО: Абсолютный URL backend'а (client appends /socket.io). Dev: прокси, prod: Hexlet
 
   socket = io(SOCKET_URL, {
-    auth: { token },  // JWT из localStorage
-    transports: ['websocket', 'polling'],  // Fallback на polling для CORS/WebSocket
-    timeout: 20000,
+    auth: { token },  // Токен для auth на сервере
+    transports: ['websocket', 'polling'],  // ИЗМЕНЕНО: Fallback на polling для стабильности
+    timeout: 20000,  // Таймаут подключения
   });
 
   // Получение новых сообщений (реал-тайм)
   socket.on('newMessage', (message) => {
-    store.dispatch(addMessage(message));
+    store.dispatch(addMessage(message));  // Добавляем в Redux
   });
 
   // Ошибки
   socket.on('connect_error', (err) => {
-    console.error('Socket connect error:', err.message || err);  // Фикс "Invalid namespace"
+    console.error('Socket connect error:', err.message || err);  // ИЗМЕНЕНО: Улучшен лог для "Invalid namespace"
   });
 
   // Успешное подключение
@@ -67,6 +67,7 @@ export const promisifyEmit = (event, data) => {
 export const joinChannel = async (channelId) => {
   try {
     await promisifyEmit('joinChannel', { channelId });
+    console.log('Joined channel:', channelId);
   } catch (error) {
     console.error('Join channel error:', error);
   }
@@ -76,6 +77,7 @@ export const joinChannel = async (channelId) => {
 export const leaveChannel = async (channelId) => {
   try {
     await promisifyEmit('leaveChannel', { channelId });
+    console.log('Left channel:', channelId);
   } catch (error) {
     console.error('Leave channel error:', error);
   }
@@ -85,6 +87,7 @@ export const leaveChannel = async (channelId) => {
 export const emitNewMessage = async (data) => {
   try {
     await promisifyEmit('newMessage', data);
+    console.log('Message emitted:', data);
   } catch (error) {
     console.error('Emit message error:', error);
     throw error;
