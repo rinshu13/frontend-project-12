@@ -5,7 +5,7 @@ import { Container, Row, Col, ListGroup, Form, Button, Card, Alert, Dropdown } f
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import leoProfanity from 'leo-profanity';
-import { sendMessage, fetchMessagesByChannel, getChannels } from './api';  // Оставляем для fallback на API
+import { sendMessage, fetchMessagesByChannel, getChannels } from './api';
 import { connectSocket, disconnectSocket, joinChannel, leaveChannel, emitNewMessage } from './socket';
 import { setChannels, setCurrentChannelId } from './features/channels/channelsSlice';
 import { setMessages } from './features/messages/messagesSlice';
@@ -38,7 +38,7 @@ const App = () => {
 
   // Функция сохранения каналов в localStorage
   const saveChannelsToStorage = useCallback((channelsList) => {
-    if (token) {  // Сохраняем только если JWT-токен валиден (симуляция auth)
+    if (token) {
       localStorage.setItem('channels', JSON.stringify(channelsList));
       console.log('Channels saved to localStorage:', channelsList);
     }
@@ -61,26 +61,25 @@ const App = () => {
     return [];
   }, []);
 
-  // ИЗМЕНЕНО: Функция создания демо-сообщений для канала (если пусто)
+  // Функция создания демо-сообщений для канала (если пусто)
   const getDemoMessages = useCallback((channelName) => {
-    const demoMessages = [
+    return [
       {
         id: 1,
-        text: `Привет! Это демо-сообщение в канале ${channelName}.`,
+        text: `Добро пожаловать в канал ${channelName}!`,
         username: 'System',
         createdAt: new Date(Date.now() - 3600000).toISOString(),  // 1 час назад
       },
       {
         id: 2,
-        text: 'Hexlet Chat — отличный проект для практики React и Redux!',
+        text: 'Это демо-сообщение. Отправьте своё!',
         username: 'DemoUser',
         createdAt: new Date().toISOString(),  // Сейчас
       },
     ];
-    return demoMessages;
   }, []);
 
-  // ИЗМЕНЕНО: Функция сохранения сообщений в localStorage
+  // Функция сохранения сообщений в localStorage
   const saveMessagesToStorage = useCallback((channelId, messagesList) => {
     if (token) {
       localStorage.setItem(`messages_${channelId}`, JSON.stringify(messagesList));
@@ -88,7 +87,7 @@ const App = () => {
     }
   }, [token]);
 
-  // ИЗМЕНЕНО: Функция загрузки сообщений из localStorage
+  // Функция загрузки сообщений из localStorage
   const loadMessagesFromStorage = useCallback((channelId) => {
     const stored = localStorage.getItem(`messages_${channelId}`);
     if (stored) {
@@ -107,18 +106,18 @@ const App = () => {
 
   // Refetch каналов (локально из storage + fallback API)
   const refetchChannels = useCallback(async () => {
-    let channelsList = loadChannelsFromStorage();  // Сначала из localStorage
+    let channelsList = loadChannelsFromStorage();
 
     if (channelsList.length === 0) {
       try {
-        const response = await getChannels();  // Попытка API
+        const response = await getChannels();
         channelsList = Array.isArray(response.data?.channels) ? response.data.channels : [];
       } catch (error) {
         console.error('API fetch failed, using fallback:', error);
       }
     }
 
-    // Fallback — если всё пусто, создаём дефолтные каналы
+    // Fallback — если всё пусто, создаём дефолтные
     if (channelsList.length === 0) {
       channelsList = [
         {
@@ -139,13 +138,13 @@ const App = () => {
     }
 
     dispatch(setChannels(channelsList));
-    saveChannelsToStorage(channelsList);  // Сохраняем в storage
+    saveChannelsToStorage(channelsList);
 
     const generalId = channelsList.find(c => c.name === 'general')?.id || channelsList[0]?.id || 1;
     dispatch(setCurrentChannelId(generalId));
     joinChannel(generalId);
 
-    // ИЗМЕНЕНО: Загрузка сообщений для текущего канала с демо, если пусто
+    // Загрузка сообщений для текущего канала с демо, если пусто
     let messagesList = loadMessagesFromStorage(generalId);
     if (messagesList.length === 0) {
       try {
@@ -162,7 +161,7 @@ const App = () => {
         toast.info(t('app.demoMessages') || 'Добавлены демо-сообщения');
       }
 
-      saveMessagesToStorage(generalId, messagesList);  // Сохраняем локально
+      saveMessagesToStorage(generalId, messagesList);
     }
 
     dispatch(setMessages(messagesList));
@@ -176,7 +175,7 @@ const App = () => {
 
     connectSocket(token);
 
-    refetchChannels();  // Загрузка из storage + демо
+    refetchChannels();
 
     const socket = connectSocket(token);
     const handleConnectError = () => {
@@ -231,7 +230,6 @@ const App = () => {
     }
     joinChannel(channelId);
     try {
-      // Загрузка сообщений из localStorage или API
       let messagesList = loadMessagesFromStorage(channelId);
       if (messagesList.length === 0) {
         try {
@@ -248,7 +246,7 @@ const App = () => {
           saveMessagesToStorage(channelId, messagesList);
           toast.info(t('app.demoMessages') || 'Добавлены демо-сообщения');
         } else {
-          saveMessagesToStorage(channelId, messagesList);  // Сохраняем из API
+          saveMessagesToStorage(channelId, messagesList);
         }
       }
 
@@ -276,9 +274,9 @@ const App = () => {
       setMessageError(null);
       inputRef.current?.focus();
 
-      // ИЗМЕНЕНО: Добавляем сообщение локально в Redux + storage (для оффлайн)
+      // Добавляем сообщение локально в Redux + storage
       const newMessage = {
-        id: Date.now(),  // Уникальный ID
+        id: Date.now(),
         text: text,
         username: username,
         createdAt: new Date().toISOString(),
@@ -308,7 +306,6 @@ const App = () => {
     toast.info(t('toast.info.logout'));
   };
 
-  // Обработчики модалок с refetch
   const handleAddModalClose = async () => {
     setShowAddModal(false);
     await refetchChannels();
