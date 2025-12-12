@@ -17,10 +17,9 @@ const ChatComponent = () => {
     messages: state.messages.messages,
   }));
   const [messageError, setMessageError] = useState(null);
-  const [messageText, setMessageText] = useState(null);
-  const [messages, setLocalMessages] = useState([]);  // Локальный state для сообщений (синхронизируется с Redux)
+  const [messageText, setMessageText] = useState('');
+  const [messages, setLocalMessages] = useState([]);  
 
-  // Загрузка сообщений из localStorage при смене канала
   useEffect(() => {
     if (currentChannelId && token) {
       const storedMessages = localStorage.getItem(`messages_${currentChannelId}`);
