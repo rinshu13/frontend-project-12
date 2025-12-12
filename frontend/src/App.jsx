@@ -366,6 +366,7 @@ const App = () => {
           <ListGroup className="channels-list flex-grow-1 overflow-auto">
             {channels?.map((channel) => (
               <ListGroup.Item
+                role="button"
                 key={channel.id}
                 active={currentChannelId === channel.id}
                 onClick={() => handleChannelClick(channel.id)}
