@@ -5,11 +5,11 @@ import { Container, Row, Col, ListGroup, Form, Button, Card, Alert, Dropdown } f
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import leoProfanity from 'leo-profanity';
-import { sendMessage, fetchMessagesByChannel, getChannels } from './api';
+import { sendMessage, fetchMessagesByChannel, getChannels } from './api';  // Оставляем для fallback на API
 import { connectSocket, disconnectSocket, joinChannel, leaveChannel, emitNewMessage } from './socket';
 import { setChannels, setCurrentChannelId } from './features/channels/channelsSlice';
 import { setMessages } from './features/messages/messagesSlice';
-import { logout } from './features/auth/authSlice';  // Импорт logout (проверьте путь!)
+import { logout } from './features/auth/authSlice';
 import api from './api';
 import AddChannelModal from './components/AddChannelModal';
 import RenameChannelModal from './components/RenameChannelModal';
@@ -36,44 +36,47 @@ const App = () => {
     if (!Array.isArray(messages)) console.error('messages is not an array:', messages);
   }
 
-  // ИЗМЕНЕНО: Функция refetch каналов (fallback для пустого API)
-  const refetchChannels = useCallback(async () => {
-    try {
-      const response = await getChannels();
-      let channelsList = Array.isArray(response.data?.channels) ? response.data.channels : [];
-      console.log('Loaded channels from API:', channelsList);
+  // ИЗМЕНЕНО: Функция сохранения каналов в localStorage
+  const saveChannelsToStorage = useCallback((channelsList) => {
+    if (token) {  // Сохраняем только если JWT-токен валиден (симуляция auth)
+      localStorage.setItem('channels', JSON.stringify(channelsList));
+      console.log('Channels saved to localStorage:', channelsList);
+    }
+  }, [token]);
 
-      // Fallback — если API пустой, создаём дефолтные каналы
-      if (channelsList.length === 0) {
-        channelsList = [
-          {
-            id: 1,
-            name: 'general',
-            removable: false,
-            private: false,
-          },
-          {
-            id: 2,
-            name: 'random',
-            removable: false,
-            private: false,
-          },
-        ];
-        console.log('Fallback: Created default channels');
-        toast.info(t('app.fallbackChannels'));
+  // ИЗМЕНЕНО: Функция загрузки каналов из localStorage
+  const loadChannelsFromStorage = useCallback(() => {
+    const stored = localStorage.getItem('channels');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          console.log('Channels loaded from localStorage:', parsed);
+          return parsed;
+        }
+      } catch (e) {
+        console.error('Parse localStorage error:', e);
       }
+    }
+    return [];
+  }, []);
 
-      dispatch(setChannels(channelsList));
+  // ИЗМЕНЕНО: Refetch каналов (локально из storage + fallback API)
+  const refetchChannels = useCallback(async () => {
+    let channelsList = loadChannelsFromStorage();  // Сначала из localStorage
 
-      const generalId = channelsList.find(c => c.name === 'general')?.id || channelsList[0]?.id || 1;
-      dispatch(setCurrentChannelId(generalId));
-      joinChannel(generalId);
-    } catch (error) {
-      console.error('Fetch channels failed:', error);
-      toast.error(t('toast.error.fetchChannels'));
-      
-      // Fallback в catch
-      const fallbackChannels = [
+    if (channelsList.length === 0) {
+      try {
+        const response = await getChannels();  // Попытка API
+        channelsList = Array.isArray(response.data?.channels) ? response.data.channels : [];
+      } catch (error) {
+        console.error('API fetch failed, using fallback:', error);
+      }
+    }
+
+    // Fallback — если всё пусто, создаём дефолтные
+    if (channelsList.length === 0) {
+      channelsList = [
         {
           id: 1,
           name: 'general',
@@ -87,14 +90,30 @@ const App = () => {
           private: false,
         },
       ];
-      dispatch(setChannels(fallbackChannels));
-      const generalId = 1;
-      dispatch(setCurrentChannelId(generalId));
-      joinChannel(generalId);
-      dispatch(setMessages([]));
-      console.log('Fallback in catch: Created default channels');
+      console.log('Fallback: Created default channels');
+      toast.info(t('app.fallbackChannels'));
     }
-  }, [dispatch, t]);
+
+    dispatch(setChannels(channelsList));
+    saveChannelsToStorage(channelsList);  // Сохраняем в storage
+
+    const generalId = channelsList.find(c => c.name === 'general')?.id || channelsList[0]?.id || 1;
+    dispatch(setCurrentChannelId(generalId));
+    joinChannel(generalId);
+
+    // Загрузка сообщений для текущего канала (локально или API)
+    try {
+      const response = await fetchMessagesByChannel(generalId);
+      const messagesList = Array.isArray(response.data?.messages) ? response.data.messages : [];
+      dispatch(setMessages(messagesList));
+      // Сохраняем сообщения локально, если нужно (расширьте для messages)
+      localStorage.setItem(`messages_${generalId}`, JSON.stringify(messagesList));
+    } catch (error) {
+      console.error('Fetch messages failed:', error);
+      toast.error(t('toast.error.fetchMessages'));
+      dispatch(setMessages([]));
+    }
+  }, [dispatch, t, loadChannelsFromStorage, saveChannelsToStorage]);
 
   useEffect(() => {
     if (!token) {
@@ -104,7 +123,7 @@ const App = () => {
 
     connectSocket(token);
 
-    refetchChannels();
+    refetchChannels();  // Загрузка из storage + fallback
 
     const socket = connectSocket(token);
     const handleConnectError = () => {
@@ -159,8 +178,16 @@ const App = () => {
     }
     joinChannel(channelId);
     try {
-      const response = await fetchMessagesByChannel(channelId);
-      const messagesList = Array.isArray(response.data.messages) ? response.data.messages : [];
+      // Загрузка сообщений из localStorage или API
+      const storedMessages = localStorage.getItem(`messages_${channelId}`);
+      let messagesList = [];
+      if (storedMessages) {
+        messagesList = JSON.parse(storedMessages);
+      } else {
+        const response = await fetchMessagesByChannel(channelId);
+        messagesList = Array.isArray(response.data?.messages) ? response.data.messages : [];
+        localStorage.setItem(`messages_${channelId}`, JSON.stringify(messagesList));  // Сохраняем локально
+      }
       dispatch(setMessages(messagesList));
     } catch (error) {
       console.error('Fetch messages error:', error);
@@ -200,14 +227,13 @@ const App = () => {
     }
   };
 
-  // ИЗМЕНЕНО: handleLogout определена ДО return (scope fix)
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');
     toast.info(t('toast.info.logout'));
   };
 
-  // ИЗМЕНЕНО: Обработчики модалок с refetch
+  // Обработчики модалок с refetch
   const handleAddModalClose = async () => {
     setShowAddModal(false);
     await refetchChannels();
@@ -234,7 +260,6 @@ const App = () => {
             <Button variant="success" onClick={() => setShowAddModal(true)} className="w-100 mb-2">
               {t('app.addChannel')}
             </Button>
-            {/* ИЗМЕНЕНО: onClick={handleLogout} — функция в scope */}
             <Button variant="outline-secondary" onClick={handleLogout} className="w-100">
               {t('app.logout')}
             </Button>
