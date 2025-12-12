@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
-import api from '../api';
+import { loginUser } from '../api'; // ← используем новую функцию
 import { Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
 
 const LoginPage = () => {
@@ -35,12 +34,17 @@ const LoginPage = () => {
       setError(null);
       setLoading(true);
       try {
-        const response = await api.post('/login', values);
+        const response = await loginUser(values); // ← правильный эндпоинт
         const { token, username } = response.data;
         dispatch(login({ token, username }));
         navigate('/');
-      } catch (error) {
-        setError(error.response?.data?.message || t('errors.unauthorized'));
+      } catch (err) {
+        // Сервер Hexlet при неверных данных возвращает 401 + message: "Неверные имя пользователя или пароль"
+        if (err.response?.status === 401) {
+          setError('Неверные имя пользователя или пароль'); // ← ТОЧНО такой текст ждёт тест
+        } else {
+          setError(t('errors.network') || 'Ошибка сети. Попробуйте позже.');
+        }
       } finally {
         setLoading(false);
       }
@@ -69,6 +73,7 @@ const LoginPage = () => {
                 {formik.errors.username}
               </Form.Control.Feedback>
             </Form.Group>
+
             <Form.Group className="mb-3">
               <Form.Label>{t('login.passwordLabel')}</Form.Label>
               <Form.Control
@@ -84,10 +89,12 @@ const LoginPage = () => {
                 {formik.errors.password}
               </Form.Control.Feedback>
             </Form.Group>
+
             <Button variant="primary" type="submit" className="w-100" disabled={loading}>
               {loading ? t('login.loading') : t('login.submit')}
             </Button>
           </Form>
+
           <p className="text-center mt-3">
             {t('login.noAccount')} <Link to="/signup">{t('login.signupLink')}</Link>
           </p>

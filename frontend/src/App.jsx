@@ -9,7 +9,7 @@ import { sendMessage, fetchMessagesByChannel, getChannels } from './api';
 import { connectSocket, disconnectSocket, joinChannel, leaveChannel, emitNewMessage } from './socket';
 import { setChannels, setCurrentChannelId } from './features/channels/channelsSlice';
 import { setMessages } from './features/messages/messagesSlice';
-import { logout } from './features/auth/authSlice';
+import { logout, initAuth } from './features/auth/authSlice'; // ← исправлено: один импорт + добавлен initAuth
 import api from './api';
 import AddChannelModal from './components/AddChannelModal';
 import RenameChannelModal from './components/RenameChannelModal';
@@ -29,6 +29,11 @@ const App = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(null);
   const [showRemoveModal, setShowRemoveModal] = useState(null);
+
+  // ← ВАЖНОЕ ДОБАВЛЕНИЕ: восстанавливаем токен при загрузке приложения
+  useEffect(() => {
+    dispatch(initAuth());
+  }, [dispatch]);
 
   // Защита на случай некорректного состояния (для отладки)
   if (process.env.NODE_ENV === 'development') {
@@ -363,7 +368,7 @@ const App = () => {
             {channels?.map((channel) => (
               <ListGroup.Item
                 key={channel.id}
-                role="button"  // ← Для тестов Hexlet (чтобы нашли кнопку general)
+                role="button"
                 active={currentChannelId === channel.id}
                 onClick={() => handleChannelClick(channel.id)}
                 className="d-flex justify-content-between align-items-center p-2"
