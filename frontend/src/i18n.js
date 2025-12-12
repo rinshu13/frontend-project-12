@@ -47,6 +47,15 @@ const resources = {
       'app.fallbackChannels': 'Загружены дефолтные каналы (general, random)',
       'app.demoMessages': 'Добавлены демо-сообщения для канала',
 
+      // НОВЫЙ БЛОК ДЛЯ ЧАТА
+      "chat": {
+        "inputPlaceholder": "Введите сообщение...",
+        "inputAriaLabel": "Новое сообщение",
+        "sendButton": "Отправить",
+        "welcomeMessage": "Добро пожаловать в канал!",
+        "demoMessage": "Это демо-сообщение. Отправьте своё!"
+      },
+
       // Validation для сообщений
       'validation.messageRequired': 'Сообщение обязательно',
       'validation.messageTooLong': 'Сообщение слишком длинное (max 500)',

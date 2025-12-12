@@ -1,6 +1,7 @@
-import React, { useEffect,useState, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Container, Row, Col, Card, Alert, Form, Button } from 'react-bootstrap';
+import { Container, Form, Button, Card, Alert, InputGroup } from 'react-bootstrap';
+import { ArrowRightSquare } from 'react-bootstrap-icons';  // Иконка стрелки (как в демо)
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import leoProfanity from 'leo-profanity';
@@ -10,16 +11,18 @@ const ChatComponent = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const inputRef = useRef(null);
+
   const { token, username, currentChannelId } = useSelector((state) => ({
     token: state.auth.token,
     username: state.auth.username,
     currentChannelId: state.channels.currentChannelId,
-    messages: state.messages.messages,
   }));
+
   const [messageError, setMessageError] = useState(null);
   const [messageText, setMessageText] = useState('');
-  const [messages, setLocalMessages] = useState([]);  
+  const [messages, setLocalMessages] = useState([]);
 
+  // Загрузка сообщений при смене канала
   useEffect(() => {
     if (currentChannelId && token) {
       const storedMessages = localStorage.getItem(`messages_${currentChannelId}`);
@@ -32,18 +35,18 @@ const ChatComponent = () => {
         }
       }
 
-      // Если пусто, добавляем демо-сообщения
+      // Демо-сообщения, если пусто
       if (messagesList.length === 0) {
         messagesList = [
           {
             id: 1,
-            text: 'Добро пожаловать в канал!',
+            text: t('chat.welcomeMessage') || 'Добро пожаловать в канал!',
             username: 'System',
             createdAt: new Date(Date.now() - 3600000).toISOString(),
           },
           {
             id: 2,
-            text: 'Это демо-сообщение. Отправьте своё!',
+            text: t('chat.demoMessage') || 'Это демо-сообщение. Отправьте своё!',
             username: 'DemoUser',
             createdAt: new Date().toISOString(),
           },
@@ -53,37 +56,36 @@ const ChatComponent = () => {
       }
 
       setLocalMessages(messagesList);
-      dispatch(setMessages(messagesList));  // Синхронизация с Redux
+      dispatch(setMessages(messagesList));
     }
   }, [currentChannelId, token, dispatch, t]);
 
-  // Валидация сообщения
+  // Валидация
   const validateMessage = useCallback((text) => {
     if (!text || text.trim().length === 0) {
-      return t('validation.messageRequired') || 'Сообщение обязательно';
+      return t('validation.messageRequired');
     }
     if (text.trim().length > 500) {
-      return t('validation.messageTooLong') || 'Сообщение слишком длинное';
+      return t('validation.messageTooLong');
     }
     if (leoProfanity.check(text)) {
-      return t('validation.profanityDetected') || 'Обнаружен мат';
+      return t('validation.profanityDetected');
     }
     return null;
   }, [t]);
 
-  // Изменение текста сообщения
   const handleMessageChange = useCallback((e) => {
     const text = e.target.value;
     setMessageText(text);
+    setMessageError(null);  // Сбрасываем ошибку при вводе
   }, []);
 
-  // Проверка валидности
   const isMessageValid = useCallback(() => {
-    return messageText.trim().length > 0 && !messageError && currentChannelId;
-  }, [messageText, messageError, currentChannelId]);
+    return currentChannelId && messageText.trim().length > 0 && !messageError;
+  }, [currentChannelId, messageText, messageError]);
 
   // Отправка сообщения
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setMessageError(null);
 
@@ -96,59 +98,76 @@ const ChatComponent = () => {
 
     if (leoProfanity.check(text)) {
       text = leoProfanity.clean(text);
-      toast.warning(t('toast.warning.profanity') || 'Нецензурное слово заменено');
+      toast.warning(t('toast.warning.profanity'));
     }
 
     const newMessage = {
       id: Date.now(),
-      text: text,
-      username: username,
+      text,
+      username,
       createdAt: new Date().toISOString(),
     };
 
     const updatedMessages = [...messages, newMessage];
     setLocalMessages(updatedMessages);
-    dispatch(setMessages(updatedMessages));  // Обновление Redux
-    localStorage.setItem(`messages_${currentChannelId}`, JSON.stringify(updatedMessages));  // Сохранение в localStorage
+    dispatch(setMessages(updatedMessages));
+    localStorage.setItem(`messages_${currentChannelId}`, JSON.stringify(updatedMessages));
+
     setMessageText('');
     inputRef.current?.focus();
-    toast.success(t('app.messageSent') || 'Сообщение отправлено');
   };
 
   return (
-    <Container fluid className="chat-component vh-100 d-flex flex-column">
-      <div className="flex-grow-1 p-3 overflow-auto bg-light">
-        {messages.map((message) => (
-          <Card key={message.id} className="mb-2">
-            <Card.Body>
-              <Card.Subtitle className="mb-2 text-muted">{message.username}</Card.Subtitle>
-              <Card.Text className="chat-message">{message.text}</Card.Text>
-              <Card.Footer className="text-muted small">{new Date(message.createdAt).toLocaleString()}</Card.Footer>
-            </Card.Body>
-          </Card>
-        ))}
+    <Container fluid className="h-100 d-flex flex-column">
+      {/* Список сообщений */}
+      <div className="flex-grow-1 overflow-auto p-3 bg-light">
+        {messages.length === 0 ? (
+          <p className="text-center text-muted">{t('app.noMessages')}</p>
+        ) : (
+          messages.map((message) => (
+            <Card key={message.id} className="mb-3 border-0 shadow-sm">
+              <Card.Body className="p-3">
+                <Card.Subtitle className="mb-2 text-muted small">
+                  {message.username}
+                </Card.Subtitle>
+                <Card.Text className="mb-1">{message.text}</Card.Text>
+                <Card.Footer className="border-0 bg-transparent p-0 text-muted small">
+                  {new Date(message.createdAt).toLocaleString()}
+                </Card.Footer>
+              </Card.Body>
+            </Card>
+          ))
+        )}
       </div>
-      <Form onSubmit={handleSubmit} className="border-top p-3">
-        {messageError && <Alert variant="warning" className="mb-2">{messageError}</Alert>}
-        <Row>
-          <Col md={10}>
+
+      {/* Форма ввода */}
+      <div className="border-top pt-3 px-3">
+        {messageError && <Alert variant="warning" className="mb-3 py-2">{messageError}</Alert>}
+        <Form onSubmit={handleSubmit}>
+          <InputGroup>
             <Form.Control
               ref={inputRef}
               type="text"
               value={messageText}
               onChange={handleMessageChange}
-              placeholder={t('app.messagePlaceholder') || 'Введите сообщение...'}
+              placeholder={t('chat.inputPlaceholder')}
+              aria-label={t('chat.inputAriaLabel')}
+              className="border-0 shadow-none ps-2"
               disabled={!currentChannelId}
               autoFocus
             />
-          </Col>
-          <Col md={2}>
-            <Button variant="primary" type="submit" className="w-100" disabled={!isMessageValid()}>
-              {t('app.send') || 'Отправить'}
+            <Button
+              variant="link"
+              type="submit"
+              disabled={!isMessageValid()}
+              className="text-muted"
+            >
+              <ArrowRightSquare size={24} />
+              <span className="visually-hidden">{t('chat.sendButton')}</span>
             </Button>
-          </Col>
-        </Row>
-      </Form>
+          </InputGroup>
+        </Form>
+      </div>
     </Container>
   );
 };
