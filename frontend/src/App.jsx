@@ -363,6 +363,7 @@ const App = () => {
                 ref={inputRef}
                 type="text"
                 value={messageText}
+                aria-label="Новое сообщение"
                 onChange={handleMessageChange}
                 placeholder={t('app.messagePlaceholder')}
                 disabled={!currentChannelId}
