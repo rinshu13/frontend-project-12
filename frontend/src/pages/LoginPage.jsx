@@ -5,14 +5,14 @@ import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
-import api from '../api';
+import { loginUser } from '../api'; // ← Новый импорт
 import { Container, Row, Col, Form, Button, FloatingLabel } from 'react-bootstrap';
 
 const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [authError, setAuthError] = useState(null); // Только для ошибки с сервера
+  const [authError, setAuthError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const LoginSchema = Yup.object().shape({
@@ -35,19 +35,30 @@ const LoginPage = () => {
       setLoading(true);
 
       try {
-        const response = await api.post('/api/v1/login', values);
+        const response = await loginUser(values);
 
-        if (!response.data || !response.data.token || !response.data.username) {
-          throw new Error('Invalid response from server');
+        // Hexlet backend возвращает данные в формате { data: { attributes: { token, username } } }
+        const { token, username } = response.data.data.attributes;
+
+        if (!token || !username) {
+          throw new Error('Missing token or username in response');
         }
 
-        const { token, username } = response.data;
+        // Сохраняем в Redux и localStorage
         dispatch(login({ token, username }));
+        localStorage.setItem('token', token);
+        localStorage.setItem('username', username);
+
         navigate('/');
       } catch (err) {
         console.error('Login error:', err);
-        // Только здесь показываем "Неверные имя пользователя или пароль"
-        setAuthError(t('errors.invalidCredentials') || 'Неверные имя пользователя или пароль');
+
+        // Если сервер вернул 401 — точно неверные данные
+        if (err.response?.status === 401) {
+          setAuthError('Неверные имя пользователя или пароль');
+        } else {
+          setAuthError('Ошибка сети или сервера. Попробуйте позже.');
+        }
       } finally {
         setLoading(false);
       }
@@ -108,7 +119,6 @@ const LoginPage = () => {
               )}
             </FloatingLabel>
 
-            {/* Ошибка только от сервера */}
             {authError && (
               <div className="alert alert-danger text-center mb-4 py-3">
                 {authError}

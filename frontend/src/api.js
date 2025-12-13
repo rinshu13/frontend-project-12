@@ -52,14 +52,14 @@ export const renameChannel = async (channelId, name) => {
   });
 };
 
-// НОВАЯ ФУНКЦИЯ — ОБЯЗАТЕЛЬНО!
+// Логин пользователя
 export const loginUser = async (credentials) => {
-  return api.post('/api/v1/login', credentials);
+  return api.post('/login', credentials); // Обратите внимание: путь без /api/v1 — baseURL уже содержит /api/v1
 };
 
-// (опционально) регистрация, если используешь
+// Регистрация (если используешь)
 export const signupUser = async (credentials) => {
-  return api.post('/api/v1/signup', credentials);
+  return api.post('/signup', credentials);
 };
 
 export default api;
