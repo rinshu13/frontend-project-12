@@ -107,6 +107,7 @@ const ChatComponent = () => {
           ref={inputRef}
           type="text"
           placeholder={t('chat.inputPlaceholder')}
+          aria-label="Новое сообщение"
           className={`chat-input ${touched && messageError ? 'invalid' : ''}`}
           value={messageText}
           onChange={(e) => {
