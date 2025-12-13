@@ -149,7 +149,7 @@ const ChatComponent = () => {
       </div>
 
       {/* Форма ввода — теперь полностью как в LoginPage */}
-      <div className="border-top pt-3 px-3 pb-3">
+      <div className="border-top px-3 pb-3">
         <Form onSubmit={handleSubmit} noValidate>
           <FloatingLabel
             controlId="messageInput"
@@ -160,7 +160,7 @@ const ChatComponent = () => {
               ref={inputRef}
               type="text"
               name="message"
-              aria-label='Новое сообщение'
+              aria-label="Новое сообщение"
               placeholder={t('chat.inputPlaceholder') || 'Введите сообщение...'}
               value={messageText}
               onChange={handleMessageChange}
