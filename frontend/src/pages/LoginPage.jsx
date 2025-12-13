@@ -126,7 +126,7 @@ const LoginPage = () => {
               variant="primary"
               type="submit"
               className="w-100 rounded-pill py-2"
-              disabled={loading || !formik.isValid || !formik.dirty}
+              disabled={loading || !formik.dirty}
             >
               {loading ? 'Вход...' : 'Войти'}
             </Button>
