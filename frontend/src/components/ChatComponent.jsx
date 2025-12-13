@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Container, Form, Button, Card, Alert, FloatingLabel } from 'react-bootstrap';
+import { Container, Form, Button, Card, FloatingLabel, FormLabel } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import leoProfanity from 'leo-profanity';
@@ -19,7 +19,7 @@ const ChatComponent = () => {
 
   const [messageText, setMessageText] = useState('');
   const [messageError, setMessageError] = useState(null);
-  const [touched, setTouched] = useState(false); // Для имитации formik.touched
+  const [touched, setTouched] = useState(false);
   const [messages, setLocalMessages] = useState([]);
 
   // Загрузка сообщений при смене канала
@@ -35,7 +35,6 @@ const ChatComponent = () => {
         }
       }
 
-      // Демо-сообщения, если пусто
       if (messagesList.length === 0) {
         messagesList = [
           {
@@ -60,7 +59,7 @@ const ChatComponent = () => {
     }
   }, [currentChannelId, token, dispatch, t]);
 
-  // Валидация сообщения
+  // Валидация
   const validateMessage = useCallback((text) => {
     if (!text || text.trim().length === 0) {
       return t('validation.messageRequired') || 'Сообщение не может быть пустым';
@@ -78,7 +77,7 @@ const ChatComponent = () => {
     const text = e.target.value;
     setMessageText(text);
     if (touched) {
-      setMessageError(validateMessage(text)); // Перепроверяем только если поле уже тронуто
+      setMessageError(validateMessage(text));
     }
   };
 
@@ -91,10 +90,9 @@ const ChatComponent = () => {
     return currentChannelId && messageText.trim().length > 0 && !messageError;
   };
 
-  // Отправка сообщения
   const handleSubmit = (e) => {
     e.preventDefault();
-    setTouched(true); // Помечаем как тронутое при отправке
+    setTouched(true);
 
     const error = validateMessage(messageText);
     if (error) {
@@ -105,7 +103,7 @@ const ChatComponent = () => {
     let text = messageText.trim();
     if (leoProfanity.check(text)) {
       text = leoProfanity.clean(text);
-      toast.warning(t('toast.warning.profanity') || 'Мат заменён на цензурный');
+      toast.warning(t('toast.warning.profanity') || 'Мат заменён');
     }
 
     const newMessage = {
@@ -149,9 +147,14 @@ const ChatComponent = () => {
         )}
       </div>
 
-      {/* Форма ввода сообщения — теперь как на LoginPage */}
+      {/* Форма ввода — теперь идентична LoginPage */}
       <div className="border-top pt-3 px-3">
         <Form onSubmit={handleSubmit}>
+          {/* Видимый лейбл для тестов и доступности (даже без CSS) */}
+          <FormLabel className="visually-hidden">
+            {t('chat.inputPlaceholder') || 'Введите сообщение...'}
+          </FormLabel>
+
           <FloatingLabel
             controlId="messageInput"
             label={t('chat.inputPlaceholder') || 'Введите сообщение...'}
@@ -168,7 +171,6 @@ const ChatComponent = () => {
               isInvalid={touched && !!messageError}
               disabled={!currentChannelId}
               autoFocus
-              style={{ borderRadius: '0.375rem' }} // Чтобы выглядело как в других формах
             />
             {touched && messageError && (
               <Form.Control.Feedback type="invalid">
@@ -181,7 +183,7 @@ const ChatComponent = () => {
             <Button
               variant="primary"
               type="submit"
-              disabled={!isMessageValid() || !currentChannelId}
+              disabled={!isMessageValid()}
               className="rounded-pill px-4"
             >
               {t('chat.sendButton') || 'Отправить'}
