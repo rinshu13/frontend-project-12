@@ -352,56 +352,113 @@ const App = () => {
 
           <div className="channels-list" role="list">
             {channels?.length > 0 ? (
-              channels.map((channel) => (
-                <div
-                  key={channel.id}
-                  role="listitem"
-                  className={`channel-item ${currentChannelId === channel.id ? 'active' : ''}`}
-                >
-                  <button
-                    type="button"
-                    className="channel-button"
-                    onClick={() => handleChannelClick(channel.id)}
-                    aria-current={currentChannelId === channel.id ? 'true' : 'false'}
-                  >
-                    <span className="channel-name">#{channel.name}</span>
-                  </button>
+              channels.map((channel) => {
+                const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-                  {channel.removable && (
-                    <div className="channel-dropdown">
-                      <button
-                        type="button"
-                        className="dropdown-toggle"
-                        onClick={(e) => e.stopPropagation()} // Предотвращаем переключение канала при клике на ⋮
-                      >
-                        {/* Этот span видим для Playwright text locator, но скрыт визуально вашим CSS */}
-                        
-                        ⋮
-                      </button>
-                      <div className="dropdown-menu">
+                const toggleDropdown = (e) => {
+                  e.stopPropagation();
+                  setIsDropdownOpen((prev) => !prev);
+                };
+
+                const closeDropdown = () => setIsDropdownOpen(false);
+
+                return (
+                  <div
+                    key={channel.id}
+                    role="listitem"
+                    className={`channel-item ${currentChannelId === channel.id ? 'active' : ''}`}
+                    onClick={closeDropdown} // Закрываем меню при клике вне кнопки управления
+                  >
+                    <button
+                      type="button"
+                      className="channel-button"
+                      onClick={() => handleChannelClick(channel.id)}
+                      aria-current={currentChannelId === channel.id ? 'true' : 'false'}
+                    >
+                      <span className="channel-name">#{channel.name}</span>
+                    </button>
+
+                    {channel.removable && (
+                      <div className="channel-dropdown" style={{ position: 'relative' }}>
                         <button
                           type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowRenameModal(channel.id);
-                          }}
+                          className="dropdown-toggle"
+                          onClick={toggleDropdown}
+                          aria-label={t('dropdown.manageChannel')}
                         >
-                          {t('dropdown.rename')}
+                          {/* Текст для теста — скрыт визуально, но присутствует в DOM */}
+                          <span
+                            style={{
+                              position: 'absolute',
+                              left: '-9999px',
+                              width: '1px',
+                              height: '1px',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {t('dropdown.manageChannel')}
+                          </span>
+                          ⋮
                         </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowRemoveModal(channel.id);
-                          }}
-                        >
-                          {t('dropdown.remove')}
-                        </button>
+
+                        {/* Попап-меню, открывается при клике */}
+                        {isDropdownOpen && (
+                          <div className="dropdown-menu" style={{
+                            position: 'absolute',
+                            top: '100%',
+                            right: 0,
+                            background: 'white',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                            borderRadius: '4px',
+                            zIndex: 1000,
+                            minWidth: '160px',
+                            padding: '8px 0',
+                          }}>
+                            <button
+                              type="button"
+                              className="dropdown-item"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowRenameModal(channel.id);
+                                closeDropdown();
+                              }}
+                              style={{
+                                width: '100%',
+                                textAlign: 'left',
+                                padding: '8px 16px',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {t('dropdown.rename')}
+                            </button>
+                            <button
+                              type="button"
+                              className="dropdown-item text-danger"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowRemoveModal(channel.id);
+                                closeDropdown();
+                              }}
+                              style={{
+                                width: '100%',
+                                textAlign: 'left',
+                                padding: '8px 16px',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {t('dropdown.remove')}
+                            </button>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))
+                    )}
+                  </div>
+                );
+              })
             ) : (
               <p className="text-center text-muted">{t('app.loadingChannels')}</p>
             )}
