@@ -30,19 +30,17 @@ const LoginPage = () => {
       password: '',
     },
     validationSchema: LoginSchema,
-    validateOnChange: false, // Отключаем валидацию при вводе, чтобы не показывать ошибки сразу
-    validateOnBlur: false,   // Отключаем валидацию при потере фокуса
     onSubmit: async (values) => {
       setAuthError(null);
       setLoading(true);
 
-      // Сначала проверяем валидацию вручную (если поля пустые или пароль короткий)
+      // Дополнительная проверка валидации перед отправкой запроса
       try {
         await LoginSchema.validate(values, { abortEarly: false });
       } catch (validationErr) {
         setAuthError('Неверные имя пользователя или пароль');
         setLoading(false);
-        return; // Прерываем отправку на сервер
+        return; // Прерываем выполнение, не отправляем запрос
       }
 
       try {
