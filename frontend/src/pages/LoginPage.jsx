@@ -30,18 +30,24 @@ const LoginPage = () => {
       password: '',
     },
     validationSchema: LoginSchema,
-    onSubmit: async (values) => {
+    onSubmit: async (values, { setSubmitting }) => {
       setAuthError(null);
       setLoading(true);
       try {
         const response = await api.post('/api/v1/login', values);
         const { token, username } = response.data;
+
+        // Только здесь dispatch — при успешном ответе
         dispatch(login({ token, username }));
         navigate('/');
       } catch (err) {
-        // При ЛЮБОЙ ошибке (401, сеть, таймаут и т.д.) выводим один и тот же текст
-        // Это соответствует требованию теста Hexlet
+        console.error('Login failed:', err); // Для отладки
+
+        // При любой ошибке (401, сеть и т.д.) выводим нужный текст
         setAuthError('Неверные имя пользователя или пароль');
+
+        // КРИТИЧЕСКИ: предотвращаем сброс формы
+        setSubmitting(false);
       } finally {
         setLoading(false);
       }
