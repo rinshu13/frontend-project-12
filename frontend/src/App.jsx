@@ -221,34 +221,63 @@ const App = () => {
   ]
 );
 
-  // Инициализация сокета и начальная загрузка — только один раз
   useEffect(() => {
-    if (!token) {
-      navigate('/login');
-      return;
+  if (!token) {
+    navigate('/login');
+    return;
+  }
+
+  if (hasInitialized.current) {
+    return;
+  }
+  hasInitialized.current = true;
+
+  const socket = connectSocket(token);
+
+  // Существующий listener
+  socket.on('newMessage', (payload) => {
+    if (payload.channelId === currentChannelId) {
+      dispatch(setMessages([...messages, payload.message]));
     }
+  });
 
-    if (hasInitialized.current) {
-      return; // Защита от двойного выполнения в Strict Mode
+  // ДОБАВЬТЕ ЭТИ LISTENERS
+  socket.on('renameChannel', (payload) => {
+    // Обновляем channels в Redux
+    dispatch(setChannels(
+      channels.map((channel) =>
+        channel.id === payload.id ? { ...channel, name: payload.name } : channel
+      )
+    ));
+    // Опционально: toast.success(t('toast.success.channelRenamed'));
+  });
+
+  socket.on('newChannel', (payload) => {
+    // Добавляем новый канал
+    dispatch(setChannels([...channels, payload]));
+    // Если нужно переключиться: dispatch(setCurrentChannelId(payload.id));
+  });
+
+  socket.on('removeChannel', (payload) => {
+    // Удаляем канал
+    dispatch(setChannels(channels.filter((channel) => channel.id !== payload.id)));
+    // Если текущий удалён — переключаемся на первый
+    if (currentChannelId === payload.id) {
+      dispatch(setCurrentChannelId(channels[0]?.id || 1));
     }
-    hasInitialized.current = true;
+  });
 
-    const socket = connectSocket(token);
+  refetchChannels();
 
-    socket.on('newMessage', (payload) => {
-      if (payload.channelId === currentChannelId) {
-        dispatch(setMessages([...messages, payload.message]));
-      }
-    });
-
-    refetchChannels();
-
-    return () => {
-      hasInitialized.current = false;
-      socket.off('newMessage');
-      disconnectSocket();
-    };
-  }, [token, navigate, dispatch]); // Зависимости минимальны — нет цикла
+  return () => {
+    hasInitialized.current = false;
+    socket.off('newMessage');
+    socket.off('renameChannel');  // Добавьте off для новых
+    socket.off('newChannel');
+    socket.off('removeChannel');
+    disconnectSocket();
+  };
+}, [token, navigate, dispatch, channels, currentChannelId, refetchChannels, messages, t]);
 
   // Реакция на смену текущего канала
   useEffect(() => {
