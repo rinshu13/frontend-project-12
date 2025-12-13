@@ -85,14 +85,8 @@ const LoginPage = () => {
                 className="pe-5 rounded"
                 autoFocus
               />
-              {isUsernameInvalid && (
-                <div className="position-absolute end-0 top-50 translate-middle-y me-3 text-danger fw-bold fs-4">
-                  !
-                </div>
-              )}
-              <Form.Control.Feedback type="invalid">
-                {formik.errors.username}
-              </Form.Control.Feedback>
+              
+              
             </Form.Group>
 
             <Form.Group className="mb-4 position-relative">
@@ -107,14 +101,8 @@ const LoginPage = () => {
                 disabled={loading}
                 className="pe-5 rounded"
               />
-              {isPasswordInvalid && (
-                <div className="position-absolute end-0 top-50 translate-middle-y me-3 text-danger fw-bold fs-4">
-                  !
-                </div>
-              )}
-              <Form.Control.Feedback type="invalid">
-                {formik.errors.password}
-              </Form.Control.Feedback>
+              
+              
             </Form.Group>
 
             {authError && (
