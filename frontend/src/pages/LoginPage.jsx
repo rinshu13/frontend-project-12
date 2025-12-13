@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
-import { loginUser } from '../api'; // ← Новый импорт
+import { loginUser } from '../api'; // Убедись, что импорт есть
 import { Container, Row, Col, Form, Button, FloatingLabel } from 'react-bootstrap';
 
 const LoginPage = () => {
@@ -37,14 +37,13 @@ const LoginPage = () => {
       try {
         const response = await loginUser(values);
 
-        // Hexlet backend возвращает данные в формате { data: { attributes: { token, username } } }
-        const { token, username } = response.data.data.attributes;
+        // Стандартный ответ Hexlet Chat: { token: "...", username: "..." }
+        const { token, username } = response.data;
 
         if (!token || !username) {
-          throw new Error('Missing token or username in response');
+          throw new Error('Invalid response data');
         }
 
-        // Сохраняем в Redux и localStorage
         dispatch(login({ token, username }));
         localStorage.setItem('token', token);
         localStorage.setItem('username', username);
@@ -53,7 +52,7 @@ const LoginPage = () => {
       } catch (err) {
         console.error('Login error:', err);
 
-        // Если сервер вернул 401 — точно неверные данные
+        // Правильная обработка 401 от сервера
         if (err.response?.status === 401) {
           setAuthError('Неверные имя пользователя или пароль');
         } else {
