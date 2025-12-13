@@ -386,28 +386,14 @@ const App = () => {
                         className="dropdown-toggle"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <span style={{ width: '1px', height: '1px', overflow: 'hidden', position: 'absolute' }}>
-                          {t('dropdown.manageChannel')}
-                        </span>
-                        ⋮
+                        Управление каналом {/* ← Просто видимый текст */}
+                        <span aria-hidden="true" style={{ marginLeft: '8px' }}>⋮</span>
                       </button>
                       <div className="dropdown-menu">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowRenameModal(channel.id);
-                          }}
-                        >
+                        <button type="button" onClick={(e) => { e.stopPropagation(); setShowRenameModal(channel.id); }}>
                           {t('dropdown.rename')}
                         </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowRemoveModal(channel.id);
-                          }}
-                        >
+                        <button type="button" onClick={(e) => { e.stopPropagation(); setShowRemoveModal(channel.id); }}>
                           {t('dropdown.remove')}
                         </button>
                       </div>
