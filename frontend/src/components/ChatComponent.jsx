@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import leoProfanity from 'leo-profanity';
 import { setMessages } from '../features/messages/messagesSlice';
+import { FormFloating } from 'react-bootstrap';
 
 const ChatComponent = () => {
   const { t } = useTranslation();
@@ -159,8 +160,8 @@ const ChatComponent = () => {
             <Form.Control
               ref={inputRef}
               type="text"
+              id="messageInput" // Обязательно задай id
               name="message"
-              aria-label="Новое сообщение"
               placeholder={t('chat.inputPlaceholder') || 'Введите сообщение...'}
               value={messageText}
               onChange={handleMessageChange}
@@ -169,7 +170,11 @@ const ChatComponent = () => {
               isInvalid={touched && !!messageError}
               autoFocus
               required
+              aria-label="Новое сообщение" // Теперь это будет основным accessible name
             />
+            <label htmlFor="messageInput">
+              {t('chat.inputPlaceholder') || 'Введите сообщение...'}
+            </label>
             {touched && messageError && (
               <Form.Control.Feedback type="invalid">
                 {messageError}
