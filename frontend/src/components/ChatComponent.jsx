@@ -1,11 +1,12 @@
+// src/components/ChatComponent.jsx
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Container, Form, Button, Card, FloatingLabel } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import leoProfanity from 'leo-profanity';
 import { setMessages } from '../features/messages/messagesSlice';
-import { FormFloating } from 'react-bootstrap';
+import '../Components.css';
+import '../../App.css'; // если нужны стили из App.css
 
 const ChatComponent = () => {
   const { t } = useTranslation();
@@ -21,77 +22,38 @@ const ChatComponent = () => {
   const [messageText, setMessageText] = useState('');
   const [messageError, setMessageError] = useState(null);
   const [touched, setTouched] = useState(false);
-  const [loading, setLoading] = useState(false); // Добавлено для единообразия с LoginPage
+  const [loading, setLoading] = useState(false);
   const [messages, setLocalMessages] = useState([]);
 
-  // Загрузка сообщений при смене канала
   useEffect(() => {
     if (currentChannelId && token) {
-      const storedMessages = localStorage.getItem(`messages_${currentChannelId}`);
-      let messagesList = [];
-      if (storedMessages) {
-        try {
-          messagesList = JSON.parse(storedMessages);
-        } catch (e) {
-          console.error('Parse messages localStorage error:', e);
-        }
-      }
+      const stored = localStorage.getItem(`messages_${currentChannelId}`);
+      let list = stored ? JSON.parse(stored) : [];
 
-      if (messagesList.length === 0) {
-        messagesList = [
-          {
-            id: 1,
-            text: t('chat.welcomeMessage') || 'Добро пожаловать в канал!',
-            username: 'System',
-            createdAt: new Date(Date.now() - 3600000).toISOString(),
-          },
-          {
-            id: 2,
-            text: t('chat.demoMessage') || 'Это демо-сообщение. Отправьте своё!',
-            username: 'DemoUser',
-            createdAt: new Date().toISOString(),
-          },
+      if (list.length === 0) {
+        list = [
+          { id: 1, text: t('chat.welcomeMessage'), username: 'System', createdAt: new Date(Date.now() - 3600000).toISOString() },
+          { id: 2, text: t('chat.demoMessage'), username: 'DemoUser', createdAt: new Date().toISOString() },
         ];
-        localStorage.setItem(`messages_${currentChannelId}`, JSON.stringify(messagesList));
-        toast.info(t('app.demoMessages') || 'Добавлены демо-сообщения');
+        localStorage.setItem(`messages_${currentChannelId}`, JSON.stringify(list));
+        toast.info(t('app.demoMessages'));
       }
 
-      setLocalMessages(messagesList);
-      dispatch(setMessages(messagesList));
+      setLocalMessages(list);
+      dispatch(setMessages(list));
     }
   }, [currentChannelId, token, dispatch, t]);
 
-  // Валидация
   const validateMessage = useCallback((text) => {
-    if (!text || text.trim().length === 0) {
-      return t('validation.messageRequired') || 'Сообщение не может быть пустым';
-    }
-    if (text.trim().length > 500) {
-      return t('validation.messageTooLong') || 'Сообщение слишком длинное';
-    }
-    if (leoProfanity.check(text)) {
-      return t('validation.profanityDetected') || 'Нецензурная лексика запрещена';
-    }
+    if (!text?.trim()) return t('validation.messageRequired');
+    if (text.trim().length > 500) return t('validation.messageTooLong');
+    if (leoProfanity.check(text)) return t('validation.profanityDetected');
     return null;
   }, [t]);
 
-  const handleMessageChange = (e) => {
-    const text = e.target.value;
-    setMessageText(text);
-    if (touched) {
-      setMessageError(validateMessage(text));
-    }
-  };
-
-  const handleBlur = () => {
-    setTouched(true);
-    setMessageError(validateMessage(messageText));
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setTouched(true);
-
     const error = validateMessage(messageText);
     if (error) {
       setMessageError(error);
@@ -99,110 +61,77 @@ const ChatComponent = () => {
     }
 
     setLoading(true);
-
     let text = messageText.trim();
     if (leoProfanity.check(text)) {
       text = leoProfanity.clean(text);
-      toast.warning(t('toast.warning.profanity') || 'Мат заменён');
+      toast.warning(t('toast.warning.profanity'));
     }
 
-    const newMessage = {
+    const newMsg = {
       id: Date.now(),
       text,
       username,
       createdAt: new Date().toISOString(),
     };
 
-    const updatedMessages = [...messages, newMessage];
-    setLocalMessages(updatedMessages);
-    dispatch(setMessages(updatedMessages));
-    localStorage.setItem(`messages_${currentChannelId}`, JSON.stringify(updatedMessages));
+    const updated = [...messages, newMsg];
+    setLocalMessages(updated);
+    dispatch(setMessages(updated));
+    localStorage.setItem(`messages_${currentChannelId}`, JSON.stringify(updated));
 
     setMessageText('');
     setMessageError(null);
     setTouched(false);
     setLoading(false);
-
     inputRef.current?.focus();
   };
 
   return (
-    <Container fluid className="h-100 d-flex flex-column">
-      {/* Список сообщений */}
-      <div className="mt-auto px-5 py-3">
-        <form onSubmit={handleSubmit} noValidate className="py-3 border rounded-2">
-          <div className="input-group">
-            <input
-              ref={inputRef}
-              type="text"
-              name="body"
-              aria-label="Новое сообщение"
-              placeholder={t('chat.inputPlaceholder') || 'Введите сообщение...'}
-              className="border-0 p-0 ps-2 form-control"
-              value={messageText}
-              onChange={handleMessageChange}
-              onBlur={handleBlur}
-              disabled={!currentChannelId || loading}
-              autoFocus
-              required
-            />
-            <button
-              type="submit"
-              className="btn btn-group-vertical input-group-text border-0 bg-transparent"
-              disabled={!messageText.trim() || loading || !!messageError}
-              aria-label={t('chat.sendButton') || 'Отправить'}
-            >
-              <span className="visually-hidden">{t('chat.sendButton') || 'Отправить'}</span>
-              → {/* или можно использовать SVG-стрелку */}
-            </button>
+    <div className="chat-container">
+      <div className="chat-messages">
+        {messages.map((msg) => (
+          <div key={msg.id} className="message-card">
+            <div className="message-header">
+              <strong>{msg.username}</strong>
+            </div>
+            <div className="message-body">{msg.text}</div>
+            <div className="message-footer">
+              {new Date(msg.createdAt).toLocaleString()}
+            </div>
           </div>
-
-          {touched && messageError && (
-            <div className="invalid-feedback d-block mt-2">
-              {messageError}
-            </div>
-          )}
-        </form>
+        ))}
       </div>
 
-      {/* Форма ввода — теперь полностью как в LoginPage */}
-      <div className="border-top px-3 pb-3">
-        <Form onSubmit={handleSubmit} noValidate>
-          {/* Простое поле ввода без FloatingLabel и без видимой <label> */}
-          <Form.Control
-            ref={inputRef}
-            type="text"
-            name="body"                          // именно "body", как на первой картинке
-            aria-label="Новое сообщение"         // это будет единственным доступным именем
-            placeholder={t('chat.inputPlaceholder') || 'Введите сообщение...'}
-            className="mb-3 border-0 p-3"        // стили по вкусу, чтобы выглядело похоже
-            value={messageText}
-            onChange={handleMessageChange}
-            onBlur={handleBlur}
-            disabled={!currentChannelId || loading}
-            isInvalid={touched && !!messageError}
-            autoFocus
-            required
-          />
-
-          {/* Сообщение об ошибке валидации */}
-          {touched && messageError && (
-            <div className="invalid-feedback d-block">
-              {messageError}
-            </div>
-          )}
-
-          <Button
-            variant="primary"
-            type="submit"
-            className="w-100 rounded-pill py-2"
-            disabled={loading || !currentChannelId || !messageText.trim() || !!messageError}
-          >
-            {loading ? 'Отправка...' : t('chat.sendButton') || 'Отправить'}
-          </Button>
-        </Form>
-      </div>
-    </Container>
+      <form onSubmit={handleSubmit} className="chat-form" noValidate>
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder={t('chat.inputPlaceholder')}
+          className={`chat-input ${touched && messageError ? 'invalid' : ''}`}
+          value={messageText}
+          onChange={(e) => {
+            setMessageText(e.target.value);
+            if (touched) setMessageError(validateMessage(e.target.value));
+          }}
+          onBlur={() => {
+            setTouched(true);
+            setMessageError(validateMessage(messageText));
+          }}
+          disabled={!currentChannelId || loading}
+          autoFocus
+        />
+        {touched && messageError && (
+          <div className="modal-invalid-feedback">{messageError}</div>
+        )}
+        <button
+          type="submit"
+          className="chat-submit-btn"
+          disabled={loading || !messageText.trim() || !!messageError}
+        >
+          {loading ? 'Отправка...' : t('chat.sendButton')}
+        </button>
+      </form>
+    </div>
   );
 };
 

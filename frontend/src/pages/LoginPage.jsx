@@ -1,3 +1,4 @@
+// src/pages/LoginPage.jsx
 import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -5,8 +6,8 @@ import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
-import { loginUser } from '../api'; // Убедись, что импорт есть
-import { Container, Row, Col, Form, Button, FloatingLabel } from 'react-bootstrap';
+import { loginUser } from '../api';
+import './AuthPages.css';
 
 const LoginPage = () => {
   const dispatch = useDispatch();
@@ -17,9 +18,10 @@ const LoginPage = () => {
 
   const LoginSchema = Yup.object().shape({
     username: Yup.string()
-      .min(3, t('errors.min3')),
+      .min(3, t('errors.min3'))
+      .required(t('errors.required')),
     password: Yup.string()
-      
+      .required(t('errors.required')),
   });
 
   const formik = useFormik({
@@ -34,8 +36,6 @@ const LoginPage = () => {
 
       try {
         const response = await loginUser(values);
-
-        // Стандартный ответ Hexlet Chat: { token: "...", username: "..." }
         const { token, username } = response.data;
 
         if (!token || !username) {
@@ -49,12 +49,10 @@ const LoginPage = () => {
         navigate('/');
       } catch (err) {
         console.error('Login error:', err);
-
-        // Правильная обработка 401 от сервера
         if (err.response?.status === 401) {
-          setAuthError('Неверные имя пользователя или пароль');
+          setAuthError(t('errors.authFailed') || 'Неверные имя пользователя или пароль');
         } else {
-          setAuthError('Ошибка сети или сервера. Попробуйте позже.');
+          setAuthError(t('errors.network') || 'Ошибка сети или сервера. Попробуйте позже.');
         }
       } finally {
         setLoading(false);
@@ -63,81 +61,70 @@ const LoginPage = () => {
   });
 
   return (
-    <Container className="h-100">
-      <Row className="justify-content-center align-content-center h-100">
-        <Col xs={12} md={8} xxl={6}>
-          <h1 className="text-center mb-4">Войти</h1>
+    <div className="auth-container">
+      <div className="auth-card">
+        <h1 className="auth-title">Войти</h1>
 
-          <Form onSubmit={formik.handleSubmit} noValidate>
-            <FloatingLabel
-              controlId="username"
-              label="Ваш ник"
-              className="mb-3"
-            >
-              <Form.Control
-                type="text"
-                name="username"
-                placeholder="Ваш ник"
-                value={formik.values.username}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                disabled={loading}
-                isInvalid={formik.touched.username && formik.errors.username}
-                autoFocus
-                required
-              />
-              {formik.touched.username && formik.errors.username && (
-                <Form.Control.Feedback type="invalid">
-                  {formik.errors.username}
-                </Form.Control.Feedback>
-              )}
-            </FloatingLabel>
-
-            <FloatingLabel
-              controlId="password"
-              label="Пароль"
-              className="mb-3"
-            >
-              <Form.Control
-                type="password"
-                name="password"
-                placeholder="Пароль"
-                value={formik.values.password}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                disabled={loading}
-                isInvalid={formik.touched.password && formik.errors.password}
-                required
-              />
-              {formik.touched.password && formik.errors.password && (
-                <Form.Control.Feedback type="invalid">
-                  {formik.errors.password}
-                </Form.Control.Feedback>
-              )}
-            </FloatingLabel>
-
-            {authError && (
-              <div className="alert alert-danger text-center mb-4 py-3">
-                {authError}
-              </div>
+        <form onSubmit={formik.handleSubmit} noValidate>
+          <div className="form-group">
+            <label htmlFor="username" className="form-label">Ваш ник</label>
+            <input
+              id="username"
+              type="text"
+              name="username"
+              placeholder="Ваш ник"
+              className={`form-input ${formik.touched.username && formik.errors.username ? 'invalid' : ''}`}
+              value={formik.values.username}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              disabled={loading}
+              autoFocus
+              required
+            />
+            {formik.touched.username && formik.errors.username && (
+              <div className="invalid-feedback">{formik.errors.username}</div>
             )}
-
-            <Button
-              variant="primary"
-              type="submit"
-              className="w-100 rounded-pill py-2"
-              disabled={loading || !formik.dirty}
-            >
-              {loading ? 'Вход...' : 'Войти'}
-            </Button>
-          </Form>
-
-          <div className="text-center mt-4">
-            Нет аккаунта? <Link to="/signup">Регистрация</Link>
           </div>
-        </Col>
-      </Row>
-    </Container>
+
+          <div className="form-group">
+            <label htmlFor="password" className="form-label">Пароль</label>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              placeholder="Пароль"
+              className={`form-input ${formik.touched.password && formik.errors.password ? 'invalid' : ''}`}
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              disabled={loading}
+              required
+            />
+            {formik.touched.password && formik.errors.password && (
+              <div className="invalid-feedback">{formik.errors.password}</div>
+            )}
+          </div>
+
+          {authError && (
+            <div className="alert-danger">
+              {authError}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="auth-button"
+            disabled={loading || !formik.dirty}
+          >
+            {loading ? 'Вход...' : 'Войти'}
+          </button>
+        </form>
+
+        <div className="text-center mt-4">
+          Нет аккаунта? <Link to="/signup" className="link">Регистрация</Link>
+        </div>
+      </div>
+    </div>
   );
 };
 

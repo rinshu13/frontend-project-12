@@ -1,16 +1,17 @@
+// src/components/Header.jsx
 import React from 'react';
-import { Navbar, Container, Nav, Button } from 'react-bootstrap';
-import { LinkContainer } from 'react-router-bootstrap';
 import { useSelector, useDispatch } from 'react-redux';
-import { logout } from '../features/auth/authSlice';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';  // Хук
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { logout } from '../features/auth/authSlice';
+import './Components.css';
 
 export const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { token } = useSelector((state) => state.auth);
-  const { t } = useTranslation();  // Переводы
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     dispatch(logout());
@@ -18,22 +19,17 @@ export const Header = () => {
   };
 
   return (
-    <Navbar bg="dark" variant="dark" expand="lg" className="mb-0">
-      <Container>
-        <LinkContainer to="/">
-          <Navbar.Brand>{t('header.title')}</Navbar.Brand>
-        </LinkContainer>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="ms-auto">
-            {token ? (
-              <Button variant="outline-light" onClick={handleLogout}>
-                {t('header.logout')}
-              </Button>
-            ) : null}
-          </Nav>
-        </Navbar.Collapse>
-      </Container>
-    </Navbar>
+    <header className="app-header">
+      <div className="header-container">
+        <Link to="/" className="header-brand">
+          {t('header.title')}
+        </Link>
+        {token && (
+          <button className="header-logout-btn" onClick={handleLogout}>
+            {t('header.logout')}
+          </button>
+        )}
+      </div>
+    </header>
   );
 };

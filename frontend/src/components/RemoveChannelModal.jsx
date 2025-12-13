@@ -1,5 +1,5 @@
+// src/components/RemoveChannelModal.jsx
 import React, { useState } from 'react';
-import { Modal, Button } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -7,8 +7,8 @@ import { deleteChannel } from '../api';
 import { setChannels, setCurrentChannelId } from '../features/channels/channelsSlice';
 import { setMessages } from '../features/messages/messagesSlice';
 import { fetchMessagesByChannel } from '../api';
-import { leaveChannel } from '../socket';
-import { joinChannel } from '../socket';
+import { leaveChannel, joinChannel } from '../socket';
+import '../Components.css';
 
 const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
   const dispatch = useDispatch();
@@ -32,28 +32,36 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
       onClose();
     } catch (error) {
       console.error('Delete channel error:', error);
+      toast.error(t('toast.error.deleteChannel'));
     } finally {
       setLoading(false);
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Modal show={isOpen} onHide={onClose} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>{t('modal.removeTitle')}</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <p>{t('modal.removeBody')}</p>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={onClose} disabled={loading}>
-          {t('modal.removeCancel')}
-        </Button>
-        <Button variant="danger" onClick={handleDelete} disabled={loading}>
-          {loading ? t('modal.removeLoading') : t('modal.removeSubmit')}
-        </Button>
-      </Modal.Footer>
-    </Modal>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h5 className="modal-title">{t('modal.removeTitle')}</h5>
+          <button className="modal-close" onClick={onClose} disabled={loading}>
+            ×
+          </button>
+        </div>
+        <div className="modal-body">
+          <p>{t('modal.removeBody')}</p>
+        </div>
+        <div className="modal-footer">
+          <button className="modal-btn modal-btn-secondary" onClick={onClose} disabled={loading}>
+            {t('modal.removeCancel')}
+          </button>
+          <button className="modal-btn modal-btn-danger" onClick={handleDelete} disabled={loading}>
+            {loading ? t('modal.removeLoading') : t('modal.removeSubmit')}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
