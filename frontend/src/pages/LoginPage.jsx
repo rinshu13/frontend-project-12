@@ -83,6 +83,7 @@ const LoginPage = () => {
                 isInvalid={isUsernameInvalid}
                 disabled={loading}
                 className="pe-5 rounded"
+                autoFocus
               />
               {isUsernameInvalid && (
                 <div className="position-absolute end-0 top-50 translate-middle-y me-3 text-danger fw-bold fs-4">
