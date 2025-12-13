@@ -63,7 +63,7 @@ const LoginPage = () => {
               e.preventDefault();
               formik.handleSubmit();
             }}
-            noValidate
+            noValidate  // Отключаем стандартные сообщения браузера (если хотите совсем без подсказок)
           >
             <FloatingLabel
               controlId="username"
@@ -72,18 +72,15 @@ const LoginPage = () => {
             >
               <Form.Control
                 type="text"
-                name="username" 
+                name="username"
                 placeholder="Ваш ник"
                 value={formik.values.username}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                isInvalid={formik.touched.username && !!formik.errors.username}
                 disabled={loading}
                 autoFocus
+                required  // Обязательное поле (нативная валидация браузера)
               />
-              <Form.Control.Feedback type="invalid">
-                {formik.errors.username && t(formik.errors.username)}
-              </Form.Control.Feedback>
             </FloatingLabel>
 
             <FloatingLabel
@@ -93,17 +90,14 @@ const LoginPage = () => {
             >
               <Form.Control
                 type="password"
-                name="password" 
+                name="password"
                 placeholder="Пароль"
                 value={formik.values.password}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                isInvalid={formik.touched.password && !!formik.errors.password}
                 disabled={loading}
+                required  // Обязательное поле (нативная валидация браузера)
               />
-              <Form.Control.Feedback type="invalid">
-                {formik.errors.password && t(formik.errors.password)}
-              </Form.Control.Feedback>
             </FloatingLabel>
 
             {authError && (
