@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch } from 'react-redux';
@@ -12,8 +12,6 @@ const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [authError, setAuthError] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const LoginSchema = Yup.object().shape({
     username: Yup.string()
@@ -30,24 +28,25 @@ const LoginPage = () => {
       password: '',
     },
     validationSchema: LoginSchema,
-    onSubmit: async (values) => {
-      setAuthError(null);
-      setLoading(true);
+    onSubmit: async (values, { setSubmitting }) => {
       try {
         const response = await api.post('/api/v1/login', values);
 
-        if (!response.data || !response.data.token || !response.data.username) {
-          throw new Error('Invalid response from server');
+        const { token, username } = response.data;
+
+        if (!token || typeof token !== 'string') {
+          throw new Error('Invalid token in response');
         }
 
-        const { token, username } = response.data;
+        // Успешный вход — сохраняем токен и username (аналогично SignupPage)
         dispatch(login({ token, username }));
         navigate('/');
       } catch (err) {
+        setSubmitting(false); // Важно: не сбрасываем форму при ошибке
         console.error('Login error:', err);
-        setAuthError('Неверные имя пользователя или пароль');
-      } finally {
-        setLoading(false);
+
+        // При любой ошибке (неверные данные, сеть и т.д.) выводим требуемое сообщение
+        formik.setErrors({ username: 'Неверные имя пользователя или пароль' });
       }
     },
   });
@@ -63,7 +62,7 @@ const LoginPage = () => {
               e.preventDefault();
               formik.handleSubmit();
             }}
-            noValidate  // Отключаем стандартные сообщения браузера (если хотите совсем без подсказок)
+            noValidate
           >
             <FloatingLabel
               controlId="username"
@@ -77,10 +76,12 @@ const LoginPage = () => {
                 value={formik.values.username}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                disabled={loading}
+                isInvalid={!!formik.errors.username && formik.touched.username}
                 autoFocus
-                required  // Обязательное поле (нативная валидация браузера)
               />
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.username}
+              </Form.Control.Feedback>
             </FloatingLabel>
 
             <FloatingLabel
@@ -95,22 +96,18 @@ const LoginPage = () => {
                 value={formik.values.password}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                disabled={loading}
-                required  // Обязательное поле (нативная валидация браузера)
+                isInvalid={!!formik.errors.password && formik.touched.password}
               />
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.password}
+              </Form.Control.Feedback>
             </FloatingLabel>
-
-            {authError && (
-              <div className="alert alert-danger text-center mb-4 py-3">
-                {authError}
-              </div>
-            )}
 
             <Button
               variant="primary"
               type="submit"
               className="w-100 rounded-pill py-2"
-              disabled={loading}
+              disabled={formik.isSubmitting}
             >
               Войти
             </Button>
