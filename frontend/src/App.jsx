@@ -375,6 +375,7 @@ const App = () => {
                         aria-label={t('dropdown.manageChannel')}
                         onClick={(e) => e.stopPropagation()}
                       >
+                        {/* Скрытый текст для Playwright text-мэтчера, но доступный для screen readers */}
                         <span
                           style={{
                             position: 'absolute',
@@ -383,9 +384,9 @@ const App = () => {
                             padding: '0',
                             margin: '-1px',
                             overflow: 'hidden',
-                            clip: 'rect(0,0,0,0)',
+                            clip: 'rect(0, 0, 0, 0)',
                             whiteSpace: 'nowrap',
-                            border: '0'
+                            borderWidth: '0',
                           }}
                         >
                           {t('dropdown.manageChannel')}
