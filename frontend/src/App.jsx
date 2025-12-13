@@ -237,7 +237,14 @@ const App = () => {
 
     try {
       await sendMessage(currentChannelId, cleanText, username);
-      emitNewMessage(currentChannelId, cleanText, username);
+      emitNewMessage({
+        channelId: currentChannelId,
+        message: {
+          text: cleanText,
+          username,
+          // id и createdAt сервер добавит сам
+        }
+      });
 
       setMessageText('');
       setMessageError(null);

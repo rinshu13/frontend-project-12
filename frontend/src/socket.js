@@ -8,33 +8,25 @@ export const connectSocket = (token) => {
   if (socket) return socket;
 
   const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || '';
+
   socket = io(SOCKET_URL, {
     auth: { token },
-    transports: ['websocket'],
+    transports: ['websocket', 'polling'],  // Лучше с fallback
+    timeout: 20000,
   });
 
-  socket = io(SOCKET_URL, {
-    auth: { token },  // Токен для auth на сервере
-    transports: ['websocket', 'polling'],  // Fallback на polling для стабильности
-    timeout: 20000,  // Таймаут подключения
+  socket.on('newMessage', (payload) => {
+    store.dispatch(addMessage(payload.message || payload));
   });
 
-  // Получение новых сообщений (реал-тайм)
-  socket.on('newMessage', (message) => {
-    store.dispatch(addMessage(message));  // Добавляем в Redux
-  });
-
-  // Ошибки
   socket.on('connect_error', (err) => {
-    console.error('Socket connect error:', err.message || err);  // Улучшен лог для отладки
+    console.error('Socket connect error:', err.message);
   });
 
-  // Успешное подключение
   socket.on('connect', () => {
-    console.log('Socket connected to:', SOCKET_URL);
+    console.log('Socket connected successfully');
   });
 
-  // Отключение
   socket.on('disconnect', (reason) => {
     console.log('Socket disconnected:', reason);
   });
