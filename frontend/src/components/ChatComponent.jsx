@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Container, Form, Button, Card, FloatingLabel, FormLabel } from 'react-bootstrap';
+import { Container, Form, Button, Card, FloatingLabel } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import leoProfanity from 'leo-profanity';
@@ -20,6 +20,7 @@ const ChatComponent = () => {
   const [messageText, setMessageText] = useState('');
   const [messageError, setMessageError] = useState(null);
   const [touched, setTouched] = useState(false);
+  const [loading, setLoading] = useState(false); // Добавлено для единообразия с LoginPage
   const [messages, setLocalMessages] = useState([]);
 
   // Загрузка сообщений при смене канала
@@ -86,11 +87,7 @@ const ChatComponent = () => {
     setMessageError(validateMessage(messageText));
   };
 
-  const isMessageValid = () => {
-    return currentChannelId && messageText.trim().length > 0 && !messageError;
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setTouched(true);
 
@@ -99,6 +96,8 @@ const ChatComponent = () => {
       setMessageError(error);
       return;
     }
+
+    setLoading(true);
 
     let text = messageText.trim();
     if (leoProfanity.check(text)) {
@@ -121,6 +120,8 @@ const ChatComponent = () => {
     setMessageText('');
     setMessageError(null);
     setTouched(false);
+    setLoading(false);
+
     inputRef.current?.focus();
   };
 
@@ -147,14 +148,9 @@ const ChatComponent = () => {
         )}
       </div>
 
-      {/* Форма ввода — теперь идентична LoginPage */}
-      <div className="border-top pt-3 px-3">
-        <Form onSubmit={handleSubmit}>
-          {/* Видимый лейбл для тестов и доступности (даже без CSS) */}
-          <FormLabel className="visually-hidden">
-            {t('chat.inputPlaceholder') || 'Введите сообщение...'}
-          </FormLabel>
-
+      {/* Форма ввода — теперь полностью как в LoginPage */}
+      <div className="border-top pt-3 px-3 pb-3">
+        <Form onSubmit={handleSubmit} noValidate>
           <FloatingLabel
             controlId="messageInput"
             label={t('chat.inputPlaceholder') || 'Введите сообщение...'}
@@ -168,9 +164,10 @@ const ChatComponent = () => {
               value={messageText}
               onChange={handleMessageChange}
               onBlur={handleBlur}
+              disabled={!currentChannelId || loading}
               isInvalid={touched && !!messageError}
-              disabled={!currentChannelId}
               autoFocus
+              required
             />
             {touched && messageError && (
               <Form.Control.Feedback type="invalid">
@@ -179,16 +176,14 @@ const ChatComponent = () => {
             )}
           </FloatingLabel>
 
-          <div className="d-flex justify-content-end">
-            <Button
-              variant="primary"
-              type="submit"
-              disabled={!isMessageValid()}
-              className="rounded-pill px-4"
-            >
-              {t('chat.sendButton') || 'Отправить'}
-            </Button>
-          </div>
+          <Button
+            variant="primary"
+            type="submit"
+            className="w-100 rounded-pill py-2"
+            disabled={loading || !currentChannelId || !messageText.trim() || !!messageError}
+          >
+            {loading ? 'Отправка...' : t('chat.sendButton') || 'Отправить'}
+          </Button>
         </Form>
       </div>
     </Container>
