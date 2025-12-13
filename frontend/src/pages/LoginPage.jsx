@@ -75,7 +75,7 @@ const LoginPage = () => {
             <Form.Group className="mb-3 position-relative">
               <Form.Control
                 type="text"
-                name="username"
+                name="Ваш ник"
                 placeholder={t('login.usernameLabel')}
                 value={formik.values.username}
                 onChange={formik.handleChange}
@@ -92,7 +92,7 @@ const LoginPage = () => {
             <Form.Group className="mb-4 position-relative">
               <Form.Control
                 type="password"
-                name="password"
+                name="Пароль"
                 placeholder={t('login.passwordLabel')}
                 value={formik.values.password}
                 onChange={formik.handleChange}
