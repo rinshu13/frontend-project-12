@@ -50,7 +50,7 @@ const LoginPage = () => {
       } catch (err) {
         console.error('Login error:', err);
         if (err.response?.status === 401) {
-          setAuthError(t('errors.authFailed') || 'Неверные имя пользователя или пароль');
+          setAuthError('Неверные имя пользователя или пароль');
         } else {
           setAuthError(t('errors.network') || 'Ошибка сети или сервера. Попробуйте позже.');
         }
