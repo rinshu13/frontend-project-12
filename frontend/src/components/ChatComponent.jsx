@@ -152,16 +152,14 @@ const ChatComponent = () => {
       {/* Форма ввода — теперь полностью как в LoginPage */}
       <div className="border-top px-3 pb-3">
         <Form onSubmit={handleSubmit} noValidate>
-          <FloatingLabel
-            controlId="messageInput"
-            label={t('chat.inputPlaceholder') || 'Введите сообщение...'}
-            className="mb-3"
-          >
+          {/* Заменяем FloatingLabel на FormFloating */}
+          <FormFloating className="mb-3">
             <Form.Control
               ref={inputRef}
               type="text"
-              id="messageInput" // Обязательно задай id
+              id="messageInput" // важно: id обязателен для связи с label
               name="message"
+              aria-label="Новое сообщение" // это будет доступное имя для скринридеров
               placeholder={t('chat.inputPlaceholder') || 'Введите сообщение...'}
               value={messageText}
               onChange={handleMessageChange}
@@ -170,17 +168,17 @@ const ChatComponent = () => {
               isInvalid={touched && !!messageError}
               autoFocus
               required
-              aria-label="Новое сообщение" // Теперь это будет основным accessible name
             />
             <label htmlFor="messageInput">
               {t('chat.inputPlaceholder') || 'Введите сообщение...'}
             </label>
+
             {touched && messageError && (
               <Form.Control.Feedback type="invalid">
                 {messageError}
               </Form.Control.Feedback>
             )}
-          </FloatingLabel>
+          </FormFloating>
 
           <Button
             variant="primary"
