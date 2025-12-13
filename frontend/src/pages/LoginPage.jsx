@@ -30,21 +30,29 @@ const LoginPage = () => {
       password: '',
     },
     validationSchema: LoginSchema,
-    onSubmit: async (values, { setSubmitting }) => {
+    onSubmit: async (values) => {
       setAuthError(null);
       setLoading(true);
       try {
         const response = await api.post('/api/v1/login', values);
+
+        // Проверяем, есть ли data в ответе
+        if (!response.data || !response.data.token || !response.data.username) {
+          throw new Error('Invalid response from server');
+        }
+
         const { token, username } = response.data;
         dispatch(login({ token, username }));
         navigate('/');
       } catch (err) {
+        console.error('Login error:', err); // Для отладки
+
+        // Ловим любую ошибку (сеть, 401, 500 и т.д.)
         if (err.response?.status === 401) {
           setAuthError('Неверные имя пользователя или пароль');
         } else {
           setAuthError(t('errors.network') || 'Ошибка сети. Попробуйте позже.');
         }
-        setSubmitting(false); // ← Это сохраняет значения в полях и не сбрасывает форму
       } finally {
         setLoading(false);
       }
@@ -118,7 +126,7 @@ const LoginPage = () => {
               </div>
             )}
 
-            <Button variant="primary" type="submit" className="w-100 rounded-pill py-2" disabled={loading || formik.isSubmitting}>
+            <Button variant="primary" type="submit" className="w-100 rounded-pill py-2" disabled={loading}>
               Войти
             </Button>
           </Form>
