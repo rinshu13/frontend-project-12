@@ -45,22 +45,36 @@ const AddChannelModal = ({ isOpen, onClose }) => {
       }
 
       try {
-        // Отправляем запрос на создание канала
+        // После успешного создания канала
         const response = await createChannel(cleanName);
 
-        // Успешно создано на сервере
-        const newChannel = response.data?.data || response.data; // в зависимости от структуры ответа API
+        const newChannel = response.data?.data || response.data;
 
-        if (newChannel && newChannel.id) {
-          toast.success(t('toast.success.createChannel'));
-        } else {
-          toast.success(t('toast.success.createChannel'));
+        // Если сервер вернул канал — используем его
+        // Если нет — создаём локальный мок-канал (для демо-режима)
+        const channelToUse = newChannel && newChannel.id
+          ? newChannel
+          : {
+              id: Date.now(), // или Math.max(...existingIds) + 1
+              name: cleanName,
+              removable: true,
+            };
+
+        // Сохраняем в localStorage вручную (fallback для демо)
+        if (!token) {
+          // Если нет токена — точно демо-режим
+          const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]');
+          if (!storedChannels.some(c => c.name === cleanName)) {
+            storedChannels.push(channelToUse);
+            localStorage.setItem('channels', JSON.stringify(storedChannels));
+          }
         }
 
+        toast.success(t('toast.success.createChannel'));
         resetForm();
-        // Закрываем модалку → в App.jsx вызовется refetchChannels()
-        // → список каналов обновится с сервера, новый канал появится
-        onClose();
+
+        // ВАЖНО: передаём ID нового канала
+        onClose(channelToUse.id);  // ← Вот здесь передаём ID!
       } catch (error) {
         console.error('Error creating channel:', error);
 
