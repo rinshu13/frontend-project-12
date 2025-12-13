@@ -23,7 +23,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
-      inputRef.current.select(); // удобно для пользователя
+      inputRef.current.select();
     }
   }, [isOpen]);
 
@@ -37,7 +37,6 @@ const AddChannelModal = ({ isOpen, onClose }) => {
       const originalName = values.name.trim();
       const cleanName = leoProfanity.clean(originalName);
 
-      // Проверка на мат
       if (leoProfanity.check(originalName)) {
         setFieldError('name', t('modal.addErrorProfanity'));
         setSubmitting(false);
@@ -45,43 +44,42 @@ const AddChannelModal = ({ isOpen, onClose }) => {
       }
 
       try {
-        // После успешного создания канала
         const response = await createChannel(cleanName);
 
+        // Попробуем извлечь данные о новом канале из ответа сервера
         const newChannel = response.data?.data || response.data;
 
-        // Если сервер вернул канал — используем его
-        // Если нет — создаём локальный мок-канал (для демо-режима)
-        const channelToUse = newChannel && newChannel.id
-          ? newChannel
-          : {
-              id: Date.now(), // или Math.max(...existingIds) + 1
-              name: cleanName,
-              removable: true,
-            };
+        let newChannelId;
 
-        // Сохраняем в localStorage вручную (fallback для демо)
-        if (!token) {
-          // Если нет токена — точно демо-режим
+        if (newChannel && newChannel.id) {
+          // Сервер вернул полноценный канал — используем его ID
+          newChannelId = newChannel.id;
+        } else {
+          // Демо-режим: сервер не вернул канал → создаём локально
           const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]');
-          if (!storedChannels.some(c => c.name === cleanName)) {
-            storedChannels.push(channelToUse);
+          newChannelId = Math.max(...storedChannels.map((c) => c.id || 0), 0) + 1;
+
+          const localChannel = {
+            id: newChannelId,
+            name: cleanName,
+            removable: true,
+          };
+
+          // Избегаем дубликатов по имени
+          if (!storedChannels.some((c) => c.name === cleanName)) {
+            storedChannels.push(localChannel);
             localStorage.setItem('channels', JSON.stringify(storedChannels));
           }
         }
 
         toast.success(t('toast.success.createChannel'));
         resetForm();
-
-        // ВАЖНО: передаём ID нового канала
-        onClose(channelToUse.id);  // ← Вот здесь передаём ID!
+        onClose(newChannelId); // Передаём ID, чтобы App переключился на новый канал
       } catch (error) {
         console.error('Error creating channel:', error);
-
         setSubmitting(false);
 
         if (error.response) {
-          // Сервер ответил ошибкой
           if (error.response.status === 409) {
             setFieldError('name', t('modal.addErrorUnique'));
             toast.error(t('modal.addErrorUnique'));
@@ -91,7 +89,6 @@ const AddChannelModal = ({ isOpen, onClose }) => {
             toast.error(t('toast.error.createChannel'));
           }
         } else if (error.request) {
-          // Сеть/оффлайн
           toast.error(t('toast.error.network'));
         } else {
           toast.error(t('toast.error.createChannel'));
@@ -100,10 +97,18 @@ const AddChannelModal = ({ isOpen, onClose }) => {
     },
   });
 
+  // Закрытие без создания канала (отмена или клик по фону)
+  const handleClose = (e) => {
+    e?.stopPropagation();
+    if (!formik.isSubmitting) {
+      onClose(); // Без аргумента — просто закрываем
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={formik.handleSubmit}>
           <div className="modal-header">
@@ -111,7 +116,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
             <button
               type="button"
               className="modal-close"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={formik.isSubmitting}
               aria-label={t('modal.close')}
             >
@@ -149,7 +154,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
             <button
               type="button"
               className="modal-btn modal-btn-secondary"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={formik.isSubmitting}
             >
               {t('modal.addCancel')}
@@ -157,7 +162,11 @@ const AddChannelModal = ({ isOpen, onClose }) => {
             <button
               type="submit"
               className="modal-btn modal-btn-primary"
-              disabled={formik.isSubmitting || !formik.isValid || !formik.values.name.trim()}
+              disabled={
+                formik.isSubmitting ||
+                !formik.isValid ||
+                !formik.values.name.trim()
+              }
             >
               {formik.isSubmitting ? t('modal.addLoading') : t('modal.addSubmit')}
             </button>
