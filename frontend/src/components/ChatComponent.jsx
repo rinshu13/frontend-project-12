@@ -129,24 +129,40 @@ const ChatComponent = () => {
   return (
     <Container fluid className="h-100 d-flex flex-column">
       {/* Список сообщений */}
-      <div className="flex-grow-1 overflow-auto p-3 bg-light">
-        {messages.length === 0 ? (
-          <p className="text-center text-muted">{t('app.noMessages')}</p>
-        ) : (
-          messages.map((message) => (
-            <Card key={message.id} className="mb-3 border-0 shadow-sm">
-              <Card.Body className="p-3">
-                <Card.Subtitle className="mb-2 text-muted small">
-                  {message.username}
-                </Card.Subtitle>
-                <Card.Text className="mb-1">{message.text}</Card.Text>
-                <Card.Footer className="border-0 bg-transparent p-0 text-muted small">
-                  {new Date(message.createdAt).toLocaleString()}
-                </Card.Footer>
-              </Card.Body>
-            </Card>
-          ))
-        )}
+      <div className="mt-auto px-5 py-3">
+        <form onSubmit={handleSubmit} noValidate className="py-3 border rounded-2">
+          <div className="input-group">
+            <input
+              ref={inputRef}
+              type="text"
+              name="body"
+              aria-label="Новое сообщение"
+              placeholder={t('chat.inputPlaceholder') || 'Введите сообщение...'}
+              className="border-0 p-0 ps-2 form-control"
+              value={messageText}
+              onChange={handleMessageChange}
+              onBlur={handleBlur}
+              disabled={!currentChannelId || loading}
+              autoFocus
+              required
+            />
+            <button
+              type="submit"
+              className="btn btn-group-vertical input-group-text border-0 bg-transparent"
+              disabled={!messageText.trim() || loading || !!messageError}
+              aria-label={t('chat.sendButton') || 'Отправить'}
+            >
+              <span className="visually-hidden">{t('chat.sendButton') || 'Отправить'}</span>
+              → {/* или можно использовать SVG-стрелку */}
+            </button>
+          </div>
+
+          {touched && messageError && (
+            <div className="invalid-feedback d-block mt-2">
+              {messageError}
+            </div>
+          )}
+        </form>
       </div>
 
       {/* Форма ввода — теперь полностью как в LoginPage */}
