@@ -384,11 +384,12 @@ const App = () => {
                       <button
                         type="button"
                         className="dropdown-toggle"
-                        aria-label={t('dropdown.manageChannel')}  // ← Это обязательно!
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <span aria-hidden="true">⋮</span>
-                        <span className="visually-hidden">{t('dropdown.manageChannel')}</span>
+                        <span style={{ position: 'absolute', left: '-9999px' }}>
+                          {t('dropdown.manageChannel')}
+                        </span>
+                        ⋮
                       </button>
                       <div className="dropdown-menu">
                         <button
