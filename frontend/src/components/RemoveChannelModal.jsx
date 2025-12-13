@@ -8,7 +8,7 @@ import { setChannels, setCurrentChannelId } from '../features/channels/channelsS
 import { setMessages } from '../features/messages/messagesSlice';
 import { fetchMessagesByChannel } from '../api';
 import { leaveChannel, joinChannel } from '../socket';
-import '../Components.css';
+import './Components.css';
 
 const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
   const dispatch = useDispatch();

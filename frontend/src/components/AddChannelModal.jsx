@@ -9,7 +9,7 @@ import leoProfanity from 'leo-profanity';
 import { createChannel } from '../api';
 import { setChannels, setCurrentChannelId } from '../features/channels/channelsSlice';
 import { joinChannel } from '../socket';
-import '../Components.css';
+import './Components.css';
 
 const AddChannelSchema = Yup.object().shape({
   name: Yup.string()

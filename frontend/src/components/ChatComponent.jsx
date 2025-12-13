@@ -5,8 +5,8 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import leoProfanity from 'leo-profanity';
 import { setMessages } from '../features/messages/messagesSlice';
-import '../Components.css';
-import '../../App.css'; // если нужны стили из App.css
+import './Components.css';
+import '../App.css'; // если нужны стили из App.css
 
 const ChatComponent = () => {
   const { t } = useTranslation();
