@@ -31,35 +31,35 @@ const LoginPage = () => {
     },
     validationSchema: LoginSchema,
     onSubmit: async (values) => {
-    setAuthError(null);
-    setLoading(true);
+      setAuthError(null);
+      setLoading(true);
 
-    // Ручная валидация перед отправкой
-    try {
-      await LoginSchema.validate(values, { abortEarly: false });
-    } catch (validationErr) {
-      setAuthError('Неверные имя пользователя или пароль');
-      setLoading(false);
-      return; // Прерываем отправку на сервер
-    }
-
-    try {
-      const response = await api.post('/api/v1/login', values);
-
-      if (!response.data || !response.data.token || !response.data.username) {
-        throw new Error('Invalid response from server');
+      // Ручная валидация перед отправкой
+      try {
+        await LoginSchema.validate(values, { abortEarly: false });
+      } catch (validationErr) {
+        setAuthError('Неверные имя пользователя или пароль');
+        setLoading(false);
+        return; // Прерываем отправку на сервер
       }
 
-      const { token, username } = response.data;
-      dispatch(login({ token, username }));
-      navigate('/');
-    } catch (err) {
-      console.error('Login error:', err);
-      setAuthError('Неверные имя пользователя или пароль');
-    } finally {
-      setLoading(false);
-    }
-  },
+      try {
+        const response = await api.post('/api/v1/login', values);
+
+        if (!response.data || !response.data.token || !response.data.username) {
+          throw new Error('Invalid response from server');
+        }
+
+        const { token, username } = response.data;
+        dispatch(login({ token, username }));
+        navigate('/');
+      } catch (err) {
+        console.error('Login error:', err);
+        setAuthError('Неверные имя пользователя или пароль');
+      } finally {
+        setLoading(false);
+      }
+    },
   });
 
   return (
