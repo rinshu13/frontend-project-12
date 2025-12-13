@@ -386,7 +386,7 @@ const App = () => {
                         className="dropdown-toggle"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <span style={{ position: 'absolute', left: '-9999px' }}>
+                        <span style={{ width: '1px', height: '1px', overflow: 'hidden', position: 'absolute' }}>
                           {t('dropdown.manageChannel')}
                         </span>
                         ⋮
