@@ -374,8 +374,8 @@ const App = () => {
                         className="dropdown-toggle"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Управление каналом
-                        <span aria-hidden="true" style={{ marginLeft: '8px' }}>⋮</span>
+                        {t('dropdown.manageChannel')}
+                        <span aria-hidden="true" style={{ marginLeft: '5px' }}>⋮</span>
                       </button>
                       <div className="dropdown-menu">
                         <button
