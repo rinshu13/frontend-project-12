@@ -72,7 +72,7 @@ const LoginPage = () => {
             >
               <Form.Control
                 type="text"
-                name="Ваш ник"
+                name="username" 
                 placeholder="Ваш ник"
                 value={formik.values.username}
                 onChange={formik.handleChange}
@@ -93,7 +93,7 @@ const LoginPage = () => {
             >
               <Form.Control
                 type="password"
-                name="Пароль"
+                name="password" 
                 placeholder="Пароль"
                 value={formik.values.password}
                 onChange={formik.handleChange}
