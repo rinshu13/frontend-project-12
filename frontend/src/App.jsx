@@ -140,86 +140,80 @@ const App = () => {
     [channels, dispatch, getDemoMessages, loadMessagesFromStorage, saveMessagesToStorage]
   );
 
- const refetchChannels = useCallback(
-  async (options = { switchToNewChannel: false, newChannelId: null }) => {
-    const { switchToNewChannel = false, newChannelId = null } = options;
+  const refetchChannels = useCallback(
+    async (options = { switchToNewChannel: false, newChannelId: null }) => {
+      const { switchToNewChannel = false, newChannelId = null } = options;
 
-    try {
-      const response = await getChannels();
-      const serverChannels = response.data?.channels || [];
+      try {
+        const response = await getChannels();
+        const serverChannels = response.data?.channels || [];
 
-      let finalChannels;
+        let finalChannels;
 
-      if (serverChannels.length > 0) {
-        finalChannels = serverChannels;
-      } else {
-        const storedChannels = loadChannelsFromStorage();
-        finalChannels = storedChannels.length > 0
-          ? storedChannels
-          : [
-              { id: 1, name: 'general', removable: false },
-              { id: 2, name: 'random', removable: false },
-            ];
-      }
+        if (serverChannels.length > 0) {
+          finalChannels = serverChannels;
+        } else {
+          const storedChannels = loadChannelsFromStorage();
+          finalChannels = storedChannels.length > 0
+            ? storedChannels
+            : [
+                { id: 1, name: 'general', removable: false },
+                { id: 2, name: 'random', removable: false },
+              ];
+        }
 
-      // Обновляем Redux
-      dispatch(setChannels(finalChannels));
+        // Обновляем Redux
+        dispatch(setChannels(finalChannels));
 
-      // Сохраняем в localStorage (только если есть токен)
-      saveChannelsToStorage(finalChannels);
+        // Сохраняем в localStorage (только если есть токен)
+        saveChannelsToStorage(finalChannels);
 
-      // Определяем, на какой канал переключиться
-      let targetChannelId;
+        // Определяем, на какой канал переключиться
+        let targetChannelId;
 
-      if (switchToNewChannel && newChannelId) {
-        // Если только что создали канал — переключаемся на него
-        targetChannelId = newChannelId;
-      } else if (switchToNewChannel && !newChannelId) {
-        // Альтернатива: переключиться на последний removable канал (самый новый пользовательский)
-        const userChannels = finalChannels.filter((c) => c.removable);
-        if (userChannels.length > 0) {
-          targetChannelId = userChannels[userChannels.length - 1].id;
+        if (switchToNewChannel && newChannelId) {
+          targetChannelId = newChannelId;
+        } else if (switchToNewChannel && !newChannelId) {
+          const userChannels = finalChannels.filter((c) => c.removable);
+          if (userChannels.length > 0) {
+            targetChannelId = userChannels[userChannels.length - 1].id;
+          }
+        }
+
+        if (!targetChannelId) {
+          targetChannelId = finalChannels.some((c) => c.id === currentChannelId)
+            ? currentChannelId
+            : finalChannels[0].id;
+        }
+
+        dispatch(setCurrentChannelId(targetChannelId));
+        await loadChannelData(targetChannelId);
+
+        joinChannel(targetChannelId);
+      } catch (err) {
+        console.error('Failed to fetch channels:', err);
+        toast.error(t('toast.error.fetchChannels'));
+
+        const fallbackChannels = loadChannelsFromStorage();
+        if (fallbackChannels.length > 0) {
+          dispatch(setChannels(fallbackChannels));
+          saveChannelsToStorage(fallbackChannels);
+          const fallbackId = fallbackChannels[0].id;
+          dispatch(setCurrentChannelId(fallbackId));
+          await loadChannelData(fallbackId);
+          joinChannel(fallbackId);
         }
       }
-
-      // Если не указан новый — используем текущий или первый
-      if (!targetChannelId) {
-        targetChannelId = finalChannels.some((c) => c.id === currentChannelId)
-          ? currentChannelId
-          : finalChannels[0].id;
-      }
-
-      // Устанавливаем текущий канал и загружаем сообщения
-      dispatch(setCurrentChannelId(targetChannelId));
-      await loadChannelData(targetChannelId);
-
-      // Присоединяемся к каналу через сокет
-      joinChannel(targetChannelId);
-    } catch (err) {
-      console.error('Failed to fetch channels:', err);
-      toast.error(t('toast.error.fetchChannels'));
-
-      // Fallback: пытаемся загрузить из localStorage
-      const fallbackChannels = loadChannelsFromStorage();
-      if (fallbackChannels.length > 0) {
-        dispatch(setChannels(fallbackChannels));
-        saveChannelsToStorage(fallbackChannels);
-        const fallbackId = fallbackChannels[0].id;
-        dispatch(setCurrentChannelId(fallbackId));
-        await loadChannelData(fallbackId);
-        joinChannel(fallbackId);
-      }
-    }
-  },
-  [
-    dispatch,
-    currentChannelId,
-    loadChannelsFromStorage,
-    saveChannelsToStorage,
-    loadChannelData,
-    t,
-  ]
-);
+    },
+    [
+      dispatch,
+      currentChannelId,
+      loadChannelsFromStorage,
+      saveChannelsToStorage,
+      loadChannelData,
+      t,
+    ]
+  );
 
   // Инициализация сокета и начальная загрузка — только один раз
   useEffect(() => {
@@ -229,7 +223,7 @@ const App = () => {
     }
 
     if (hasInitialized.current) {
-      return; // Защита от двойного выполнения в Strict Mode
+      return;
     }
     hasInitialized.current = true;
 
@@ -248,7 +242,7 @@ const App = () => {
       socket.off('newMessage');
       disconnectSocket();
     };
-  }, [token, navigate, dispatch]); // Зависимости минимальны — нет цикла
+  }, [token, navigate, dispatch]);
 
   // Реакция на смену текущего канала
   useEffect(() => {
@@ -266,7 +260,7 @@ const App = () => {
   const validateMessage = useCallback((text) => {
     if (!text?.trim()) return t('validation.messageRequired');
     if (text.trim().length > 500) return t('validation.messageTooLong');
-    if (leoProfanity.check(text)) return t('validation.profanityDetected'); // Запрещаем полностью
+    if (leoProfanity.check(text)) return t('validation.profanityDetected');
     return null;
   }, [t]);
 
@@ -276,7 +270,6 @@ const App = () => {
     const error = validateMessage(text);
     setMessageError(error);
 
-    // Предупреждение при вводе мата, но не автоматическая очистка
     if (leoProfanity.check(text)) {
       toast.warning(t('toast.warning.profanity'));
     }
@@ -298,29 +291,24 @@ const App = () => {
       return;
     }
 
-    // ЦЕНЗУРИМ текст перед отправкой и отображением
     const censoredText = leoProfanity.clean(rawText);
 
-    // Опционально: предупреждаем пользователя, если был мат
     if (censoredText !== rawText) {
       toast.warning(t('toast.warning.profanityCensored'));
     }
 
     try {
-      // Отправляем уже цензурированный текст на сервер
       await sendMessage(currentChannelId, censoredText, username);
 
-      // Эмитим в сокет тоже цензурированный
       await emitNewMessage({
         channelId: currentChannelId,
         message: { 
           text: censoredText, 
           username,
-          createdAt: new Date().toISOString(), // если нужно
+          createdAt: new Date().toISOString(),
         },
       });
 
-      // Очищаем поле
       setMessageText('');
       setMessageError(null);
       setSubmitError(null);
@@ -384,16 +372,43 @@ const App = () => {
                       <button
                         type="button"
                         className="dropdown-toggle"
+                        aria-label={t('dropdown.manageChannel')}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Управление каналом {/* ← Просто видимый текст */}
-                        <span aria-hidden="true" style={{ marginLeft: '8px' }}>⋮</span>
+                        <span
+                          style={{
+                            position: 'absolute',
+                            width: '1px',
+                            height: '1px',
+                            padding: '0',
+                            margin: '-1px',
+                            overflow: 'hidden',
+                            clip: 'rect(0,0,0,0)',
+                            whiteSpace: 'nowrap',
+                            border: '0'
+                          }}
+                        >
+                          {t('dropdown.manageChannel')}
+                        </span>
+                        ⋮
                       </button>
                       <div className="dropdown-menu">
-                        <button type="button" onClick={(e) => { e.stopPropagation(); setShowRenameModal(channel.id); }}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowRenameModal(channel.id);
+                          }}
+                        >
                           {t('dropdown.rename')}
                         </button>
-                        <button type="button" onClick={(e) => { e.stopPropagation(); setShowRemoveModal(channel.id); }}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowRemoveModal(channel.id);
+                          }}
+                        >
                           {t('dropdown.remove')}
                         </button>
                       </div>
