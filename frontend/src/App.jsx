@@ -386,7 +386,6 @@ const App = () => {
                         className="btn btn-link p-0 dropdown-toggle"
                         aria-label={t('dropdown.manageChannel')}
                       >
-                        <span className="visually-hidden">{t('dropdown.manageChannel')}</span>
                         {t('dropdown.manageChannel')} {/* Это ключевой текст! */}
                       </button>
                       <div className="dropdown-menu">
