@@ -32,7 +32,10 @@ const App = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const inputRef = useRef(null);
-  const messagesEndRef = useRef(null); // для автоскролла
+  const messagesEndRef = useRef(null);
+
+  // Флаг для защиты от двойного монтирования в Strict Mode
+  const hasInitialized = useRef(false);
 
   const { token, username } = useSelector((state) => state.auth);
   const { channels, currentChannelId } = useSelector((state) => state.channels);
@@ -105,7 +108,6 @@ const App = () => {
     }
   }, []);
 
-  // Загрузка каналов и сообщений
   const loadChannelData = useCallback(
     async (channelIdToLoad) => {
       let msgs = loadMessagesFromStorage(channelIdToLoad);
@@ -153,7 +155,6 @@ const App = () => {
         : finalChannels[0].id;
 
       dispatch(setCurrentChannelId(validCurrentId));
-      joinChannel(validCurrentId);
       await loadChannelData(validCurrentId);
     } catch (err) {
       toast.error(t('toast.error.fetchChannels'));
@@ -167,16 +168,20 @@ const App = () => {
     t,
   ]);
 
-  // Основной эффект при монтировании
+  // Инициализация сокета и начальная загрузка — только один раз
   useEffect(() => {
     if (!token) {
       navigate('/login');
       return;
     }
 
+    if (hasInitialized.current) {
+      return; // Защита от двойного выполнения в Strict Mode
+    }
+    hasInitialized.current = true;
+
     const socket = connectSocket(token);
 
-    // Прослушка новых сообщений от других пользователей
     socket.on('newMessage', (payload) => {
       if (payload.channelId === currentChannelId) {
         dispatch(setMessages([...messages, payload.message]));
@@ -186,23 +191,24 @@ const App = () => {
     refetchChannels();
 
     return () => {
+      hasInitialized.current = false;
       socket.off('newMessage');
       disconnectSocket();
     };
-  }, [token, navigate, dispatch, currentChannelId, refetchChannels]);
+  }, [token, navigate, dispatch]); // Зависимости минимальны — нет цикла
 
-  // Переключение канала
-  const handleChannelClick = useCallback(
-    async (channelId) => {
-      if (channelId === currentChannelId) return;
+  // Реакция на смену текущего канала
+  useEffect(() => {
+    if (!currentChannelId || !token) return;
 
-      if (currentChannelId) leaveChannel(currentChannelId);
-      dispatch(setCurrentChannelId(channelId));
-      joinChannel(channelId);
-      await loadChannelData(channelId);
-    },
-    [currentChannelId, dispatch, loadChannelData]
-  );
+    joinChannel(currentChannelId);
+    loadChannelData(currentChannelId);
+  }, [currentChannelId, token]);
+
+  const handleChannelClick = (channelId) => {
+    if (channelId === currentChannelId) return;
+    dispatch(setCurrentChannelId(channelId));
+  };
 
   const validateMessage = useCallback((text) => {
     if (!text?.trim()) return t('validation.messageRequired');
@@ -237,13 +243,10 @@ const App = () => {
 
     try {
       await sendMessage(currentChannelId, cleanText, username);
-      emitNewMessage({
+
+      await emitNewMessage({
         channelId: currentChannelId,
-        message: {
-          text: cleanText,
-          username,
-          // id и createdAt сервер добавит сам
-        }
+        message: { text: cleanText, username },
       });
 
       setMessageText('');
@@ -307,7 +310,7 @@ const App = () => {
                         type="button"
                         className="dropdown-toggle"
                         aria-label={t('dropdown.manageChannel')}
-                        onClick={(e) => e.stopPropagation()} // предотвращаем переключение канала при открытии меню
+                        onClick={(e) => e.stopPropagation()}
                       >
                         ⋮
                       </button>
