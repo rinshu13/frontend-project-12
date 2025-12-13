@@ -6,7 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
 import api from '../api';
-import { Form, Button, Container, Row, Col } from 'react-bootstrap';
+import { Button, Container, Row, Col } from 'react-bootstrap';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 
 const LoginPage = () => {
