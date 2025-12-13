@@ -30,7 +30,7 @@ const LoginPage = () => {
       password: '',
     },
     validationSchema: LoginSchema,
-    onSubmit: async (values) => {
+    onSubmit: async (values, { setSubmitting }) => {  // Добавлен параметр для совместимости
       setAuthError(null);
       setLoading(true);
       try {
@@ -46,6 +46,7 @@ const LoginPage = () => {
         }
       } finally {
         setLoading(false);
+        setSubmitting(false);
       }
     },
   });
@@ -60,7 +61,11 @@ const LoginPage = () => {
         <Col xs={12} md={8} xxl={6}>
           <h1 className="text-center mb-4">Войти</h1>
 
-          <Form onSubmit={formik.handleSubmit} className="p-3">
+          {/* Добавлен onSubmit с preventDefault для предотвращения перезагрузки страницы */}
+          <Form onSubmit={(e) => {
+            e.preventDefault();
+            formik.handleSubmit(e);
+          }} className="p-3">
             {/* Поле "Ваш ник" — надпись внутри поля */}
             <Form.Group className="mb-3 position-relative">
               <Form.Control
@@ -107,14 +112,14 @@ const LoginPage = () => {
               </Form.Control.Feedback>
             </Form.Group>
 
-            {/* Красная плашка с ошибкой при неверных данных */}
+            {/* Красная плашка с ошибкой */}
             {authError && (
               <div className="alert alert-danger text-center mb-4 py-3">
                 {authError}
               </div>
             )}
 
-            <Button variant="primary" type="submit" className="w-100 rounded-pill py-2" disabled={loading}>
+            <Button variant="primary" type="submit" className="w-100 rounded-pill py-2" disabled={loading || formik.isSubmitting}>
               Войти
             </Button>
           </Form>
