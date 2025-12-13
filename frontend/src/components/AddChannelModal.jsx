@@ -30,8 +30,8 @@ const AddChannelModal = ({ isOpen, onClose }) => {
   const formik = useFormik({
     initialValues: { name: '' },
     validationSchema: AddChannelSchema,
-    validateOnChange: true,
-    validateOnBlur: true,
+    validateOnChange: false, // Важно: не валидируем при каждом изменении
+    validateOnBlur: true,    // Валидируем при потере фокуса
 
     onSubmit: async (values, { setSubmitting, resetForm, setFieldError }) => {
       const originalName = values.name.trim();
@@ -46,13 +46,11 @@ const AddChannelModal = ({ isOpen, onClose }) => {
       try {
         const response = await createChannel(cleanName);
 
-        // Попробуем извлечь данные о новом канале из ответа сервера
         const newChannel = response.data?.data || response.data;
 
         let newChannelId;
 
         if (newChannel && newChannel.id) {
-          // Сервер вернул полноценный канал — используем его ID
           newChannelId = newChannel.id;
         } else {
           // Демо-режим: сервер не вернул канал → создаём локально
@@ -65,7 +63,6 @@ const AddChannelModal = ({ isOpen, onClose }) => {
             removable: true,
           };
 
-          // Избегаем дубликатов по имени
           if (!storedChannels.some((c) => c.name === cleanName)) {
             storedChannels.push(localChannel);
             localStorage.setItem('channels', JSON.stringify(storedChannels));
@@ -74,13 +71,14 @@ const AddChannelModal = ({ isOpen, onClose }) => {
 
         toast.success(t('toast.success.createChannel'));
         resetForm();
-        onClose(newChannelId); // Передаём ID, чтобы App переключился на новый канал
+        onClose(newChannelId); // Переключаемся на новый канал
       } catch (error) {
         console.error('Error creating channel:', error);
         setSubmitting(false);
 
         if (error.response) {
           if (error.response.status === 409) {
+            // Конфликт — имя уже существует
             setFieldError('name', t('modal.addErrorUnique'));
             toast.error(t('modal.addErrorUnique'));
           } else if (error.response.status === 401) {
@@ -97,12 +95,26 @@ const AddChannelModal = ({ isOpen, onClose }) => {
     },
   });
 
-  // Закрытие без создания канала (отмена или клик по фону)
+  // Закрытие модалки без создания канала
   const handleClose = (e) => {
     e?.stopPropagation();
     if (!formik.isSubmitting) {
-      onClose(); // Без аргумента — просто закрываем
+      onClose(); // Без аргумента
     }
+  };
+
+  // Принудительная валидация при отправке формы (Enter или кнопка)
+  const handleSubmitWithValidation = (e) => {
+    e.preventDefault();
+    formik.setTouched({ name: true }); // Помечаем поле как тронутное
+    formik.validateForm().then((errors) => {
+      if (Object.keys(errors).length === 0) {
+        formik.handleSubmit(e);
+      } else {
+        // Если есть ошибки — они появятся под полем
+        formik.setErrors(errors);
+      }
+    });
   };
 
   if (!isOpen) return null;
@@ -110,7 +122,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
   return (
     <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
-        <form onSubmit={formik.handleSubmit}>
+        <form onSubmit={handleSubmitWithValidation}>
           <div className="modal-header">
             <h5 className="modal-title">{t('modal.addTitle')}</h5>
             <button
@@ -144,8 +156,11 @@ const AddChannelModal = ({ isOpen, onClose }) => {
                 placeholder={t('modal.addNamePlaceholder') || 'Введите имя канала'}
                 autoComplete="off"
               />
+              {/* Ошибка появляется здесь при любых проблемах */}
               {formik.touched.name && formik.errors.name && (
-                <div className="modal-invalid-feedback">{formik.errors.name}</div>
+                <div className="modal-invalid-feedback">
+                  {formik.errors.name}
+                </div>
               )}
             </div>
           </div>
@@ -162,11 +177,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
             <button
               type="submit"
               className="modal-btn modal-btn-primary"
-              disabled={
-                formik.isSubmitting ||
-                !formik.isValid ||
-                !formik.values.name.trim()
-              }
+              disabled={formik.isSubmitting}
             >
               {formik.isSubmitting ? t('modal.addLoading') : t('modal.addSubmit')}
             </button>
