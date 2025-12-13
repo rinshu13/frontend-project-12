@@ -7,7 +7,11 @@ let socket = null;
 export const connectSocket = (token) => {
   if (socket) return socket;
 
-  const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://frontend-chat-ru.hexlet.app/chat';  // ИЗМЕНЕНО: Добавлен /chat для namespace (фиксит "Invalid namespace")
+  const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || '';
+  socket = io(SOCKET_URL, {
+    auth: { token },
+    transports: ['websocket'],
+  });
 
   socket = io(SOCKET_URL, {
     auth: { token },  // Токен для auth на сервере
