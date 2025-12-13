@@ -12,7 +12,7 @@ import { logout, initAuth } from './features/auth/authSlice';
 import AddChannelModal from './components/AddChannelModal';
 import RenameChannelModal from './components/RenameChannelModal';
 import RemoveChannelModal from './components/RemoveChannelModal';
-import './App.css'; // ← наш новый CSS
+import './App.css';
 
 const App = () => {
   const { t } = useTranslation();
@@ -36,6 +36,7 @@ const App = () => {
   const saveChannelsToStorage = useCallback((channelsList) => {
     if (token) {
       localStorage.setItem('channels', JSON.stringify(channelsList));
+      console.log('Channels saved to localStorage:', channelsList);
     }
   }, [token]);
 
@@ -44,7 +45,10 @@ const App = () => {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        return Array.isArray(parsed) ? parsed : [];
+        if (Array.isArray(parsed)) {
+          console.log('Channels loaded from localStorage:', parsed);
+          return parsed;
+        }
       } catch (e) {
         console.error('Parse localStorage error:', e);
       }
@@ -72,6 +76,7 @@ const App = () => {
   const saveMessagesToStorage = useCallback((channelId, messagesList) => {
     if (token) {
       localStorage.setItem(`messages_${channelId}`, JSON.stringify(messagesList));
+      console.log(`Messages saved for channel ${channelId}:`, messagesList);
     }
   }, [token]);
 
@@ -89,9 +94,39 @@ const App = () => {
   }, []);
 
   const refetchChannels = useCallback(async () => {
-    // ... (логика осталась прежней, только без изменений в UI)
-    // Опущена для краткости — код идентичен вашему оригиналу
-  }, [dispatch, t, loadChannelsFromStorage, saveChannelsToStorage, loadMessagesFromStorage, saveMessagesToStorage, getDemoMessages]);
+    try {
+      const response = await getChannels();
+      let channelsList = response.data.channels || loadChannelsFromStorage();
+
+      if (channelsList.length === 0) {
+        channelsList = [
+          { id: 1, name: 'general', removable: false, private: false },
+          { id: 2, name: 'random', removable: false, private: false },
+        ];
+      }
+
+      dispatch(setChannels(channelsList));
+      saveChannelsToStorage(channelsList);
+
+      if (!currentChannelId || !channelsList.find((c) => c.id === currentChannelId)) {
+        const defaultId = channelsList[0]?.id || 1;
+        dispatch(setCurrentChannelId(defaultId));
+        joinChannel(defaultId);
+      }
+
+      // Загрузка сообщений для текущего канала
+      let msgs = loadMessagesFromStorage(currentChannelId);
+      if (msgs.length === 0) {
+        const channel = channelsList.find((c) => c.id === currentChannelId);
+        msgs = getDemoMessages(channel?.name || 'general');
+        saveMessagesToStorage(currentChannelId, msgs);
+      }
+      dispatch(setMessages(msgs));
+    } catch (err) {
+      toast.error(t('toast.error.fetchChannels'));
+      console.error('Fetch channels error:', err);
+    }
+  }, [dispatch, t, currentChannelId, loadChannelsFromStorage, saveChannelsToStorage, loadMessagesFromStorage, saveMessagesToStorage, getDemoMessages]);
 
   useEffect(() => {
     if (!token) {
@@ -100,14 +135,6 @@ const App = () => {
     }
 
     const socket = connectSocket(token);
-
-    const fallbackChannels = [
-      { id: 1, name: 'general', removable: false, private: false },
-      { id: 2, name: 'random', removable: false, private: false },
-    ];
-    dispatch(setChannels(fallbackChannels));
-    dispatch(setCurrentChannelId(1));
-    joinChannel(1);
 
     refetchChannels();
 
@@ -121,6 +148,30 @@ const App = () => {
       disconnectSocket();
     };
   }, [token, dispatch, navigate, t, refetchChannels]);
+
+  const handleChannelClick = async (channelId) => {
+    if (channelId === currentChannelId) return;
+
+    leaveChannel(currentChannelId);
+    dispatch(setCurrentChannelId(channelId));
+    joinChannel(channelId);
+
+    try {
+      const response = await fetchMessagesByChannel(channelId);
+      let msgs = response.data.messages || loadMessagesFromStorage(channelId);
+
+      if (msgs.length === 0) {
+        const channel = channels.find((c) => c.id === channelId);
+        msgs = getDemoMessages(channel?.name || 'Unnamed');
+        saveMessagesToStorage(channelId, msgs);
+      }
+
+      dispatch(setMessages(msgs));
+    } catch (err) {
+      toast.error(t('toast.error.fetchMessages'));
+      console.error('Fetch messages error:', err);
+    }
+  };
 
   const validateMessage = useCallback((text) => {
     if (!text || text.trim().length === 0) return t('validation.messageRequired');
@@ -147,12 +198,41 @@ const App = () => {
     return messageText.trim().length > 0 && !messageError && currentChannelId;
   }, [messageText, messageError, currentChannelId]);
 
-  const handleChannelClick = async (channelId) => {
-    // ... (логика осталась прежней)
-  };
-
   const handleSubmit = async (e) => {
-    // ... (логика осталась прежней)
+    e.preventDefault();
+
+    const error = validateMessage(messageText);
+    if (error) {
+      setMessageError(error);
+      setSubmitError(error);
+      return;
+    }
+
+    try {
+      const cleanText = leoProfanity.clean(messageText.trim());
+      await sendMessage(currentChannelId, cleanText, username);
+      emitNewMessage(currentChannelId, cleanText, username);
+
+      // Обновление сообщений локально (если нет сокет-обновления)
+      const newMessage = {
+        id: Date.now(),
+        text: cleanText,
+        username,
+        createdAt: new Date().toISOString(),
+      };
+      const updatedMessages = [...messages, newMessage];
+      dispatch(setMessages(updatedMessages));
+      saveMessagesToStorage(currentChannelId, updatedMessages);
+
+      setMessageText('');
+      setMessageError(null);
+      setSubmitError(null);
+      inputRef.current?.focus();
+    } catch (err) {
+      setSubmitError(t('toast.error.sendMessage'));
+      toast.error(t('toast.error.sendMessage'));
+      console.error('Send message error:', err);
+    }
   };
 
   const handleLogout = () => {
