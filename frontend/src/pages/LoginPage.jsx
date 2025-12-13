@@ -45,6 +45,7 @@ const LoginPage = () => {
         navigate('/');
       } catch (err) {
         console.error('Login error:', err);
+        // При любой ошибке (включая короткий пароль, неверные данные, сеть) выводим требуемое сообщение
         setAuthError('Неверные имя пользователя или пароль');
       } finally {
         setLoading(false);
@@ -63,7 +64,7 @@ const LoginPage = () => {
               e.preventDefault();
               formik.handleSubmit();
             }}
-            noValidate
+            // noValidate отключён, чтобы браузер показывал стандартные сообщения для required
           >
             <FloatingLabel
               controlId="username"
@@ -79,7 +80,7 @@ const LoginPage = () => {
                 onBlur={formik.handleBlur}
                 disabled={loading}
                 autoFocus
-                required  // Обязательное поле через HTML-атрибут
+                required  // Стандартное сообщение браузера при пустом поле
               />
             </FloatingLabel>
 
@@ -96,7 +97,7 @@ const LoginPage = () => {
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 disabled={loading}
-                required  // Обязательное поле через HTML-атрибут
+                required  // Стандартное сообщение браузера при пустом поле
               />
             </FloatingLabel>
 
