@@ -152,33 +152,29 @@ const ChatComponent = () => {
       {/* Форма ввода — теперь полностью как в LoginPage */}
       <div className="border-top px-3 pb-3">
         <Form onSubmit={handleSubmit} noValidate>
-          {/* Заменяем FloatingLabel на FormFloating */}
-          <FormFloating className="mb-3">
-            <Form.Control
-              ref={inputRef}
-              type="text"
-              id="messageInput" // важно: id обязателен для связи с label
-              name="message"
-              aria-label="Новое сообщение" // это будет доступное имя для скринридеров
-              placeholder={t('chat.inputPlaceholder') || 'Введите сообщение...'}
-              value={messageText}
-              onChange={handleMessageChange}
-              onBlur={handleBlur}
-              disabled={!currentChannelId || loading}
-              isInvalid={touched && !!messageError}
-              autoFocus
-              required
-            />
-            <label htmlFor="messageInput">
-              {t('chat.inputPlaceholder') || 'Введите сообщение...'}
-            </label>
+          {/* Простое поле ввода без FloatingLabel и без видимой <label> */}
+          <Form.Control
+            ref={inputRef}
+            type="text"
+            name="body"                          // именно "body", как на первой картинке
+            aria-label="Новое сообщение"         // это будет единственным доступным именем
+            placeholder={t('chat.inputPlaceholder') || 'Введите сообщение...'}
+            className="mb-3 border-0 p-3"        // стили по вкусу, чтобы выглядело похоже
+            value={messageText}
+            onChange={handleMessageChange}
+            onBlur={handleBlur}
+            disabled={!currentChannelId || loading}
+            isInvalid={touched && !!messageError}
+            autoFocus
+            required
+          />
 
-            {touched && messageError && (
-              <Form.Control.Feedback type="invalid">
-                {messageError}
-              </Form.Control.Feedback>
-            )}
-          </FormFloating>
+          {/* Сообщение об ошибке валидации */}
+          {touched && messageError && (
+            <div className="invalid-feedback d-block">
+              {messageError}
+            </div>
+          )}
 
           <Button
             variant="primary"
