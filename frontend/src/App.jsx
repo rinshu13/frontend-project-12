@@ -277,34 +277,61 @@ const App = () => {
             </button>
           </div>
 
-          <ul className="channels-list">
+          <div className="channels-list" role="list">
             {channels?.length > 0 ? (
               channels.map((channel) => (
-                <li
+                <div
                   key={channel.id}
+                  role="listitem"
                   className={`channel-item ${currentChannelId === channel.id ? 'active' : ''}`}
-                  onClick={() => handleChannelClick(channel.id)}
                 >
-                  <span className="channel-name">#{channel.name}</span>
+                  <button
+                    type="button"
+                    className="channel-button"
+                    onClick={() => handleChannelClick(channel.id)}
+                    aria-current={currentChannelId === channel.id ? 'true' : 'false'}
+                  >
+                    <span className="channel-name">#{channel.name}</span>
+                  </button>
+
                   {channel.removable && (
                     <div className="channel-dropdown">
-                      <button className="dropdown-toggle">⋮</button>
+                      <button
+                        type="button"
+                        className="dropdown-toggle"
+                        aria-label={t('dropdown.manageChannel')}
+                        onClick={(e) => e.stopPropagation()} // предотвращаем переключение канала при открытии меню
+                      >
+                        ⋮
+                      </button>
                       <div className="dropdown-menu">
-                        <button onClick={(e) => { e.stopPropagation(); setShowRenameModal(channel.id); }}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowRenameModal(channel.id);
+                          }}
+                        >
                           {t('dropdown.rename')}
                         </button>
-                        <button onClick={(e) => { e.stopPropagation(); setShowRemoveModal(channel.id); }}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowRemoveModal(channel.id);
+                          }}
+                        >
                           {t('dropdown.remove')}
                         </button>
                       </div>
                     </div>
                   )}
-                </li>
+                </div>
               ))
             ) : (
               <p className="text-center text-muted">{t('app.loadingChannels')}</p>
             )}
-          </ul>
+          </div>
         </aside>
 
         <section className="chat-section d-flex flex-column">
