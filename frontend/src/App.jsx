@@ -384,7 +384,7 @@ const App = () => {
                       <button
                         type="button"
                         className="dropdown-toggle"
-                        aria-label={t('dropdown.manageChannel')}  // "Управление каналом"
+                        aria-label={t('Управление каналом')}
                         onClick={(e) => e.stopPropagation()}
                       >
                         ⋮
