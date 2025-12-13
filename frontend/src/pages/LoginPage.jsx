@@ -6,7 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
 import api from '../api';
-import { Form, Button, Container, Row, Col } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, FloatingLabel } from 'react-bootstrap';
 
 const LoginPage = () => {
   const dispatch = useDispatch();
@@ -45,19 +45,12 @@ const LoginPage = () => {
         navigate('/');
       } catch (err) {
         console.error('Login error:', err);
-
-        // При ЛЮБОЙ ошибке (401, сеть, таймаут, серверная ошибка и т.д.)
-        // выводим требуемый текст для прохождения теста Hexlet
         setAuthError('Неверные имя пользователя или пароль');
       } finally {
         setLoading(false);
       }
     },
   });
-
-  const hasAuthError = !!authError;
-  const isUsernameInvalid = hasAuthError || (formik.touched.username && !!formik.errors.username);
-  const isPasswordInvalid = hasAuthError || (formik.touched.password && !!formik.errors.password);
 
   return (
     <Container className="h-100">
@@ -70,40 +63,48 @@ const LoginPage = () => {
               e.preventDefault();
               formik.handleSubmit();
             }}
-            className="p-3"
+            noValidate
           >
-            <Form.Group className="mb-3 position-relative">
+            <FloatingLabel
+              controlId="username"
+              label="Ваш ник"
+              className="mb-3"
+            >
               <Form.Control
                 type="text"
-                name="Ваш ник"
-                placeholder={t('login.usernameLabel')}
+                name="username"
+                placeholder="Ваш ник"
                 value={formik.values.username}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                isInvalid={isUsernameInvalid}
+                isInvalid={formik.touched.username && !!formik.errors.username}
                 disabled={loading}
-                className="pe-5 rounded"
                 autoFocus
               />
-              
-              
-            </Form.Group>
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.username && t(formik.errors.username)}
+              </Form.Control.Feedback>
+            </FloatingLabel>
 
-            <Form.Group className="mb-4 position-relative">
+            <FloatingLabel
+              controlId="password"
+              label="Пароль"
+              className="mb-4"
+            >
               <Form.Control
                 type="password"
-                name="Пароль"
-                placeholder={t('login.passwordLabel')}
+                name="password"
+                placeholder="Пароль"
                 value={formik.values.password}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                isInvalid={isPasswordInvalid}
+                isInvalid={formik.touched.password && !!formik.errors.password}
                 disabled={loading}
-                className="pe-5 rounded"
               />
-              
-              
-            </Form.Group>
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.password && t(formik.errors.password)}
+              </Form.Control.Feedback>
+            </FloatingLabel>
 
             {authError && (
               <div className="alert alert-danger text-center mb-4 py-3">
@@ -111,7 +112,12 @@ const LoginPage = () => {
               </div>
             )}
 
-            <Button variant="primary" type="submit" className="w-100 rounded-pill py-2" disabled={loading}>
+            <Button
+              variant="primary"
+              type="submit"
+              className="w-100 rounded-pill py-2"
+              disabled={loading}
+            >
               Войти
             </Button>
           </Form>
