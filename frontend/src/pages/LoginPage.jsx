@@ -76,7 +76,7 @@ const LoginPage = () => {
               <Form.Control
                 type="text"
                 name="username"
-                placeholder="Ваш ник"
+                placeholder={t('login.usernameLabel')}
                 value={formik.values.username}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
@@ -98,7 +98,7 @@ const LoginPage = () => {
               <Form.Control
                 type="password"
                 name="password"
-                placeholder="Пароль"
+                placeholder={t('login.passwordLabel')}
                 value={formik.values.password}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
