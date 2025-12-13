@@ -30,9 +30,21 @@ const LoginPage = () => {
       password: '',
     },
     validationSchema: LoginSchema,
+    validateOnChange: false, // Отключаем валидацию при вводе, чтобы не показывать ошибки сразу
+    validateOnBlur: false,   // Отключаем валидацию при потере фокуса
     onSubmit: async (values) => {
       setAuthError(null);
       setLoading(true);
+
+      // Сначала проверяем валидацию вручную (если поля пустые или пароль короткий)
+      try {
+        await LoginSchema.validate(values, { abortEarly: false });
+      } catch (validationErr) {
+        setAuthError('Неверные имя пользователя или пароль');
+        setLoading(false);
+        return; // Прерываем отправку на сервер
+      }
+
       try {
         const response = await api.post('/api/v1/login', values);
 
@@ -45,7 +57,6 @@ const LoginPage = () => {
         navigate('/');
       } catch (err) {
         console.error('Login error:', err);
-        // При любой ошибке (включая короткий пароль, неверные данные, сеть) выводим требуемое сообщение
         setAuthError('Неверные имя пользователя или пароль');
       } finally {
         setLoading(false);
@@ -64,7 +75,6 @@ const LoginPage = () => {
               e.preventDefault();
               formik.handleSubmit();
             }}
-            // noValidate отключён, чтобы браузер показывал стандартные сообщения для required
           >
             <FloatingLabel
               controlId="username"
@@ -77,10 +87,9 @@ const LoginPage = () => {
                 placeholder="Ваш ник"
                 value={formik.values.username}
                 onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
                 disabled={loading}
                 autoFocus
-                required  // Стандартное сообщение браузера при пустом поле
+                required
               />
             </FloatingLabel>
 
@@ -95,9 +104,8 @@ const LoginPage = () => {
                 placeholder="Пароль"
                 value={formik.values.password}
                 onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
                 disabled={loading}
-                required  // Стандартное сообщение браузера при пустом поле
+                required
               />
             </FloatingLabel>
 
