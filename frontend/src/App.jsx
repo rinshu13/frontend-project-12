@@ -383,15 +383,16 @@ const App = () => {
                     <div className="channel-dropdown">
                       <button
                         type="button"
-                        className="btn btn-link p-0 dropdown-toggle"
+                        className="dropdown-toggle"
                         aria-label={t('dropdown.manageChannel')}
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        {t('dropdown.manageChannel')} {/* Это ключевой текст! */}
+                        <span className="visually-hidden">{t('dropdown.manageChannel')}</span>
+                        ⋮
                       </button>
                       <div className="dropdown-menu">
                         <button
                           type="button"
-                          className="dropdown-item"
                           onClick={(e) => {
                             e.stopPropagation();
                             setShowRenameModal(channel.id);
@@ -401,7 +402,6 @@ const App = () => {
                         </button>
                         <button
                           type="button"
-                          className="dropdown-item text-danger"
                           onClick={(e) => {
                             e.stopPropagation();
                             setShowRemoveModal(channel.id);
