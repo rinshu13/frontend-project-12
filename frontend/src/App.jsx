@@ -26,6 +26,7 @@ import AddChannelModal from './components/AddChannelModal';
 import RenameChannelModal from './components/RenameChannelModal';
 import RemoveChannelModal from './components/RemoveChannelModal';
 import './App.css';
+import ChannelItem from './components/ChannelItem';
 
 // Инициализация leo-profanity с русским словарем (добавляем распространенные нецензурные слова)
 leoProfanity.add([
@@ -352,113 +353,16 @@ const App = () => {
 
           <div className="channels-list" role="list">
             {channels?.length > 0 ? (
-              channels.map((channel) => {
-                const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-                const toggleDropdown = (e) => {
-                  e.stopPropagation();
-                  setIsDropdownOpen((prev) => !prev);
-                };
-
-                const closeDropdown = () => setIsDropdownOpen(false);
-
-                return (
-                  <div
-                    key={channel.id}
-                    role="listitem"
-                    className={`channel-item ${currentChannelId === channel.id ? 'active' : ''}`}
-                    onClick={closeDropdown} // Закрываем меню при клике вне кнопки управления
-                  >
-                    <button
-                      type="button"
-                      className="channel-button"
-                      onClick={() => handleChannelClick(channel.id)}
-                      aria-current={currentChannelId === channel.id ? 'true' : 'false'}
-                    >
-                      <span className="channel-name">#{channel.name}</span>
-                    </button>
-
-                    {channel.removable && (
-                      <div className="channel-dropdown" style={{ position: 'relative' }}>
-                        <button
-                          type="button"
-                          className="dropdown-toggle"
-                          onClick={toggleDropdown}
-                          aria-label={t('dropdown.manageChannel')}
-                        >
-                          {/* Текст для теста — скрыт визуально, но присутствует в DOM */}
-                          <span
-                            style={{
-                              position: 'absolute',
-                              left: '-9999px',
-                              width: '1px',
-                              height: '1px',
-                              overflow: 'hidden',
-                            }}
-                          >
-                            {t('dropdown.manageChannel')}
-                          </span>
-                          ⋮
-                        </button>
-
-                        {/* Попап-меню, открывается при клике */}
-                        {isDropdownOpen && (
-                          <div className="dropdown-menu" style={{
-                            position: 'absolute',
-                            top: '100%',
-                            right: 0,
-                            background: 'white',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                            borderRadius: '4px',
-                            zIndex: 1000,
-                            minWidth: '160px',
-                            padding: '8px 0',
-                          }}>
-                            <button
-                              type="button"
-                              className="dropdown-item"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowRenameModal(channel.id);
-                                closeDropdown();
-                              }}
-                              style={{
-                                width: '100%',
-                                textAlign: 'left',
-                                padding: '8px 16px',
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              {t('dropdown.rename')}
-                            </button>
-                            <button
-                              type="button"
-                              className="dropdown-item text-danger"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowRemoveModal(channel.id);
-                                closeDropdown();
-                              }}
-                              style={{
-                                width: '100%',
-                                textAlign: 'left',
-                                padding: '8px 16px',
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              {t('dropdown.remove')}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })
+              channels.map((channel) => (
+                <ChannelItem
+                  key={channel.id}
+                  channel={channel}
+                  currentChannelId={currentChannelId}
+                  onChannelClick={handleChannelClick}
+                  onRename={setShowRenameModal}
+                  onRemove={setShowRemoveModal}
+                />
+              ))
             ) : (
               <p className="text-center text-muted">{t('app.loadingChannels')}</p>
             )}
