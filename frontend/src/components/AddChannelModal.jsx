@@ -8,6 +8,7 @@ import leoProfanity from 'leo-profanity';
 import { createChannel } from '../api';
 import './Components.css';
 
+// Схема валидации — убрали проверку на мат, только длина и обязательность
 const AddChannelSchema = Yup.object().shape({
   name: Yup.string()
     .trim()
@@ -30,22 +31,22 @@ const AddChannelModal = ({ isOpen, onClose }) => {
   const formik = useFormik({
     initialValues: { name: '' },
     validationSchema: AddChannelSchema,
-    validateOnChange: false, // Важно: не валидируем при каждом изменении
-    validateOnBlur: true,    // Валидируем при потере фокуса
-
+    validateOnChange: false,
+    validateOnBlur: true,
     onSubmit: async (values, { setSubmitting, resetForm, setFieldError }) => {
       const originalName = values.name.trim();
-      const cleanName = leoProfanity.clean(originalName);
+      if (!originalName) return;
 
-      if (leoProfanity.check(originalName)) {
-        setFieldError('name', t('modal.addErrorProfanity'));
-        setSubmitting(false);
-        return;
+      // ЦЕНЗУРИМ имя канала: мат → звёздочки по длине слова
+      const censoredName = leoProfanity.clean(originalName);
+
+      // Опционально: уведомляем пользователя, если имя было отцензурировано
+      if (censoredName !== originalName) {
+        toast.warning(t('toast.warning.channelNameCensored') || 'Название канала было отцензурировано');
       }
 
       try {
-        const response = await createChannel(cleanName);
-
+        const response = await createChannel(censoredName);
         const newChannel = response.data?.data || response.data;
 
         let newChannelId;
@@ -53,17 +54,17 @@ const AddChannelModal = ({ isOpen, onClose }) => {
         if (newChannel && newChannel.id) {
           newChannelId = newChannel.id;
         } else {
-          // Демо-режим: сервер не вернул канал → создаём локально
+          // Демо-режим: создаём локально
           const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]');
           newChannelId = Math.max(...storedChannels.map((c) => c.id || 0), 0) + 1;
 
           const localChannel = {
             id: newChannelId,
-            name: cleanName,
+            name: censoredName, // Сохраняем уже цензурированное имя!
             removable: true,
           };
 
-          if (!storedChannels.some((c) => c.name === cleanName)) {
+          if (!storedChannels.some((c) => c.name === censoredName)) {
             storedChannels.push(localChannel);
             localStorage.setItem('channels', JSON.stringify(storedChannels));
           }
@@ -78,7 +79,6 @@ const AddChannelModal = ({ isOpen, onClose }) => {
 
         if (error.response) {
           if (error.response.status === 409) {
-            // Конфликт — имя уже существует
             setFieldError('name', t('modal.addErrorUnique'));
             toast.error(t('modal.addErrorUnique'));
           } else if (error.response.status === 401) {
@@ -95,23 +95,20 @@ const AddChannelModal = ({ isOpen, onClose }) => {
     },
   });
 
-  // Закрытие модалки без создания канала
   const handleClose = (e) => {
     e?.stopPropagation();
     if (!formik.isSubmitting) {
-      onClose(); // Без аргумента
+      onClose();
     }
   };
 
-  // Принудительная валидация при отправке формы (Enter или кнопка)
   const handleSubmitWithValidation = (e) => {
     e.preventDefault();
-    formik.setTouched({ name: true }); // Помечаем поле как тронутное
+    formik.setTouched({ name: true });
     formik.validateForm().then((errors) => {
       if (Object.keys(errors).length === 0) {
         formik.handleSubmit(e);
       } else {
-        // Если есть ошибки — они появятся под полем
         formik.setErrors(errors);
       }
     });
@@ -156,7 +153,6 @@ const AddChannelModal = ({ isOpen, onClose }) => {
                 placeholder={t('modal.addNamePlaceholder') || 'Введите имя канала'}
                 autoComplete="off"
               />
-              {/* Ошибка появляется здесь при любых проблемах */}
               {formik.touched.name && formik.errors.name && (
                 <div className="modal-invalid-feedback">
                   {formik.errors.name}
