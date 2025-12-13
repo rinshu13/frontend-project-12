@@ -12,7 +12,7 @@ const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [authError, setAuthError] = useState(null);
+  const [authError, setAuthError] = useState(null); // Только для ошибки с сервера
   const [loading, setLoading] = useState(false);
 
   const LoginSchema = Yup.object().shape({
@@ -34,15 +34,6 @@ const LoginPage = () => {
       setAuthError(null);
       setLoading(true);
 
-      // Ручная валидация перед отправкой
-      try {
-        await LoginSchema.validate(values, { abortEarly: false });
-      } catch (validationErr) {
-        setAuthError('Неверные имя пользователя или пароль');
-        setLoading(false);
-        return; // Прерываем отправку на сервер
-      }
-
       try {
         const response = await api.post('/api/v1/login', values);
 
@@ -55,7 +46,8 @@ const LoginPage = () => {
         navigate('/');
       } catch (err) {
         console.error('Login error:', err);
-        setAuthError('Неверные имя пользователя или пароль');
+        // Только здесь показываем "Неверные имя пользователя или пароль"
+        setAuthError(t('errors.invalidCredentials') || 'Неверные имя пользователя или пароль');
       } finally {
         setLoading(false);
       }
@@ -68,12 +60,7 @@ const LoginPage = () => {
         <Col xs={12} md={8} xxl={6}>
           <h1 className="text-center mb-4">Войти</h1>
 
-          <Form
-            onSubmit={(e) => {
-              e.preventDefault();
-              formik.handleSubmit();
-            }}
-          >
+          <Form onSubmit={formik.handleSubmit} noValidate>
             <FloatingLabel
               controlId="username"
               label="Ваш ник"
@@ -85,16 +72,23 @@ const LoginPage = () => {
                 placeholder="Ваш ник"
                 value={formik.values.username}
                 onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 disabled={loading}
+                isInvalid={formik.touched.username && formik.errors.username}
                 autoFocus
                 required
               />
+              {formik.touched.username && formik.errors.username && (
+                <Form.Control.Feedback type="invalid">
+                  {formik.errors.username}
+                </Form.Control.Feedback>
+              )}
             </FloatingLabel>
 
             <FloatingLabel
               controlId="password"
               label="Пароль"
-              className="mb-4"
+              className="mb-3"
             >
               <Form.Control
                 type="password"
@@ -102,11 +96,19 @@ const LoginPage = () => {
                 placeholder="Пароль"
                 value={formik.values.password}
                 onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 disabled={loading}
+                isInvalid={formik.touched.password && formik.errors.password}
                 required
               />
+              {formik.touched.password && formik.errors.password && (
+                <Form.Control.Feedback type="invalid">
+                  {formik.errors.password}
+                </Form.Control.Feedback>
+              )}
             </FloatingLabel>
 
+            {/* Ошибка только от сервера */}
             {authError && (
               <div className="alert alert-danger text-center mb-4 py-3">
                 {authError}
@@ -117,9 +119,9 @@ const LoginPage = () => {
               variant="primary"
               type="submit"
               className="w-100 rounded-pill py-2"
-              disabled={loading}
+              disabled={loading || !formik.isValid || !formik.dirty}
             >
-              Войти
+              {loading ? 'Вход...' : 'Войти'}
             </Button>
           </Form>
 
