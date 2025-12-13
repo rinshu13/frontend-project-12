@@ -11,8 +11,8 @@ import './Components.css';
 const AddChannelSchema = Yup.object().shape({
   name: Yup.string()
     .trim()
-    .min(3, 'Имя не короче 3 символов')
-    .max(20, 'Имя не длиннее 20 символов')
+    .min(3, 'От 3 до 20 символов')
+    .max(20, 'От 3 до 20 символов')
     .required('Имя канала обязательно'),
 });
 
