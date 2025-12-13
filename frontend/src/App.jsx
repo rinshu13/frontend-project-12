@@ -27,13 +27,12 @@ import RenameChannelModal from './components/RenameChannelModal';
 import RemoveChannelModal from './components/RemoveChannelModal';
 import './App.css';
 
-// Загружаем русский словарь нецензурных слов
-leoProfanity.loadDictionary('ru');
-
-// Настраиваем замену на фиксированные ***** для соответствия тесту
-const filterMessage = (text) => {
-  return leoProfanity.check(text) ? '*****' : text;
-};
+// Инициализация leo-profanity с русским словарем (добавляем распространенные нецензурные слова)
+leoProfanity.add([
+  'блядь', 'блять', 'пизда', 'пиздец', 'пиздеть', 'хуй', 'хуи', 'хуё', 'хуя', 'ебать', 'ебаный', 'еби', 'ебло',
+  'нахуй', 'похуй', 'захуй', 'охуеть', 'охуенный', 'пидор', 'пидорас', 'сука', 'суки', 'блядина',
+  'долбоёб', 'уёбище', 'mudak', 'pidor', 'pizda', 'huy', 'ebat', 'blyad' // и транслит
+]);
 
 const App = () => {
   const { t } = useTranslation();
@@ -42,6 +41,7 @@ const App = () => {
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
+  // Флаг для защиты от двойного монтирования в Strict Mode
   const hasInitialized = useRef(false);
 
   const { token, username } = useSelector((state) => state.auth);
@@ -55,6 +55,7 @@ const App = () => {
   const [showRenameModal, setShowRenameModal] = useState(null);
   const [showRemoveModal, setShowRemoveModal] = useState(null);
 
+  // Автоскролл к последнему сообщению
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -75,7 +76,8 @@ const App = () => {
     const stored = localStorage.getItem('channels');
     if (!stored) return [];
     try {
-      return Array.isArray(JSON.parse(stored)) ? JSON.parse(stored) : [];
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }
@@ -106,7 +108,8 @@ const App = () => {
     const stored = localStorage.getItem(`messages_${channelId}`);
     if (!stored) return [];
     try {
-      return Array.isArray(JSON.parse(stored)) ? JSON.parse(stored) : [];
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }
@@ -137,63 +140,104 @@ const App = () => {
     [channels, dispatch, getDemoMessages, loadMessagesFromStorage, saveMessagesToStorage]
   );
 
-  const refetchChannels = useCallback(
-    async (options = { switchToNewChannel: false, newChannelId: null }) => {
-      const { switchToNewChannel = false, newChannelId = null } = options;
+ const refetchChannels = useCallback(
+  async (options = { switchToNewChannel: false, newChannelId: null }) => {
+    const { switchToNewChannel = false, newChannelId = null } = options;
 
-      try {
-        const response = await getChannels();
-        const serverChannels = response.data?.channels || [];
+    try {
+      const response = await getChannels();
+      const serverChannels = response.data?.channels || [];
 
-        let finalChannels = serverChannels.length > 0
-          ? serverChannels
-          : loadChannelsFromStorage().length > 0
-            ? loadChannelsFromStorage()
-            : [{ id: 1, name: 'general', removable: false }, { id: 2, name: 'random', removable: false }];
+      let finalChannels;
 
-        dispatch(setChannels(finalChannels));
-        saveChannelsToStorage(finalChannels);
+      if (serverChannels.length > 0) {
+        finalChannels = serverChannels;
+      } else {
+        const storedChannels = loadChannelsFromStorage();
+        finalChannels = storedChannels.length > 0
+          ? storedChannels
+          : [
+              { id: 1, name: 'general', removable: false },
+              { id: 2, name: 'random', removable: false },
+            ];
+      }
 
-        let targetChannelId = newChannelId
-          || (switchToNewChannel && finalChannels.filter(c => c.removable).slice(-1)[0]?.id)
-          || (finalChannels.some(c => c.id === currentChannelId) ? currentChannelId : finalChannels[0].id);
+      // Обновляем Redux
+      dispatch(setChannels(finalChannels));
 
-        dispatch(setCurrentChannelId(targetChannelId));
-        await loadChannelData(targetChannelId);
-        joinChannel(targetChannelId);
-      } catch (err) {
-        console.error('Failed to fetch channels:', err);
-        toast.error(t('toast.error.fetchChannels'));
+      // Сохраняем в localStorage (только если есть токен)
+      saveChannelsToStorage(finalChannels);
 
-        const fallback = loadChannelsFromStorage();
-        if (fallback.length > 0) {
-          dispatch(setChannels(fallback));
-          const id = fallback[0].id;
-          dispatch(setCurrentChannelId(id));
-          await loadChannelData(id);
-          joinChannel(id);
+      // Определяем, на какой канал переключиться
+      let targetChannelId;
+
+      if (switchToNewChannel && newChannelId) {
+        // Если только что создали канал — переключаемся на него
+        targetChannelId = newChannelId;
+      } else if (switchToNewChannel && !newChannelId) {
+        // Альтернатива: переключиться на последний removable канал (самый новый пользовательский)
+        const userChannels = finalChannels.filter((c) => c.removable);
+        if (userChannels.length > 0) {
+          targetChannelId = userChannels[userChannels.length - 1].id;
         }
       }
-    },
-    [dispatch, currentChannelId, loadChannelsFromStorage, saveChannelsToStorage, loadChannelData, t]
-  );
 
+      // Если не указан новый — используем текущий или первый
+      if (!targetChannelId) {
+        targetChannelId = finalChannels.some((c) => c.id === currentChannelId)
+          ? currentChannelId
+          : finalChannels[0].id;
+      }
+
+      // Устанавливаем текущий канал и загружаем сообщения
+      dispatch(setCurrentChannelId(targetChannelId));
+      await loadChannelData(targetChannelId);
+
+      // Присоединяемся к каналу через сокет
+      joinChannel(targetChannelId);
+    } catch (err) {
+      console.error('Failed to fetch channels:', err);
+      toast.error(t('toast.error.fetchChannels'));
+
+      // Fallback: пытаемся загрузить из localStorage
+      const fallbackChannels = loadChannelsFromStorage();
+      if (fallbackChannels.length > 0) {
+        dispatch(setChannels(fallbackChannels));
+        saveChannelsToStorage(fallbackChannels);
+        const fallbackId = fallbackChannels[0].id;
+        dispatch(setCurrentChannelId(fallbackId));
+        await loadChannelData(fallbackId);
+        joinChannel(fallbackId);
+      }
+    }
+  },
+  [
+    dispatch,
+    currentChannelId,
+    loadChannelsFromStorage,
+    saveChannelsToStorage,
+    loadChannelData,
+    t,
+  ]
+);
+
+  // Инициализация сокета и начальная загрузка — только один раз
   useEffect(() => {
     if (!token) {
       navigate('/login');
       return;
     }
 
-    if (hasInitialized.current) return;
+    if (hasInitialized.current) {
+      return; // Защита от двойного выполнения в Strict Mode
+    }
     hasInitialized.current = true;
 
     const socket = connectSocket(token);
 
     socket.on('newMessage', (payload) => {
       if (payload.channelId === currentChannelId) {
-        const filteredText = filterMessage(payload.message.text);
-        const filteredMessage = { ...payload.message, text: filteredText };
-        dispatch(setMessages([...messages, filteredMessage]));
+        dispatch(setMessages([...messages, payload.message]));
       }
     });
 
@@ -204,32 +248,35 @@ const App = () => {
       socket.off('newMessage');
       disconnectSocket();
     };
-  }, [token, navigate, dispatch, currentChannelId, messages]);
+  }, [token, navigate, dispatch]); // Зависимости минимальны — нет цикла
 
+  // Реакция на смену текущего канала
   useEffect(() => {
     if (!currentChannelId || !token) return;
+
     joinChannel(currentChannelId);
     loadChannelData(currentChannelId);
   }, [currentChannelId, token]);
 
   const handleChannelClick = (channelId) => {
-    if (channelId !== currentChannelId) {
-      dispatch(setCurrentChannelId(channelId));
-    }
+    if (channelId === currentChannelId) return;
+    dispatch(setCurrentChannelId(channelId));
   };
 
   const validateMessage = useCallback((text) => {
     if (!text?.trim()) return t('validation.messageRequired');
     if (text.trim().length > 500) return t('validation.messageTooLong');
-    if (leoProfanity.check(text)) return t('validation.profanityDetected');
+    if (leoProfanity.check(text)) return t('validation.profanityDetected'); // Запрещаем полностью
     return null;
   }, [t]);
 
   const handleMessageChange = (e) => {
     const text = e.target.value;
     setMessageText(text);
-    setMessageError(validateMessage(text));
+    const error = validateMessage(text);
+    setMessageError(error);
 
+    // Предупреждение при вводе мата, но не автоматическая очистка
     if (leoProfanity.check(text)) {
       toast.warning(t('toast.warning.profanity'));
     }
@@ -239,29 +286,47 @@ const App = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const error = validateMessage(messageText);
-    if (error) {
-      setMessageError(error);
-      toast.warning(error);
+
+    const rawText = messageText.trim();
+    if (!rawText) {
+      setMessageError(t('validation.messageRequired'));
       return;
     }
 
-    const cleanText = messageText.trim();
-    const displayText = filterMessage(cleanText); // ***** если мат
+    if (rawText.length > 500) {
+      setMessageError(t('validation.messageTooLong'));
+      return;
+    }
+
+    // ЦЕНЗУРИМ текст перед отправкой и отображением
+    const censoredText = leoProfanity.clean(rawText);
+
+    // Опционально: предупреждаем пользователя, если был мат
+    if (censoredText !== rawText) {
+      toast.warning(t('toast.warning.profanityCensored'));
+    }
 
     try {
-      // Отправляем отфильтрованный текст
-      await sendMessage(currentChannelId, displayText, username);
+      // Отправляем уже цензурированный текст на сервер
+      await sendMessage(currentChannelId, censoredText, username);
+
+      // Эмитим в сокет тоже цензурированный
       await emitNewMessage({
         channelId: currentChannelId,
-        message: { text: displayText, username },
+        message: { 
+          text: censoredText, 
+          username,
+          createdAt: new Date().toISOString(), // если нужно
+        },
       });
 
+      // Очищаем поле
       setMessageText('');
       setMessageError(null);
       setSubmitError(null);
       inputRef.current?.focus();
     } catch (err) {
+      console.error(err);
       const errorMsg = t('toast.error.sendMessage');
       setSubmitError(errorMsg);
       toast.error(errorMsg);
@@ -274,11 +339,11 @@ const App = () => {
     toast.info(t('toast.info.logout'));
   };
 
-  const closeModalsAndRefresh = async (newChannelId = null) => {
+  const closeModalsAndRefresh = async () => {
     setShowAddModal(false);
     setShowRenameModal(null);
     setShowRemoveModal(null);
-    await refetchChannels({ switchToNewChannel: !!newChannelId, newChannelId });
+    await refetchChannels();
   };
 
   if (!token) return null;
@@ -309,7 +374,7 @@ const App = () => {
                     type="button"
                     className="channel-button"
                     onClick={() => handleChannelClick(channel.id)}
-                    aria-current={currentChannelId === channel.id}
+                    aria-current={currentChannelId === channel.id ? 'true' : 'false'}
                   >
                     <span className="channel-name">#{channel.name}</span>
                   </button>
@@ -383,29 +448,28 @@ const App = () => {
                 ref={inputRef}
                 type="text"
                 value={messageText}
+                aria-label="Новое сообщение"
                 onChange={handleMessageChange}
                 placeholder={t('app.messagePlaceholder')}
                 disabled={!currentChannelId}
                 className="form-input"
                 autoFocus
-                aria-label="Новое сообщение"
               />
               <button
                 type="submit"
                 disabled={!isMessageValid()}
                 className="btn btn-primary"
               >
-                {/* Ключевое изменение: кнопка показывает ***** при мате */}
-                {leoProfanity.check(messageText) ? '*****' : t('app.send')}
+                {t('app.send')}
               </button>
             </div>
           </form>
         </section>
       </div>
 
-      <AddChannelModal
-        isOpen={showAddModal}
-        onClose={closeModalsAndRefresh}
+      <AddChannelModal 
+        isOpen={showAddModal} 
+        onClose={(newChannelId) => closeModalsAndRefresh(newChannelId)} 
       />
       {showRenameModal && (
         <RenameChannelModal
