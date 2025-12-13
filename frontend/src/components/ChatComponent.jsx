@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Container, Form, Button, Card, Alert, InputGroup } from 'react-bootstrap';
+import { Container, Form, Button, Card, Alert, FloatingLabel } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import leoProfanity from 'leo-profanity';
@@ -17,8 +17,9 @@ const ChatComponent = () => {
     currentChannelId: state.channels.currentChannelId,
   }));
 
-  const [messageError, setMessageError] = useState(null);
   const [messageText, setMessageText] = useState('');
+  const [messageError, setMessageError] = useState(null);
+  const [touched, setTouched] = useState(false); // Для имитации formik.touched
   const [messages, setLocalMessages] = useState([]);
 
   // Загрузка сообщений при смене канала
@@ -59,45 +60,52 @@ const ChatComponent = () => {
     }
   }, [currentChannelId, token, dispatch, t]);
 
-  // Валидация
+  // Валидация сообщения
   const validateMessage = useCallback((text) => {
     if (!text || text.trim().length === 0) {
-      return t('validation.messageRequired');
+      return t('validation.messageRequired') || 'Сообщение не может быть пустым';
     }
     if (text.trim().length > 500) {
-      return t('validation.messageTooLong');
+      return t('validation.messageTooLong') || 'Сообщение слишком длинное';
     }
     if (leoProfanity.check(text)) {
-      return t('validation.profanityDetected');
+      return t('validation.profanityDetected') || 'Нецензурная лексика запрещена';
     }
     return null;
   }, [t]);
 
-  const handleMessageChange = useCallback((e) => {
+  const handleMessageChange = (e) => {
     const text = e.target.value;
     setMessageText(text);
-    setMessageError(null);  // Сбрасываем ошибку при вводе
-  }, []);
+    if (touched) {
+      setMessageError(validateMessage(text)); // Перепроверяем только если поле уже тронуто
+    }
+  };
 
-  const isMessageValid = useCallback(() => {
+  const handleBlur = () => {
+    setTouched(true);
+    setMessageError(validateMessage(messageText));
+  };
+
+  const isMessageValid = () => {
     return currentChannelId && messageText.trim().length > 0 && !messageError;
-  }, [currentChannelId, messageText, messageError]);
+  };
 
   // Отправка сообщения
   const handleSubmit = (e) => {
     e.preventDefault();
-    setMessageError(null);
+    setTouched(true); // Помечаем как тронутое при отправке
 
-    let text = messageText.trim();
-    const error = validateMessage(text);
+    const error = validateMessage(messageText);
     if (error) {
       setMessageError(error);
       return;
     }
 
+    let text = messageText.trim();
     if (leoProfanity.check(text)) {
       text = leoProfanity.clean(text);
-      toast.warning(t('toast.warning.profanity'));
+      toast.warning(t('toast.warning.profanity') || 'Мат заменён на цензурный');
     }
 
     const newMessage = {
@@ -113,6 +121,8 @@ const ChatComponent = () => {
     localStorage.setItem(`messages_${currentChannelId}`, JSON.stringify(updatedMessages));
 
     setMessageText('');
+    setMessageError(null);
+    setTouched(false);
     inputRef.current?.focus();
   };
 
@@ -139,45 +149,44 @@ const ChatComponent = () => {
         )}
       </div>
 
-      {/* Форма ввода */}
+      {/* Форма ввода сообщения — теперь как на LoginPage */}
       <div className="border-top pt-3 px-3">
-        {messageError && <Alert variant="warning" className="mb-3 py-2">{messageError}</Alert>}
         <Form onSubmit={handleSubmit}>
-          <InputGroup>
+          <FloatingLabel
+            controlId="messageInput"
+            label={t('chat.inputPlaceholder') || 'Введите сообщение...'}
+            className="mb-3"
+          >
             <Form.Control
               ref={inputRef}
               type="text"
+              name="message"
+              placeholder={t('chat.inputPlaceholder') || 'Введите сообщение...'}
               value={messageText}
               onChange={handleMessageChange}
-              placeholder={t('chat.inputPlaceholder')}
-              aria-label={t('chat.inputAriaLabel')}
-              className="border-0 shadow-none ps-2"
+              onBlur={handleBlur}
+              isInvalid={touched && !!messageError}
               disabled={!currentChannelId}
               autoFocus
+              style={{ borderRadius: '0.375rem' }} // Чтобы выглядело как в других формах
             />
+            {touched && messageError && (
+              <Form.Control.Feedback type="invalid">
+                {messageError}
+              </Form.Control.Feedback>
+            )}
+          </FloatingLabel>
+
+          <div className="d-flex justify-content-end">
             <Button
-              variant="link"
+              variant="primary"
               type="submit"
-              disabled={!isMessageValid()}
-              className="text-muted p-0"
+              disabled={!isMessageValid() || !currentChannelId}
+              className="rounded-pill px-4"
             >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="22" y1="2" x2="11" y2="13"></line>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
-              <span className="visually-hidden">{t('chat.sendButton')}</span>
+              {t('chat.sendButton') || 'Отправить'}
             </Button>
-          </InputGroup>
+          </div>
         </Form>
       </div>
     </Container>
