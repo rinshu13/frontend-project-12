@@ -372,26 +372,10 @@ const App = () => {
                       <button
                         type="button"
                         className="dropdown-toggle"
-                        aria-label={t('dropdown.manageChannel')}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        {/* Скрытый текст для Playwright text-мэтчера, но доступный для screen readers */}
-                        <span
-                          style={{
-                            position: 'absolute',
-                            width: '1px',
-                            height: '1px',
-                            padding: '0',
-                            margin: '-1px',
-                            overflow: 'hidden',
-                            clip: 'rect(0, 0, 0, 0)',
-                            whiteSpace: 'nowrap',
-                            borderWidth: '0',
-                          }}
-                        >
-                          {t('dropdown.manageChannel')}
-                        </span>
-                        ⋮
+                        Управление каналом
+                        <span aria-hidden="true" style={{ marginLeft: '8px' }}>⋮</span>
                       </button>
                       <div className="dropdown-menu">
                         <button
