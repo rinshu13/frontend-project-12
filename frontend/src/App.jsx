@@ -387,6 +387,7 @@ const App = () => {
                         aria-label={t('Управление каналом')}
                         onClick={(e) => e.stopPropagation()}
                       >
+                        <span className="visually-hidden">{t('dropdown.manageChannel')}</span>
                         ⋮
                       </button>
                       <div className="dropdown-menu">
