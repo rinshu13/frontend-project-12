@@ -356,47 +356,54 @@ const App = () => {
                 <div
                   key={channel.id}
                   role="listitem"
-                  className={`channel-item ${currentChannelId === channel.id ? 'active' : ''}`}
+                  className={`channel-item d-flex justify-content-between align-items-center ${currentChannelId === channel.id ? 'active' : ''}`}
                 >
+                  {/* Кнопка с именем канала — занимает всё место слева */}
                   <button
                     type="button"
-                    className="channel-button"
+                    className="channel-button text-start flex-grow-1 border-0 bg-transparent p-0"
                     onClick={() => handleChannelClick(channel.id)}
                     aria-current={currentChannelId === channel.id ? 'true' : 'false'}
                   >
                     <span className="channel-name">#{channel.name}</span>
                   </button>
 
+                  {/* Кнопка управления каналом — только для removable каналов */}
                   {channel.removable && (
-                    <div className="channel-dropdown">
+                    <button
+                      type="button"
+                      className="dropdown-toggle btn btn-link text-muted p-0 border-0"
+                      style={{ textDecoration: 'none' }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {t('dropdown.manageChannel')}
+                      <span aria-hidden="true" style={{ marginLeft: '5px' }}>⋮</span>
+                    </button>
+                  )}
+
+                  {/* Меню с действиями — позиционируется абсолютно под кнопкой */}
+                  {channel.removable && (
+                    <div className="dropdown-menu" style={{ position: 'absolute', right: '10px', top: '100%', zIndex: 10, background: 'white', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', borderRadius: '4px', display: 'none' }}>
                       <button
                         type="button"
-                        className="dropdown-toggle"
-                        onClick={(e) => e.stopPropagation()}
+                        className="dropdown-item btn btn-link text-start w-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowRenameModal(channel.id);
+                        }}
                       >
-                        {t('dropdown.manageChannel')}
-                        <span aria-hidden="true" style={{ marginLeft: '5px' }}>⋮</span>
+                        {t('dropdown.rename')}
                       </button>
-                      <div className="dropdown-menu">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowRenameModal(channel.id);
-                          }}
-                        >
-                          {t('dropdown.rename')}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowRemoveModal(channel.id);
-                          }}
-                        >
-                          {t('dropdown.remove')}
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        className="dropdown-item btn btn-link text-start w-100 text-danger"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowRemoveModal(channel.id);
+                        }}
+                      >
+                        {t('dropdown.remove')}
+                      </button>
                     </div>
                   )}
                 </div>
