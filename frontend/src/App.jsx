@@ -133,40 +133,86 @@ const App = () => {
     [channels, dispatch, getDemoMessages, loadMessagesFromStorage, saveMessagesToStorage]
   );
 
-  const refetchChannels = useCallback(async () => {
+ const refetchChannels = useCallback(
+  async (options = { switchToNewChannel: false, newChannelId: null }) => {
+    const { switchToNewChannel = false, newChannelId = null } = options;
+
     try {
       const response = await getChannels();
       const serverChannels = response.data?.channels || [];
-      const channelsToUse = serverChannels.length > 0 ? serverChannels : loadChannelsFromStorage();
 
-      const finalChannels =
-        channelsToUse.length > 0
-          ? channelsToUse
+      let finalChannels;
+
+      if (serverChannels.length > 0) {
+        finalChannels = serverChannels;
+      } else {
+        const storedChannels = loadChannelsFromStorage();
+        finalChannels = storedChannels.length > 0
+          ? storedChannels
           : [
               { id: 1, name: 'general', removable: false },
               { id: 2, name: 'random', removable: false },
             ];
+      }
 
+      // Обновляем Redux
       dispatch(setChannels(finalChannels));
+
+      // Сохраняем в localStorage (только если есть токен)
       saveChannelsToStorage(finalChannels);
 
-      const validCurrentId = finalChannels.some((c) => c.id === currentChannelId)
-        ? currentChannelId
-        : finalChannels[0].id;
+      // Определяем, на какой канал переключиться
+      let targetChannelId;
 
-      dispatch(setCurrentChannelId(validCurrentId));
-      await loadChannelData(validCurrentId);
+      if (switchToNewChannel && newChannelId) {
+        // Если только что создали канал — переключаемся на него
+        targetChannelId = newChannelId;
+      } else if (switchToNewChannel && !newChannelId) {
+        // Альтернатива: переключиться на последний removable канал (самый новый пользовательский)
+        const userChannels = finalChannels.filter((c) => c.removable);
+        if (userChannels.length > 0) {
+          targetChannelId = userChannels[userChannels.length - 1].id;
+        }
+      }
+
+      // Если не указан новый — используем текущий или первый
+      if (!targetChannelId) {
+        targetChannelId = finalChannels.some((c) => c.id === currentChannelId)
+          ? currentChannelId
+          : finalChannels[0].id;
+      }
+
+      // Устанавливаем текущий канал и загружаем сообщения
+      dispatch(setCurrentChannelId(targetChannelId));
+      await loadChannelData(targetChannelId);
+
+      // Присоединяемся к каналу через сокет
+      joinChannel(targetChannelId);
     } catch (err) {
+      console.error('Failed to fetch channels:', err);
       toast.error(t('toast.error.fetchChannels'));
+
+      // Fallback: пытаемся загрузить из localStorage
+      const fallbackChannels = loadChannelsFromStorage();
+      if (fallbackChannels.length > 0) {
+        dispatch(setChannels(fallbackChannels));
+        saveChannelsToStorage(fallbackChannels);
+        const fallbackId = fallbackChannels[0].id;
+        dispatch(setCurrentChannelId(fallbackId));
+        await loadChannelData(fallbackId);
+        joinChannel(fallbackId);
+      }
     }
-  }, [
+  },
+  [
     dispatch,
     currentChannelId,
     loadChannelsFromStorage,
     saveChannelsToStorage,
     loadChannelData,
     t,
-  ]);
+  ]
+);
 
   // Инициализация сокета и начальная загрузка — только один раз
   useEffect(() => {
