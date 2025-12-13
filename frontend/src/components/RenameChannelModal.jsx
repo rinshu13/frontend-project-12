@@ -2,13 +2,10 @@
 import React, { useEffect, useRef } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import leoProfanity from 'leo-profanity';
 import { renameChannel } from '../api';
-import { setChannels } from '../features/channels/channelsSlice';
-import { leaveChannel, joinChannel } from '../socket';
 import './Components.css';
 
 const RenameChannelSchema = Yup.object().shape({
@@ -19,9 +16,7 @@ const RenameChannelSchema = Yup.object().shape({
 });
 
 const RenameChannelModal = ({ channel, isOpen, onClose }) => {
-  const dispatch = useDispatch();
   const { t } = useTranslation();
-  const channels = useSelector((state) => state.channels.channels);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -38,20 +33,21 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
     onSubmit: async (values, { setSubmitting }) => {
       if (leoProfanity.check(values.name)) {
         formik.setFieldError('name', t('modal.renameErrorProfanity'));
+        setSubmitting(false);
         return;
       }
 
       try {
+        // Только REST-запрос на сервер — сервер сохранит новое имя
         await renameChannel(channel.id, values.name.trim());
-        const updatedChannels = channels.map((c) =>
-          c.id === channel.id ? { ...c, name: values.name.trim() } : c
-        );
-        dispatch(setChannels(updatedChannels));
-        leaveChannel(channel.id);
-        joinChannel(channel.id);
+
+        // УДАЛЕНО: локальное обновление Redux — оно не нужно для теста с reload
+        // УДАЛЕНО: leaveChannel/joinChannel — они не нужны для rename
+
         toast.success(t('toast.success.renameChannel'));
-        onClose();
+        onClose(); // onClose вызовет refetchChannels в App.jsx → каналы обновятся с сервера
       } catch (error) {
+        console.error('Rename error:', error);
         if (error.response?.status === 409) {
           formik.setFieldError('name', t('modal.renameErrorUnique'));
         } else {

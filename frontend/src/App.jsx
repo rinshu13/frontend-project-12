@@ -145,66 +145,64 @@ const App = () => {
     async (options = { switchToNewChannel: false, newChannelId: null }) => {
       const { switchToNewChannel = false, newChannelId = null } = options;
 
+      let finalChannels = [
+        { id: 1, name: 'general', removable: false },
+        { id: 2, name: 'random', removable: false },
+      ];
+
       try {
         const response = await getChannels();
-        const serverChannels = response.data?.channels || [];
 
-        let finalChannels;
+        // ПРАВИЛЬНЫЙ ПУТЬ К КАНАЛАМ В HEXLET
+        const serverData = response.data?.data || [];
 
-        if (serverChannels.length > 0) {
-          finalChannels = serverChannels;
+        if (serverData.length > 0) {
+          // Преобразуем из JSON API формата в наш
+          finalChannels = serverData.map((item) => ({
+            id: item.id,
+            name: item.attributes.name,
+            removable: item.attributes.removable ?? true, // по умолчанию true, если не указано
+          }));
         } else {
-          const storedChannels = loadChannelsFromStorage();
-          finalChannels = storedChannels.length > 0
-            ? storedChannels
-            : [
-                { id: 1, name: 'general', removable: false },
-                { id: 2, name: 'random', removable: false },
-              ];
-        }
-
-        // Обновляем Redux
-        dispatch(setChannels(finalChannels));
-
-        // Сохраняем в localStorage (только если есть токен)
-        saveChannelsToStorage(finalChannels);
-
-        // Определяем, на какой канал переключиться
-        let targetChannelId;
-
-        if (switchToNewChannel && newChannelId) {
-          targetChannelId = newChannelId;
-        } else if (switchToNewChannel && !newChannelId) {
-          const userChannels = finalChannels.filter((c) => c.removable);
-          if (userChannels.length > 0) {
-            targetChannelId = userChannels[userChannels.length - 1].id;
+          // Если сервер вернул пусто — пробуем localStorage
+          const stored = loadChannelsFromStorage();
+          if (stored.length > 0) {
+            finalChannels = stored;
           }
+          // иначе остаются демо-каналы
         }
-
-        if (!targetChannelId) {
-          targetChannelId = finalChannels.some((c) => c.id === currentChannelId)
-            ? currentChannelId
-            : finalChannels[0].id;
-        }
-
-        dispatch(setCurrentChannelId(targetChannelId));
-        await loadChannelData(targetChannelId);
-
-        joinChannel(targetChannelId);
       } catch (err) {
-        console.error('Failed to fetch channels:', err);
+        console.error('Failed to fetch channels from server:', err);
         toast.error(t('toast.error.fetchChannels'));
 
-        const fallbackChannels = loadChannelsFromStorage();
-        if (fallbackChannels.length > 0) {
-          dispatch(setChannels(fallbackChannels));
-          saveChannelsToStorage(fallbackChannels);
-          const fallbackId = fallbackChannels[0].id;
-          dispatch(setCurrentChannelId(fallbackId));
-          await loadChannelData(fallbackId);
-          joinChannel(fallbackId);
+        // Fallback только на localStorage (демо — уже в finalChannels)
+        const stored = loadChannelsFromStorage();
+        if (stored.length > 0) {
+          finalChannels = stored;
         }
       }
+
+      // Обновляем Redux
+      dispatch(setChannels(finalChannels));
+
+      // Сохраняем в localStorage для оффлайн/reload
+      saveChannelsToStorage(finalChannels);
+
+      // Определяем targetChannelId
+      let targetChannelId = finalChannels[0].id; // по умолчанию первый
+
+      if (switchToNewChannel && newChannelId && finalChannels.some(c => c.id === newChannelId)) {
+        targetChannelId = newChannelId;
+      } else if (currentChannelId && finalChannels.some(c => c.id === currentChannelId)) {
+        targetChannelId = currentChannelId;
+      }
+
+      dispatch(setCurrentChannelId(targetChannelId));
+      await loadChannelData(targetChannelId);
+
+      // joinChannel только если сокет подключён
+      // Лучше перенести joinChannel в useEffect по currentChannelId (у вас уже есть)
+      // или проверить socket.connected
     },
     [
       dispatch,
