@@ -6,8 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
 import api from '../api';
-import { Button, Container, Row, Col } from 'react-bootstrap';
-import { Formik, Field, Form, ErrorMessage } from 'formik';
+import { Form, Button, Container, Row, Col } from 'react-bootstrap';
 
 const LoginPage = () => {
   const dispatch = useDispatch();
@@ -31,7 +30,7 @@ const LoginPage = () => {
       password: '',
     },
     validationSchema: LoginSchema,
-    onSubmit: async (values) => {
+    onSubmit: async (values, { setSubmitting }) => {
       setAuthError(null);
       setLoading(true);
       try {
@@ -45,6 +44,7 @@ const LoginPage = () => {
         } else {
           setAuthError(t('errors.network') || 'Ошибка сети. Попробуйте позже.');
         }
+        setSubmitting(false); // ← Это сохраняет значения в полях и не сбрасывает форму
       } finally {
         setLoading(false);
       }
@@ -61,71 +61,67 @@ const LoginPage = () => {
         <Col xs={12} md={8} xxl={6}>
           <h1 className="text-center mb-4">Войти</h1>
 
-          {/* Замените <Form> из react-bootstrap на <Form> из formik */}
-          <Formik
-            initialValues={{ username: '', password: '' }}
-            validationSchema={LoginSchema}
-            onSubmit={async (values) => {
-              setAuthError(null);
-              setLoading(true);
-              try {
-                const response = await api.post('/api/v1/login', values);
-                const { token, username } = response.data;
-                dispatch(login({ token, username }));
-                navigate('/');
-              } catch (err) {
-                if (err.response?.status === 401) {
-                  setAuthError('Неверные имя пользователя или пароль');
-                } else {
-                  setAuthError(t('errors.network') || 'Ошибка сети. Попробуйте позже.');
-                }
-              } finally {
-                setLoading(false);
-              }
+          <Form
+            onSubmit={(e) => {
+              e.preventDefault();
+              formik.handleSubmit();
             }}
+            className="p-3"
           >
-            <Form className="p-3">  {/* <-- Это Form из formik, он сам делает preventDefault */}
-              <Form.Group className="mb-3 position-relative">
-                <Field
-                  type="text"
-                  name="username"
-                  placeholder="Ваш ник"
-                  className={`form-control pe-5 rounded ${isUsernameInvalid ? 'is-invalid' : ''}`}
-                  disabled={loading}
-                />
-                {isUsernameInvalid && (
-                  <div className="position-absolute end-0 top-50 translate-middle-y me-3 text-danger fw-bold fs-4">
-                    !
-                  </div>
-                )}
-              </Form.Group>
-
-              <Form.Group className="mb-4 position-relative">
-                <Field
-                  type="password"
-                  name="password"
-                  placeholder="Пароль"
-                  className={`form-control pe-5 rounded ${isPasswordInvalid ? 'is-invalid' : ''}`}
-                  disabled={loading}
-                />
-                {isPasswordInvalid && (
-                  <div className="position-absolute end-0 top-50 translate-middle-y me-3 text-danger fw-bold fs-4">
-                    !
-                  </div>
-                )}
-              </Form.Group>
-
-              {authError && (
-                <div className="alert alert-danger text-center mb-4 py-3">
-                  {authError}
+            <Form.Group className="mb-3 position-relative">
+              <Form.Control
+                type="text"
+                name="username"
+                placeholder="Ваш ник"
+                value={formik.values.username}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                isInvalid={isUsernameInvalid}
+                disabled={loading}
+                className="pe-5 rounded"
+              />
+              {isUsernameInvalid && (
+                <div className="position-absolute end-0 top-50 translate-middle-y me-3 text-danger fw-bold fs-4">
+                  !
                 </div>
               )}
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.username}
+              </Form.Control.Feedback>
+            </Form.Group>
 
-              <Button variant="primary" type="submit" className="w-100 rounded-pill py-2" disabled={loading}>
-                Войти
-              </Button>
-            </Form>
-          </Formik>
+            <Form.Group className="mb-4 position-relative">
+              <Form.Control
+                type="password"
+                name="password"
+                placeholder="Пароль"
+                value={formik.values.password}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                isInvalid={isPasswordInvalid}
+                disabled={loading}
+                className="pe-5 rounded"
+              />
+              {isPasswordInvalid && (
+                <div className="position-absolute end-0 top-50 translate-middle-y me-3 text-danger fw-bold fs-4">
+                  !
+                </div>
+              )}
+              <Form.Control.Feedback type="invalid">
+                {formik.errors.password}
+              </Form.Control.Feedback>
+            </Form.Group>
+
+            {authError && (
+              <div className="alert alert-danger text-center mb-4 py-3">
+                {authError}
+              </div>
+            )}
+
+            <Button variant="primary" type="submit" className="w-100 rounded-pill py-2" disabled={loading || formik.isSubmitting}>
+              Войти
+            </Button>
+          </Form>
 
           <div className="text-center mt-4">
             Нет аккаунта? <Link to="/signup">Регистрация</Link>
