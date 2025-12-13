@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../features/auth/authSlice';
-import { loginUser } from '../api'; // Убедись, что импорт есть
+import { loginUser } from '../api';
 import { Container, Row, Col, Form, Button, FloatingLabel } from 'react-bootstrap';
 
 const LoginPage = () => {
@@ -37,7 +37,6 @@ const LoginPage = () => {
       try {
         const response = await loginUser(values);
 
-        // Стандартный ответ Hexlet Chat: { token: "...", username: "..." }
         const { token, username } = response.data;
 
         if (!token || !username) {
@@ -52,7 +51,6 @@ const LoginPage = () => {
       } catch (err) {
         console.error('Login error:', err);
 
-        // Правильная обработка 401 от сервера
         if (err.response?.status === 401) {
           setAuthError('Неверные имя пользователя или пароль');
         } else {
@@ -84,15 +82,10 @@ const LoginPage = () => {
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 disabled={loading}
-                isInvalid={formik.touched.username && formik.errors.username}
+                required // Стандартная HTML валидация
+                minLength="3" // Поддержка минимальной длины (браузер покажет подсказку)
                 autoFocus
-                required
               />
-              {formik.touched.username && formik.errors.username && (
-                <Form.Control.Feedback type="invalid">
-                  {formik.errors.username}
-                </Form.Control.Feedback>
-              )}
             </FloatingLabel>
 
             <FloatingLabel
@@ -108,14 +101,9 @@ const LoginPage = () => {
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
                 disabled={loading}
-                isInvalid={formik.touched.password && formik.errors.password}
-                required
+                required // Стандартная HTML валидация
+                minLength="3" // Браузер покажет "Введите не менее 6 символов"
               />
-              {formik.touched.password && formik.errors.password && (
-                <Form.Control.Feedback type="invalid">
-                  {formik.errors.password}
-                </Form.Control.Feedback>
-              )}
             </FloatingLabel>
 
             {authError && (
@@ -128,7 +116,7 @@ const LoginPage = () => {
               variant="primary"
               type="submit"
               className="w-100 rounded-pill py-2"
-              disabled={loading || !formik.isValid || !formik.dirty}
+              disabled={loading}
             >
               {loading ? 'Вход...' : 'Войти'}
             </Button>
