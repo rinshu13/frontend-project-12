@@ -160,6 +160,7 @@ const ChatComponent = () => {
               ref={inputRef}
               type="text"
               name="message"
+              aria-label='Новое сообщение'
               placeholder={t('chat.inputPlaceholder') || 'Введите сообщение...'}
               value={messageText}
               onChange={handleMessageChange}
