@@ -19,7 +19,7 @@ const LoginPage = () => {
     username: Yup.string()
       .min(3, t('errors.min3')),
     password: Yup.string()
-      .min(5, t('errors.unauthorized')),
+      
   });
 
   const formik = useFormik({
