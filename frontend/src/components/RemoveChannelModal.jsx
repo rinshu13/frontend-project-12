@@ -58,19 +58,9 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  // Клик по оверлею больше НЕ закрывает модалку
-  // Клик внутри модалки — останавливаем всплытие
-  const handleOverlayClick = (e) => {
-    e.stopPropagation(); // предотвращаем любые случайные реакции
-  };
-
-  const handleDialogClick = (e) => {
-    e.stopPropagation(); // клики внутри модалки не должны ничего закрывать
-  };
-
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal-dialog" onClick={handleDialogClick}>
+    <div className="modal-overlay">
+      <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h5 className="modal-title">{t('modal.removeTitle')}</h5>
           <button
@@ -97,10 +87,10 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
           </button>
           <button
             type="button"
-            className="modal-btn modal-btn-danger"
+            className="btn btn-danger"  // ← Ключевое изменение: точное совпадение с тестом
             onClick={handleDelete}
             disabled={loading}
-            data-testid="remove-channel-submit"  // для тестов (Cypress/RTL)
+            data-testid="remove-channel-submit"
           >
             {loading ? t('modal.removeLoading') : t('modal.removeSubmit')}
           </button>
