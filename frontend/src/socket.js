@@ -17,45 +17,54 @@ export const connectSocket = (token) => {
     timeout: 20000,
   });
 
-  // Обработка новых сообщений
+  // Новые сообщения
   socket.on('newMessage', (payload) => {
     store.dispatch(addMessage(payload.message || payload));
   });
 
-  // Обработка создания нового канала
+  // Создание канала
   socket.on('newChannel', (payload) => {
+    const channelData = payload.data || payload;                    // поддержка обоих форматов
+    const attributes = channelData.attributes || channelData;       // name и removable здесь
+
     const newChannel = {
-      id: payload.id,
-      name: payload.name || payload.attributes?.name,
-      removable: true,
+      id: channelData.id,
+      name: attributes.name,
+      removable: attributes.removable ?? true,
     };
+
     const currentChannels = store.getState().channels.channels;
     store.dispatch(setChannels([...currentChannels, newChannel]));
   });
 
-  // Обработка переименования канала — ЭТО САМОЕ ВАЖНОЕ ДЛЯ ТВОЕГО ТЕСТА
+  // Переименование канала — КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ
   socket.on('renameChannel', (payload) => {
-    const updatedId = payload.id;
-    const updatedName = payload.name || payload.attributes?.name;
+    const channelData = payload.data || payload;
+    const attributes = channelData.attributes || channelData;
+
+    const updatedId = channelData.id;
+    const updatedName = attributes.name;
 
     const currentChannels = store.getState().channels.channels;
     const updatedChannels = currentChannels.map((channel) =>
       channel.id === updatedId ? { ...channel, name: updatedName } : channel
     );
+
     store.dispatch(setChannels(updatedChannels));
   });
 
-  // Обработка удаления канала
+  // Удаление канала
   socket.on('removeChannel', (payload) => {
-    const removedId = payload.id;
+    const channelId = payload.data?.id || payload.id;
+
     const currentChannels = store.getState().channels.channels;
-    const filteredChannels = currentChannels.filter((channel) => channel.id !== removedId);
+    const filteredChannels = currentChannels.filter((channel) => channel.id !== channelId);
+
     store.dispatch(setChannels(filteredChannels));
 
-    // Если удалили текущий канал — переключаемся на general (id = 1)
     const currentChannelId = store.getState().channels.currentChannelId;
-    if (currentChannelId === removedId) {
-      store.dispatch(setCurrentChannelId(1));
+    if (currentChannelId === channelId) {
+      store.dispatch(setCurrentChannelId(1)); // переключаемся на #general
     }
   });
 
@@ -81,7 +90,7 @@ export const disconnectSocket = () => {
   }
 };
 
-// Промисификация emit для надежной отправки
+// Промисификация emit
 export const promisifyEmit = (event, data) => {
   return new Promise((resolve, reject) => {
     if (!socket) {
