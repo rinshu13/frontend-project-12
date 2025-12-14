@@ -261,11 +261,30 @@ const App = () => {
       }
     });
 
+    socket.on('renameChannel', (payload) => {
+      dispatch(setChannels(channels.map((channel) =>
+        channel.id === payload.id ? { ...channel, name: payload.name } : channel
+      )));
+    });
+
+    socket.on('removeChannel', (payload) => {
+      dispatch(setChannels(channels.filter((channel) => channel.id !== payload.id)));
+
+      // Если удалили текущий канал — переключаемся на general
+      if (currentChannelId === payload.id) {
+        const generalId = channels.find((c) => c.name === 'general')?.id || channels[0]?.id || 1;
+        dispatch(setCurrentChannelId(generalId));
+        saveCurrentChannelId(generalId);
+      }
+    });
+
     refetchChannels();
 
     return () => {
       hasInitialized.current = false;
       socket.off('newMessage');
+      socket.off('renameChannel');
+      socket.off('removeChannel');
       disconnectSocket();
     };
   }, [token, navigate, dispatch, saveCurrentChannelId, loadCurrentChannelId]);
