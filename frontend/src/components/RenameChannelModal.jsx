@@ -1,5 +1,4 @@
-// src/components/RenameChannelModal.jsx
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { useTranslation } from 'react-i18next'
@@ -50,7 +49,6 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
       try {
         await renameChannel(channel.id, censoredName)
 
-        // === ДЕМО-РЕЖИМ: обновляем канал локально (аналогично AddChannelModal) ===
         const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]')
 
         const isUnique = !storedChannels.some(
@@ -63,10 +61,8 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
           )
           localStorage.setItem('channels', JSON.stringify(updatedChannels))
         } else {
-          // Если имя не уникально — бросаем ошибку, чтобы обработать в catch
           throw { response: { status: 409 } }
         }
-        // ===========================================================================
 
         toast.success(t('toast.success.renameChannel'))
         onClose()
@@ -74,7 +70,6 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
         console.error('Rename error:', error)
         setSubmitting(false)
 
-        // Если ошибка сети — всё равно пытаемся обновить локально (на всякий случай)
         if (!error.response || error.request) {
           const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]')
 
@@ -94,7 +89,6 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
           }
         }
 
-        // Обработка ошибок сервера или неуникального имени
         if (error.response?.status === 409) {
           formik.setFieldError('name', t('modal.renameErrorUnique') || 'Имя должно быть уникальным')
           toast.error(t('modal.renameErrorUnique'))

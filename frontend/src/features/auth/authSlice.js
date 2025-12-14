@@ -16,7 +16,8 @@ const authSlice = createSlice({
         state.username = username
         localStorage.setItem('token', token)
         localStorage.setItem('username', username)
-      } else {
+      } 
+      else {
         console.error('Invalid login payload:', action.payload)
       }
     },

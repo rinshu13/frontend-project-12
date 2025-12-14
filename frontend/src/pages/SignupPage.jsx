@@ -1,4 +1,3 @@
-// src/pages/SignupPage.jsx
 import React from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
@@ -142,7 +141,8 @@ const SignupPage = () => {
         </form>
 
         <p className="text-center mt-4">
-          {t('signup.loginLink')} <Link to="/login" className="link">{t('login.title')}</Link>
+          {t('signup.loginLink')} 
+          <Link to="/login" className="link">{t('login.title')}</Link>
         </p>
       </div>
     </div>

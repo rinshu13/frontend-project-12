@@ -1,5 +1,4 @@
-// src/components/AddChannelModal.jsx
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { useTranslation } from 'react-i18next'
@@ -8,7 +7,6 @@ import leoProfanity from 'leo-profanity'
 import { createChannel } from '../api'
 import './Components.css'
 
-// Схема валидации — убрали проверку на мат, только длина и обязательность
 const AddChannelSchema = Yup.object().shape({
   name: Yup.string()
     .trim()
@@ -37,10 +35,8 @@ const AddChannelModal = ({ isOpen, onClose }) => {
       const originalName = values.name.trim()
       if (!originalName) return
 
-      // ЦЕНЗУРИМ имя канала: мат → звёздочки по длине слова
       const censoredName = leoProfanity.clean(originalName)
 
-      // Опционально: уведомляем пользователя, если имя было отцензурировано
       if (censoredName !== originalName) {
         toast.warning(t('toast.warning.channelNameCensored') || 'Название канала было отцензурировано')
       }
@@ -54,13 +50,13 @@ const AddChannelModal = ({ isOpen, onClose }) => {
         if (newChannel && newChannel.id) {
           newChannelId = newChannel.id
         } else {
-          // Демо-режим: создаём локально
           const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]')
           newChannelId = Math.max(...storedChannels.map((c) => c.id || 0), 0) + 1
 
-          const localChannel = {
+          const localChannel = 
+          {
             id: newChannelId,
-            name: censoredName, // Сохраняем уже цензурированное имя!
+            name: censoredName,
             removable: true,
           }
 
@@ -77,18 +73,22 @@ const AddChannelModal = ({ isOpen, onClose }) => {
         console.error('Error creating channel:', error)
         setSubmitting(false)
 
-        if (error.response) {
+        if (error.response) 
+          {
           if (error.response.status === 409) {
             setFieldError('name', t('modal.addErrorUnique'))
             toast.error(t('modal.addErrorUnique'))
           } else if (error.response.status === 401) {
             toast.error(t('toast.error.unauthorized'))
-          } else {
+          } 
+          else {
             toast.error(t('toast.error.createChannel'))
           }
-        } else if (error.request) {
+        } 
+        else if (error.request) {
           toast.error(t('toast.error.network'))
-        } else {
+        } 
+        else {
           toast.error(t('toast.error.createChannel'))
         }
       }
@@ -108,7 +108,8 @@ const AddChannelModal = ({ isOpen, onClose }) => {
     formik.validateForm().then((errors) => {
       if (Object.keys(errors).length === 0) {
         formik.handleSubmit(e)
-      } else {
+      } 
+      else {
         formik.setErrors(errors)
       }
     })

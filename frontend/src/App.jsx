@@ -75,7 +75,8 @@ const App = () => {
     try {
       const parsed = JSON.parse(stored)
       return Array.isArray(parsed) ? parsed : []
-    } catch {
+    } 
+    catch {
       return []
     }
   }, [])
@@ -107,7 +108,8 @@ const App = () => {
     try {
       const parsed = JSON.parse(stored)
       return Array.isArray(parsed) ? parsed : []
-    } catch {
+    } 
+    catch {
       return []
     }
   }, [])

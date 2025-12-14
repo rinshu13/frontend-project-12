@@ -1,5 +1,4 @@
-// src/components/RemoveChannelModal.jsx
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'react-toastify'
@@ -13,7 +12,7 @@ import './Components.css'
 const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
   const dispatch = useDispatch()
   const { t } = useTranslation()
-  const channels = useSelector((state) => state.channels.channels)
+  const channels = useSelector(state => state.channels.channels)
   const [loading, setLoading] = useState(false)
 
   const handleDelete = async () => {
@@ -61,9 +60,9 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
 
   return (
     <div className="modal-overlay" style={{ pointerEvents: 'none' }}>
-      {/* Вся интерактивность — только внутри dialog */}
+      {}
       <div 
-        className="modal-dialog" 
+        className="modal-dialog"
         style={{ pointerEvents: 'auto' }}
         onClick={(e) => e.stopPropagation()}
       >

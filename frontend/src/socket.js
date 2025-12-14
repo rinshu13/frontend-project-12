@@ -1,4 +1,3 @@
-// src/socket.js
 import { io } from 'socket.io-client'
 import { store } from './store'
 import { addMessage } from './features/messages/messagesSlice'
@@ -17,15 +16,13 @@ export const connectSocket = (token) => {
     timeout: 20000,
   })
 
-  // Новые сообщения
   socket.on('newMessage', (payload) => {
     store.dispatch(addMessage(payload.message || payload))
   })
 
-  // Создание канала
   socket.on('newChannel', (payload) => {
-    const channelData = payload.data || payload                    // поддержка обоих форматов
-    const attributes = channelData.attributes || channelData       // name и removable здесь
+    const channelData = payload.data || payload
+    const attributes = channelData.attributes || channelData
 
     const newChannel = {
       id: channelData.id,
@@ -37,7 +34,6 @@ export const connectSocket = (token) => {
     store.dispatch(setChannels([...currentChannels, newChannel]))
   })
 
-  // Переименование канала — КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ
   socket.on('renameChannel', (payload) => {
     const channelData = payload.data || payload
     const attributes = channelData.attributes || channelData
@@ -51,9 +47,8 @@ export const connectSocket = (token) => {
     )
 
     store.dispatch(setChannels(updatedChannels))
-  })
+  }),
 
-  // Удаление канала
   socket.on('removeChannel', (payload) => {
     const channelId = payload.data?.id || payload.id
 
@@ -64,7 +59,7 @@ export const connectSocket = (token) => {
 
     const currentChannelId = store.getState().channels.currentChannelId
     if (currentChannelId === channelId) {
-      store.dispatch(setCurrentChannelId(1)) // переключаемся на #general
+      store.dispatch(setCurrentChannelId(1))
     }
   })
 
@@ -90,7 +85,6 @@ export const disconnectSocket = () => {
   }
 }
 
-// Промисификация emit
 export const promisifyEmit = (event, data) => {
   return new Promise((resolve, reject) => {
     if (!socket) {
