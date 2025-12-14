@@ -21,7 +21,6 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
     try {
       await deleteChannel(channelId);
 
-      // Локальное обновление состояния
       const updatedChannels = channels.filter((c) => c.id !== channelId);
       dispatch(setChannels(updatedChannels));
       localStorage.setItem('channels', JSON.stringify(updatedChannels));
@@ -32,7 +31,6 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
       dispatch(setCurrentChannelId(generalId));
       joinChannel(generalId);
 
-      // Загружаем сообщения для general
       try {
         const response = await fetchMessagesByChannel(generalId);
         dispatch(setMessages(response.data?.messages || []));
@@ -40,15 +38,11 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
         dispatch(setMessages([]));
       }
 
-      // Успешное уведомление — выводится ПЕРЕД закрытием модалки
       toast.success(t('toast.success.deleteChannel'));
-
-      // Закрываем модалку только после всего
       onClose();
     } catch (error) {
       console.error('Delete channel error:', error);
       if (!error.response || error.request) {
-        // Оффлайн-режим: всё равно считаем успешным
         toast.success(t('toast.success.deleteChannel'));
         onClose();
       } else {
@@ -66,8 +60,13 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay" style={{ pointerEvents: 'none' }}>
+      {/* Вся интерактивность — только внутри dialog */}
+      <div 
+        className="modal-dialog" 
+        style={{ pointerEvents: 'auto' }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-header">
           <h5 className="modal-title">{t('modal.removeTitle')}</h5>
           <button
