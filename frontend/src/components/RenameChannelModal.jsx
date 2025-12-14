@@ -1,4 +1,5 @@
-// src/components/RenameChannelModal.jsx
+import { useDispatch, useSelector } from 'react-redux';
+import { setChannels } from '../features/channels/channelsSlice';
 import React, { useEffect, useRef } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -52,42 +53,42 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
 
         toast.success(t('toast.success.renameChannel'));
         onClose();
-      } catch (error) {
+            } catch (error) {
         console.error('Rename error:', error);
         setSubmitting(false);
 
-        // ==== НОВОЕ: Оптимистическое обновление в демо-режиме (как в AddChannelModal) ====
+        // Демо-режим: сервер недоступен
         if (!error.response || error.request) {
-          // Это сеть недоступна или нет ответа — считаем, что работаем в демо-режиме
           const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]');
 
-          const updatedChannels = storedChannels.map((c) =>
-            c.id === channel.id ? { ...c, name: censoredName } : c
-          );
-
-          // Проверяем уникальность (как в Add)
-          const isUnique = !updatedChannels.some(
+          const isUnique = !storedChannels.some(
             (c) => c.name === censoredName && c.id !== channel.id
           );
 
           if (isUnique) {
+            const updatedChannels = storedChannels.map((c) =>
+              c.id === channel.id ? { ...c, name: censoredName } : c
+            );
+
             localStorage.setItem('channels', JSON.stringify(updatedChannels));
-            toast.success(t('toast.success.renameChannel')); // Показываем успех даже в оффлайне
-            onClose(); // Закрываем модалку → App.jsx вызовет refetchChannels → подхватит новое имя
+            dispatch(setChannels(updatedChannels)); // ← КЛЮЧЕВАЯ СТРОКА
+
+            toast.success(t('toast.success.renameChannel'));
+            onClose();
             return;
           } else {
-            formik.setFieldError('name', t('modal.renameErrorUnique') || 'Имя должно быть уникальным');
+            formik.setFieldError('name', t('modal.renameErrorUnique'));
             toast.error(t('modal.renameErrorUnique'));
             return;
           }
         }
-        // ===========================================================================
 
+        // Обычные ошибки сервера
         if (error.response?.status === 409) {
-          formik.setFieldError('name', t('modal.renameErrorUnique') || 'Имя должно быть уникальным');
+          formik.setFieldError('name', t('modal.renameErrorUnique'));
           toast.error(t('modal.renameErrorUnique'));
         } else {
-          formik.setFieldError('name', t('modal.renameError') || 'Ошибка сети');
+          formik.setFieldError('name', t('modal.renameError'));
           toast.error(t('toast.error.renameChannel'));
         }
       }
