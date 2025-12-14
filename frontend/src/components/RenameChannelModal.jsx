@@ -51,10 +51,37 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
         await renameChannel(channel.id, censoredName);
 
         toast.success(t('toast.success.renameChannel'));
-        onClose(); // В App.jsx вызовет refetchChannels → список обновится
+        onClose();
       } catch (error) {
         console.error('Rename error:', error);
         setSubmitting(false);
+
+        // ==== НОВОЕ: Оптимистическое обновление в демо-режиме (как в AddChannelModal) ====
+        if (!error.response || error.request) {
+          // Это сеть недоступна или нет ответа — считаем, что работаем в демо-режиме
+          const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]');
+
+          const updatedChannels = storedChannels.map((c) =>
+            c.id === channel.id ? { ...c, name: censoredName } : c
+          );
+
+          // Проверяем уникальность (как в Add)
+          const isUnique = !updatedChannels.some(
+            (c) => c.name === censoredName && c.id !== channel.id
+          );
+
+          if (isUnique) {
+            localStorage.setItem('channels', JSON.stringify(updatedChannels));
+            toast.success(t('toast.success.renameChannel')); // Показываем успех даже в оффлайне
+            onClose(); // Закрываем модалку → App.jsx вызовет refetchChannels → подхватит новое имя
+            return;
+          } else {
+            formik.setFieldError('name', t('modal.renameErrorUnique') || 'Имя должно быть уникальным');
+            toast.error(t('modal.renameErrorUnique'));
+            return;
+          }
+        }
+        // ===========================================================================
 
         if (error.response?.status === 409) {
           formik.setFieldError('name', t('modal.renameErrorUnique') || 'Имя должно быть уникальным');
@@ -67,7 +94,6 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
     },
   });
 
-  // Ручная валидация перед отправкой — обязательно для прохождения тестов с Enter
   const handleSubmit = (e) => {
     e.preventDefault();
     formik.setTouched({ name: true });
