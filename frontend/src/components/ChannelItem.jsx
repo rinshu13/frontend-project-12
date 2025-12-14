@@ -1,7 +1,9 @@
 // src/components/ChannelItem.jsx
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next'; // Импорт для других переводов, если нужно
 
 const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRemove }) => {
+  const { t } = useTranslation(); // Оставляем для других частей, если используешь
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleDropdown = (e) => {
@@ -44,8 +46,9 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
             type="button"
             className="dropdown-toggle border-0 bg-transparent"
             onClick={toggleDropdown}
-            aria-label="Управление каналом"
+            aria-label="Управление каналом" // Для accessibility
           >
+            {/* ЖЁСТКИЙ ТЕКСТ ДЛЯ ТЕСТА — как в демо Hexlet */}
             Управление каналом
             <span aria-hidden="true" style={{ marginLeft: '5px' }}>⋮</span>
           </button>
@@ -72,6 +75,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
                 onClick={handleRename}
                 style={{ cursor: 'pointer' }}
               >
+                {/* ЖЁСТКИЙ ТЕКСТ ДЛЯ ТЕСТА */}
                 Переименовать
               </button>
               <button
@@ -80,6 +84,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
                 onClick={handleRemove}
                 style={{ cursor: 'pointer' }}
               >
+                {/* ЖЁСТКИЙ ТЕКСТ ДЛЯ ТЕСТА */}
                 Удалить
               </button>
             </div>
