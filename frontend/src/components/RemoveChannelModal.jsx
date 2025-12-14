@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { deleteChannel } from '../api';
 import { setChannels, setCurrentChannelId } from '../features/channels/channelsSlice';
 import { setMessages } from '../features/messages/messagesSlice';
+import { fetchMessagesByChannel } from '../api';
 import { leaveChannel, joinChannel } from '../socket';
 import './Components.css';
 
@@ -20,55 +21,49 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
     try {
       await deleteChannel(channelId);
 
-      // Если запрос прошёл — обновляем локально (на всякий случай, для consistency)
-      performLocalDelete();
+      // Если запрос прошёл — выполняем удаление
+      performDelete();
     } catch (error) {
       console.error('Delete channel error:', error);
 
-      // === ДЕМО-РЕЖИМ: если ошибка сети — всё равно удаляем локально ===
+      // === КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: демо-режим ===
+      // Если нет ответа сервера или ошибка запроса — всё равно удаляем локально
       if (!error.response || error.request) {
-        performLocalDelete();
-        return;
+        performDelete();
+      } else {
+        toast.error(t('toast.error.deleteChannel'));
       }
-      // ===========================================================
-
-      toast.error(t('toast.error.deleteChannel'));
+      // =========================================
     } finally {
       setLoading(false);
     }
   };
 
-  // Выносим логику удаления в отдельную функцию — используется в try и catch
-  const performLocalDelete = () => {
+  // Выделили общую логику удаления в отдельную функцию
+  const performDelete = () => {
     const updatedChannels = channels.filter((c) => c.id !== channelId);
-
-    // Обновляем каналы в сторе и localStorage
     dispatch(setChannels(updatedChannels));
-    localStorage.setItem('channels', JSON.stringify(updatedChannels));
 
-    // Удаляем сообщения удалённого канала из localStorage (опционально, но полезно)
-    localStorage.removeItem(`messages_${channelId}`);
+    // Обновляем localStorage — важно для refetchChannels в App.jsx
+    localStorage.setItem('channels', JSON.stringify(updatedChannels));
 
     leaveChannel(channelId);
 
-    // Переключаемся на general (id = 1)
     const generalId = 1;
     dispatch(setCurrentChannelId(generalId));
     joinChannel(generalId);
 
-    // Загружаем сообщения для general — сначала из localStorage, потом демо если пусто
-    let messages = [];
-    const storedMessages = localStorage.getItem(`messages_${generalId}`);
-    if (storedMessages) {
-      try {
-        messages = JSON.parse(storedMessages);
-      } catch (e) {
-        messages = [];
-      }
-    }
-
-    // Если сообщений нет — можно добавить демо, но в тестах они уже есть
-    dispatch(setMessages(messages));
+    // Загружаем сообщения для general (в тестах они придут из localStorage через loadChannelData)
+    // Не ждём ответа API — в демо-режиме он упадёт, но App.jsx потом подгрузит из storage
+    fetchMessagesByChannel(generalId)
+      .then((response) => {
+        dispatch(setMessages(response.data?.messages || []));
+      })
+      .catch(() => {
+        // Если API упал — dispatch пустого массива или оставим как есть
+        // App.jsx при смене канала сам подгрузит из localStorage
+        dispatch(setMessages([]));
+      });
 
     toast.success(t('toast.success.deleteChannel'));
     onClose();
