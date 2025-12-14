@@ -1,3 +1,4 @@
+// src/components/ChannelItem.jsx
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -22,15 +23,17 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
     setIsOpen(false);
   };
 
+  const closeDropdown = () => setIsOpen(false);
+
   return (
     <div
       role="listitem"
       className={`channel-item ${currentChannelId === channel.id ? 'active' : ''}`}
-      onClick={() => setIsOpen(false)} // Закрываем при клике вне
+      onClick={closeDropdown} // Закрываем меню при клике на элемент канала
     >
       <button
         type="button"
-        className="channel-button"
+        className="channel-button flex-grow-1 text-start border-0 bg-transparent"
         onClick={() => onChannelClick(channel.id)}
         aria-current={currentChannelId === channel.id ? 'true' : 'false'}
       >
@@ -38,26 +41,58 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
       </button>
 
       {channel.removable && (
-        <div className="channel-dropdown">
+        <div className="channel-dropdown" style={{ position: 'relative' }}>
           <button
             type="button"
-            className="dropdown-toggle"
+            className="dropdown-toggle border-0 bg-transparent"
             onClick={toggleDropdown}
             aria-label={t('dropdown.manageChannel')}
           >
-            {/* Скрытый текст для теста Playwright */}
-            <span style={{ position: 'absolute', left: '-9999px' }}>
+            {/* Видимый только для Playwright текст — скрыт визуально, но присутствует в DOM */}
+            <span
+              style={{
+                position: 'absolute',
+                left: '-9999px',
+                width: '1px',
+                height: '1px',
+                overflow: 'hidden',
+              }}
+            >
               {t('dropdown.manageChannel')}
             </span>
             ⋮
           </button>
 
           {isOpen && (
-            <div className="dropdown-menu">
-              <button type="button" onClick={handleRename}>
+            <div
+              className="dropdown-menu"
+              style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                background: 'white',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                borderRadius: '4px',
+                zIndex: 1000,
+                minWidth: '160px',
+                padding: '8px 0',
+              }}
+              onClick={(e) => e.stopPropagation()} // Не закрываем при клике внутри меню
+            >
+              <button
+                type="button"
+                className="dropdown-item text-start w-100 border-0 bg-transparent px-3 py-2"
+                onClick={handleRename}
+                style={{ cursor: 'pointer' }}
+              >
                 {t('dropdown.rename')}
               </button>
-              <button type="button" onClick={handleRemove}>
+              <button
+                type="button"
+                className="dropdown-item text-start w-100 border-0 bg-transparent px-3 py-2 text-danger"
+                onClick={handleRemove}
+                style={{ cursor: 'pointer' }}
+              >
                 {t('dropdown.remove')}
               </button>
             </div>
