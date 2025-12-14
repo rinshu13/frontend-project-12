@@ -115,6 +115,15 @@ const App = () => {
     }
   }, []);
 
+  const saveCurrentChannelId = useCallback((channelId) => {
+    localStorage.setItem('currentChannelId', channelId);
+  }, []);
+
+  const loadCurrentChannelId = useCallback(() => {
+    const saved = localStorage.getItem('currentChannelId');
+    return saved ? Number(saved) : null;
+  }, []);
+
   const loadChannelData = useCallback(
     async (channelIdToLoad) => {
       let msgs = loadMessagesFromStorage(channelIdToLoad);
@@ -144,10 +153,15 @@ const App = () => {
     async (options = { switchToNewChannel: false, newChannelId: null }) => {
       const { switchToNewChannel = false, newChannelId = null } = options;
 
-      let finalChannels = [
-        { id: 1, name: 'general', removable: false },
-        { id: 2, name: 'random', removable: false },
-      ];
+      let finalChannels = loadChannelsFromStorage();
+
+      if (finalChannels.length === 0) {
+        finalChannels = [
+          { id: 1, name: 'general', removable: false },
+          { id: 2, name: 'random', removable: false },
+        ];
+        saveChannelsToStorage(finalChannels);
+      }
 
       try {
         const response = await getChannels();
@@ -202,13 +216,20 @@ const App = () => {
 
       let targetChannelId = finalChannels[0]?.id || 1;
 
-      if (switchToNewChannel && newChannelId && finalChannels.some(c => c.id === newChannelId)) {
+      const savedChannelId = loadCurrentChannelId();
+      if (savedChannelId && finalChannels.some(c => c.id === savedChannelId)) {
+        targetChannelId = savedChannelId;
+      }
+      else if (switchToNewChannel && newChannelId && finalChannels.some(c => c.id === newChannelId)) {
         targetChannelId = newChannelId;
-      } else if (currentChannelId && finalChannels.some(c => c.id === currentChannelId)) {
+        saveCurrentChannelId(newChannelId);
+      }
+      else if (currentChannelId && finalChannels.some(c => c.id === currentChannelId)) {
         targetChannelId = currentChannelId;
       }
 
       dispatch(setCurrentChannelId(targetChannelId));
+      saveCurrentChannelId(targetChannelId);
       await loadChannelData(targetChannelId);
     },
     [
@@ -247,7 +268,7 @@ const App = () => {
       socket.off('newMessage');
       disconnectSocket();
     };
-  }, [token, navigate, dispatch]);
+  }, [token, navigate, dispatch, saveCurrentChannelId, loadCurrentChannelId]);
 
   useEffect(() => {
     if (!currentChannelId || !token) return;
@@ -259,6 +280,7 @@ const App = () => {
   const handleChannelClick = (channelId) => {
     if (channelId === currentChannelId) return;
     dispatch(setCurrentChannelId(channelId));
+    saveCurrentChannelId(channelId);
   };
 
   const validateMessage = useCallback((text) => {
