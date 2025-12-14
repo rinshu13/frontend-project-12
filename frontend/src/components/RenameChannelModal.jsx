@@ -71,23 +71,25 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
               ×
             </button>
           </div>
-          <div className="modal-body">
-            <div className="modal-form-group">
-              <label className="modal-form-label">{t('modal.renameNameLabel')}</label>
-              <input
-                ref={inputRef}
-                type="text"
-                name="Имя канала"
-                className={`modal-form-input ${formik.touched.name && formik.errors.name ? 'invalid' : ''}`}
-                value={formik.values.name}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                disabled={formik.isSubmitting}
-              />
-              {formik.touched.name && formik.errors.name && (
-                <div className="modal-invalid-feedback">{formik.errors.name}</div>
-              )}
-            </div>
+          <div className="modal-form-group">
+            <label className="modal-form-label" htmlFor="rename-channel-name">
+              {t('Имя канала')}
+            </label>
+            <input
+              ref={inputRef}
+              type="text"
+              name="name"
+              id="rename-channel-name"
+              aria-label={t('modal.renameNameLabel')}
+              className={`modal-form-input ${formik.touched.name && formik.errors.name ? 'invalid' : ''}`}
+              value={formik.values.name}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              disabled={formik.isSubmitting}
+            />
+            {formik.touched.name && formik.errors.name && (
+              <div className="modal-invalid-feedback">{formik.errors.name}</div>
+            )}
           </div>
           <div className="modal-footer">
             <button type="button" className="modal-btn modal-btn-secondary" onClick={onClose} disabled={formik.isSubmitting}>
