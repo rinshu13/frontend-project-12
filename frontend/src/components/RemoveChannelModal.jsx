@@ -58,15 +58,8 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  // Восстановленный обработчик: закрывает только если клик по фону и нет загрузки
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget && !loading) {
-      onClose();
-    }
-  };
-
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
+    <div className="modal-overlay">
       <div className="modal-dialog">
         <div className="modal-header">
           <h5 className="modal-title">{t('modal.removeTitle')}</h5>
@@ -97,6 +90,7 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
             className="modal-btn modal-btn-danger"
             onClick={handleDelete}
             disabled={loading}
+            data-testid="remove-button"
           >
             {loading ? t('modal.removeLoading') : t('modal.removeSubmit')}
           </button>
