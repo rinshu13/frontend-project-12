@@ -1,5 +1,5 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import i18n from 'i18next'
+import { initReactI18next } from 'react-i18next'
 
 // Inline resources (ru только)
 const resources = {
@@ -116,7 +116,7 @@ const resources = {
       'toast.info.logout': 'Вы вышли из аккаунта',
     },
   },
-};
+}
 
 i18n
   .use(initReactI18next)
@@ -127,6 +127,6 @@ i18n
     interpolation: {
       escapeValue: false,
     },
-  });
+  })
 
-export default i18n;
+export default i18n

@@ -1,63 +1,63 @@
 // src/components/RemoveChannelModal.jsx
-import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useTranslation } from 'react-i18next';
-import { toast } from 'react-toastify';
-import { deleteChannel } from '../api';
-import { setChannels, setCurrentChannelId } from '../features/channels/channelsSlice';
-import { setMessages } from '../features/messages/messagesSlice';
-import { fetchMessagesByChannel } from '../api';
-import { leaveChannel, joinChannel } from '../socket';
-import './Components.css';
+import React, { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
+import { toast } from 'react-toastify'
+import { deleteChannel } from '../api'
+import { setChannels, setCurrentChannelId } from '../features/channels/channelsSlice'
+import { setMessages } from '../features/messages/messagesSlice'
+import { fetchMessagesByChannel } from '../api'
+import { leaveChannel, joinChannel } from '../socket'
+import './Components.css'
 
 const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
-  const dispatch = useDispatch();
-  const { t } = useTranslation();
-  const channels = useSelector((state) => state.channels.channels);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch()
+  const { t } = useTranslation()
+  const channels = useSelector((state) => state.channels.channels)
+  const [loading, setLoading] = useState(false)
 
   const handleDelete = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      await deleteChannel(channelId);
+      await deleteChannel(channelId)
 
-      const updatedChannels = channels.filter((c) => c.id !== channelId);
-      dispatch(setChannels(updatedChannels));
-      localStorage.setItem('channels', JSON.stringify(updatedChannels));
+      const updatedChannels = channels.filter((c) => c.id !== channelId)
+      dispatch(setChannels(updatedChannels))
+      localStorage.setItem('channels', JSON.stringify(updatedChannels))
 
-      leaveChannel(channelId);
+      leaveChannel(channelId)
 
-      const generalId = 1;
-      dispatch(setCurrentChannelId(generalId));
-      joinChannel(generalId);
+      const generalId = 1
+      dispatch(setCurrentChannelId(generalId))
+      joinChannel(generalId)
 
       try {
-        const response = await fetchMessagesByChannel(generalId);
-        dispatch(setMessages(response.data?.messages || []));
+        const response = await fetchMessagesByChannel(generalId)
+        dispatch(setMessages(response.data?.messages || []))
       } catch {
-        dispatch(setMessages([]));
+        dispatch(setMessages([]))
       }
 
-      toast.success(t('toast.success.deleteChannel'));
-      onClose();
+      toast.success(t('toast.success.deleteChannel'))
+      onClose()
     } catch (error) {
-      console.error('Delete channel error:', error);
+      console.error('Delete channel error:', error)
       if (!error.response || error.request) {
-        toast.success(t('toast.success.deleteChannel'));
-        onClose();
+        toast.success(t('toast.success.deleteChannel'))
+        onClose()
       } else {
-        toast.error(t('toast.error.deleteChannel'));
+        toast.error(t('toast.error.deleteChannel'))
       }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleCancel = () => {
-    onClose();
-  };
+    onClose()
+  }
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <div className="modal-overlay" style={{ pointerEvents: 'none' }}>
@@ -102,7 +102,7 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default RemoveChannelModal;
+export default RemoveChannelModal

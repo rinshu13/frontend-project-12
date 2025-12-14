@@ -1,86 +1,84 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { useTranslation } from 'react-i18next';
-import leoProfanity from 'leo-profanity';
+import { useSelector, useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { useTranslation } from 'react-i18next'
+import leoProfanity from 'leo-profanity'
 import {
   sendMessage,
   fetchMessagesByChannel,
   getChannels,
-} from './api';
+} from './api'
 import {
   connectSocket,
   disconnectSocket,
   joinChannel,
-  leaveChannel,
   emitNewMessage,
-} from './socket';
+} from './socket'
 import {
   setChannels,
   setCurrentChannelId,
-} from './features/channels/channelsSlice';
-import { setMessages } from './features/messages/messagesSlice';
-import { logout, initAuth } from './features/auth/authSlice';
-import AddChannelModal from './components/AddChannelModal';
-import RenameChannelModal from './components/RenameChannelModal';
-import RemoveChannelModal from './components/RemoveChannelModal';
-import './App.css';
-import ChannelItem from './components/ChannelItem';
+} from './features/channels/channelsSlice'
+import { setMessages } from './features/messages/messagesSlice'
+import { logout, initAuth } from './features/auth/authSlice'
+import AddChannelModal from './components/AddChannelModal'
+import RenameChannelModal from './components/RenameChannelModal'
+import RemoveChannelModal from './components/RemoveChannelModal'
+import './App.css'
+import ChannelItem from './components/ChannelItem'
 
 // Инициализация leo-profanity с русским словарем
 leoProfanity.add([
   'блядь', 'блять', 'пизда', 'пиздец', 'пиздеть', 'хуй', 'хуи', 'хуё', 'хуя', 'ебать', 'ебаный', 'еби', 'ебло',
   'нахуй', 'похуй', 'захуй', 'охуеть', 'охуенный', 'пидор', 'пидорас', 'сука', 'суки', 'блядина',
   'долбоёб', 'уёбище', 'mudak', 'pidor', 'pizda', 'huy', 'ebat', 'blyad'
-]);
+])
 
 const App = () => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const inputRef = useRef(null);
-  const messagesEndRef = useRef(null);
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const inputRef = useRef(null)
+  const messagesEndRef = useRef(null)
 
-  const hasInitialized = useRef(false);
+  const hasInitialized = useRef(false)
 
-  const { token, username } = useSelector((state) => state.auth);
-  const { channels, currentChannelId } = useSelector((state) => state.channels);
-  const messages = useSelector((state) => state.messages.messages) || [];
+  const { token, username } = useSelector((state) => state.auth)
+  const { channels, currentChannelId } = useSelector((state) => state.channels)
+  const messages = useSelector((state) => state.messages.messages) || []
 
-  const [messageText, setMessageText] = useState('');
-  const [messageError, setMessageError] = useState(null);
-  const [submitError, setSubmitError] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showRenameModal, setShowRenameModal] = useState(null);
-  const [showRemoveModal, setShowRemoveModal] = useState(null);
+  const [messageText, setMessageText] = useState('')
+  const [messageError, setMessageError] = useState(null)
+  const [submitError, setSubmitError] = useState(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [showRenameModal, setShowRenameModal] = useState(null)
+  const [showRemoveModal, setShowRemoveModal] = useState(null)
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    scrollToBottom()
+  }, [messages])
 
   useEffect(() => {
-    dispatch(initAuth());
-  }, [dispatch]);
+    dispatch(initAuth())
+  }, [dispatch])
 
   const saveChannelsToStorage = useCallback((channelsList) => {
-    if (token) localStorage.setItem('channels', JSON.stringify(channelsList));
-  }, [token]);
+    if (token) localStorage.setItem('channels', JSON.stringify(channelsList))
+  }, [token])
 
   const loadChannelsFromStorage = useCallback(() => {
-    const stored = localStorage.getItem('channels');
-    if (!stored) return [];
+    const stored = localStorage.getItem('channels')
+    if (!stored) return []
     try {
-      const parsed = JSON.parse(stored);
-      return Array.isArray(parsed) ? parsed : [];
+      const parsed = JSON.parse(stored)
+      return Array.isArray(parsed) ? parsed : []
     } catch {
-      return [];
+      return []
     }
-  }, []);
+  }, [])
 
   const getDemoMessages = useCallback((channelName) => [
     {
@@ -95,77 +93,77 @@ const App = () => {
       username: 'DemoUser',
       createdAt: new Date().toISOString(),
     },
-  ], []);
+  ], [])
 
   const saveMessagesToStorage = useCallback((channelId, messagesList) => {
     if (token) {
-      localStorage.setItem(`messages_${channelId}`, JSON.stringify(messagesList));
+      localStorage.setItem(`messages_${channelId}`, JSON.stringify(messagesList))
     }
-  }, [token]);
+  }, [token])
 
   const loadMessagesFromStorage = useCallback((channelId) => {
-    const stored = localStorage.getItem(`messages_${channelId}`);
-    if (!stored) return [];
+    const stored = localStorage.getItem(`messages_${channelId}`)
+    if (!stored) return []
     try {
-      const parsed = JSON.parse(stored);
-      return Array.isArray(parsed) ? parsed : [];
+      const parsed = JSON.parse(stored)
+      return Array.isArray(parsed) ? parsed : []
     } catch {
-      return [];
+      return []
     }
-  }, []);
+  }, [])
 
   const saveCurrentChannelId = useCallback((channelId) => {
-    localStorage.setItem('currentChannelId', channelId);
-  }, []);
+    localStorage.setItem('currentChannelId', channelId)
+  }, [])
 
   const loadCurrentChannelId = useCallback(() => {
-    const saved = localStorage.getItem('currentChannelId');
-    return saved ? Number(saved) : null;
-  }, []);
+    const saved = localStorage.getItem('currentChannelId')
+    return saved ? Number(saved) : null
+  }, [])
 
   const loadChannelData = useCallback(
     async (channelIdToLoad) => {
-      let msgs = loadMessagesFromStorage(channelIdToLoad);
+      let msgs = loadMessagesFromStorage(channelIdToLoad)
 
       if (msgs.length === 0) {
         try {
-          const response = await fetchMessagesByChannel(channelIdToLoad);
-          msgs = response.data?.messages || [];
+          const response = await fetchMessagesByChannel(channelIdToLoad)
+          msgs = response.data?.messages || []
         } catch (err) {
-          console.warn('API messages fetch failed, using demo', err);
+          console.warn('API messages fetch failed, using demo', err)
         }
 
         if (msgs.length === 0) {
-          const channel = channels.find((c) => c.id === channelIdToLoad);
-          msgs = getDemoMessages(channel?.name || 'general');
+          const channel = channels.find((c) => c.id === channelIdToLoad)
+          msgs = getDemoMessages(channel?.name || 'general')
         }
 
-        saveMessagesToStorage(channelIdToLoad, msgs);
+        saveMessagesToStorage(channelIdToLoad, msgs)
       }
 
-      dispatch(setMessages(msgs));
+      dispatch(setMessages(msgs))
     },
     [channels, dispatch, getDemoMessages, loadMessagesFromStorage, saveMessagesToStorage]
-  );
+  )
 
   const refetchChannels = useCallback(
     async (options = { switchToNewChannel: false, newChannelId: null }) => {
-      const { switchToNewChannel = false, newChannelId = null } = options;
+      const { switchToNewChannel = false, newChannelId = null } = options
 
-      let finalChannels = loadChannelsFromStorage();
+      let finalChannels = loadChannelsFromStorage()
 
       if (finalChannels.length === 0) {
         finalChannels = [
           { id: 1, name: 'general', removable: true },
           { id: 2, name: 'random', removable: true },
-        ];
-        saveChannelsToStorage(finalChannels);
+        ]
+        saveChannelsToStorage(finalChannels)
       }
 
       try {
-        const response = await getChannels();
+        const response = await getChannels()
 
-        let serverChannels = [];
+        let serverChannels = []
 
         // Формат 1: { data: [{ id, type, attributes: { name, removable } }] }
         if (Array.isArray(response.data?.data)) {
@@ -173,7 +171,7 @@ const App = () => {
             id: item.id,
             name: item.attributes.name,
             removable: item.attributes.removable ?? true,
-          }));
+          }))
         }
         // Формат 2: напрямую массив [{ id, name, removable }]
         else if (Array.isArray(response.data)) {
@@ -181,7 +179,7 @@ const App = () => {
             id: item.id,
             name: item.name || item.attributes?.name,
             removable: item.removable ?? item.attributes?.removable ?? true,
-          }));
+          }))
         }
         // Формат 3: { channels: [...] } (на всякий случай)
         else if (Array.isArray(response.data?.channels)) {
@@ -189,47 +187,47 @@ const App = () => {
             id: item.id,
             name: item.name,
             removable: item.removable ?? true,
-          }));
+          }))
         }
 
         if (serverChannels.length > 0) {
-          finalChannels = serverChannels;
+          finalChannels = serverChannels
         } else {
-          const stored = loadChannelsFromStorage();
+          const stored = loadChannelsFromStorage()
           if (stored.length > 0) {
-            finalChannels = stored;
+            finalChannels = stored
           }
         }
       } catch (err) {
-        console.error('Failed to fetch channels from server:', err);
-        toast.error(t('toast.error.fetchChannels'));
+        console.error('Failed to fetch channels from server:', err)
+        toast.error(t('toast.error.fetchChannels'))
 
-        const stored = loadChannelsFromStorage();
+        const stored = loadChannelsFromStorage()
         if (stored.length > 0) {
-          finalChannels = stored;
+          finalChannels = stored
         }
       }
 
-      dispatch(setChannels(finalChannels));
-      saveChannelsToStorage(finalChannels);
+      dispatch(setChannels(finalChannels))
+      saveChannelsToStorage(finalChannels)
 
-      let targetChannelId = finalChannels[0]?.id || 1;
+      let targetChannelId = finalChannels[0]?.id || 1
 
-      const savedChannelId = loadCurrentChannelId();
+      const savedChannelId = loadCurrentChannelId()
       if (savedChannelId && finalChannels.some(c => c.id === savedChannelId)) {
-        targetChannelId = savedChannelId;
+        targetChannelId = savedChannelId
       }
       else if (switchToNewChannel && newChannelId && finalChannels.some(c => c.id === newChannelId)) {
-        targetChannelId = newChannelId;
-        saveCurrentChannelId(newChannelId);
+        targetChannelId = newChannelId
+        saveCurrentChannelId(newChannelId)
       }
       else if (currentChannelId && finalChannels.some(c => c.id === currentChannelId)) {
-        targetChannelId = currentChannelId;
+        targetChannelId = currentChannelId
       }
 
-      dispatch(setCurrentChannelId(targetChannelId));
-      saveCurrentChannelId(targetChannelId);
-      await loadChannelData(targetChannelId);
+      dispatch(setCurrentChannelId(targetChannelId))
+      saveCurrentChannelId(targetChannelId)
+      await loadChannelData(targetChannelId)
     },
     [
       dispatch,
@@ -239,110 +237,110 @@ const App = () => {
       loadChannelData,
       t,
     ]
-  );
+  )
 
   useEffect(() => {
     if (!token) {
-      navigate('/login');
-      return;
+      navigate('/login')
+      return
     }
 
     if (hasInitialized.current) {
-      return;
+      return
     }
-    hasInitialized.current = true;
+    hasInitialized.current = true
 
-    const socket = connectSocket(token);
+    const socket = connectSocket(token)
 
     socket.on('newMessage', (payload) => {
       if (payload.channelId === currentChannelId) {
-        dispatch(setMessages([...messages, payload.message]));
+        dispatch(setMessages([...messages, payload.message]))
       }
-    });
+    })
 
     socket.on('renameChannel', (payload) => {
       dispatch(setChannels(channels.map((channel) =>
         channel.id === payload.id ? { ...channel, name: payload.name } : channel
-      )));
-    });
+      )))
+    })
 
     socket.on('removeChannel', (payload) => {
-      dispatch(setChannels(channels.filter((channel) => channel.id !== payload.id)));
+      dispatch(setChannels(channels.filter((channel) => channel.id !== payload.id)))
 
       // Если удалили текущий канал — переключаемся на general
       if (currentChannelId === payload.id) {
-        const generalId = channels.find((c) => c.name === 'general')?.id || channels[0]?.id || 1;
-        dispatch(setCurrentChannelId(generalId));
-        saveCurrentChannelId(generalId);
+        const generalId = channels.find((c) => c.name === 'general')?.id || channels[0]?.id || 1
+        dispatch(setCurrentChannelId(generalId))
+        saveCurrentChannelId(generalId)
       }
-    });
+    })
 
-    refetchChannels();
+    refetchChannels()
 
     return () => {
-      hasInitialized.current = false;
-      socket.off('newMessage');
-      socket.off('renameChannel');
-      socket.off('removeChannel');
-      disconnectSocket();
-    };
-  }, [token, navigate, dispatch, saveCurrentChannelId, loadCurrentChannelId]);
+      hasInitialized.current = false
+      socket.off('newMessage')
+      socket.off('renameChannel')
+      socket.off('removeChannel')
+      disconnectSocket()
+    }
+  }, [token, navigate, dispatch, saveCurrentChannelId, loadCurrentChannelId])
 
   useEffect(() => {
-    if (!currentChannelId || !token) return;
+    if (!currentChannelId || !token) return
 
-    joinChannel(currentChannelId);
-    loadChannelData(currentChannelId);
-  }, [currentChannelId, token]);
+    joinChannel(currentChannelId)
+    loadChannelData(currentChannelId)
+  }, [currentChannelId, token])
 
   const handleChannelClick = (channelId) => {
-    if (channelId === currentChannelId) return;
-    dispatch(setCurrentChannelId(channelId));
-    saveCurrentChannelId(channelId);
-  };
+    if (channelId === currentChannelId) return
+    dispatch(setCurrentChannelId(channelId))
+    saveCurrentChannelId(channelId)
+  }
 
   const validateMessage = useCallback((text) => {
-    if (!text?.trim()) return t('validation.messageRequired');
-    if (text.trim().length > 500) return t('validation.messageTooLong');
-    if (leoProfanity.check(text)) return t('validation.profanityDetected');
-    return null;
-  }, [t]);
+    if (!text?.trim()) return t('validation.messageRequired')
+    if (text.trim().length > 500) return t('validation.messageTooLong')
+    if (leoProfanity.check(text)) return t('validation.profanityDetected')
+    return null
+  }, [t])
 
   const handleMessageChange = (e) => {
-    const text = e.target.value;
-    setMessageText(text);
-    const error = validateMessage(text);
-    setMessageError(error);
+    const text = e.target.value
+    setMessageText(text)
+    const error = validateMessage(text)
+    setMessageError(error)
 
     if (leoProfanity.check(text)) {
-      toast.warning(t('toast.warning.profanity'));
+      toast.warning(t('toast.warning.profanity'))
     }
-  };
+  }
 
-  const isMessageValid = () => messageText.trim() && !messageError && currentChannelId;
+  const isMessageValid = () => messageText.trim() && !messageError && currentChannelId
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    const rawText = messageText.trim();
+    const rawText = messageText.trim()
     if (!rawText) {
-      setMessageError(t('validation.messageRequired'));
-      return;
+      setMessageError(t('validation.messageRequired'))
+      return
     }
 
     if (rawText.length > 500) {
-      setMessageError(t('validation.messageTooLong'));
-      return;
+      setMessageError(t('validation.messageTooLong'))
+      return
     }
 
-    const censoredText = leoProfanity.clean(rawText);
+    const censoredText = leoProfanity.clean(rawText)
 
     if (censoredText !== rawText) {
-      toast.warning(t('toast.warning.profanityCensored'));
+      toast.warning(t('toast.warning.profanityCensored'))
     }
 
     try {
-      await sendMessage(currentChannelId, censoredText, username);
+      await sendMessage(currentChannelId, censoredText, username)
 
       await emitNewMessage({
         channelId: currentChannelId,
@@ -351,37 +349,37 @@ const App = () => {
           username,
           createdAt: new Date().toISOString(),
         },
-      });
+      })
 
-      setMessageText('');
-      setMessageError(null);
-      setSubmitError(null);
-      inputRef.current?.focus();
+      setMessageText('')
+      setMessageError(null)
+      setSubmitError(null)
+      inputRef.current?.focus()
     } catch (err) {
-      console.error(err);
-      const errorMsg = t('toast.error.sendMessage');
-      setSubmitError(errorMsg);
-      toast.error(errorMsg);
+      console.error(err)
+      const errorMsg = t('toast.error.sendMessage')
+      setSubmitError(errorMsg)
+      toast.error(errorMsg)
     }
-  };
+  }
 
   const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
-    toast.info(t('toast.info.logout'));
-  };
+    dispatch(logout())
+    navigate('/login')
+    toast.info(t('toast.info.logout'))
+  }
 
   const closeModalsAndRefresh = async (newChannelId = null) => {
-    setShowAddModal(false);
-    setShowRenameModal(null);
-    setShowRemoveModal(null);
+    setShowAddModal(false)
+    setShowRenameModal(null)
+    setShowRemoveModal(null)
     await refetchChannels({
     switchToNewChannel: !!newChannelId,
     newChannelId: newChannelId ?? undefined, 
-  });
-  };
+  })
+  }
 
-  if (!token) return null;
+  if (!token) return null
 
   return (
     <div className="app vh-100 d-flex flex-column">
@@ -482,7 +480,7 @@ const App = () => {
         />
       )}
     </div>
-  );
-};
+  )
+}
 
-export default App;
+export default App

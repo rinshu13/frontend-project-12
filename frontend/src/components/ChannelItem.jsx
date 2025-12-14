@@ -1,29 +1,29 @@
 // src/components/ChannelItem.jsx
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next'; // Импорт для других переводов, если нужно
+import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next' // Импорт для других переводов, если нужно
 
 const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRemove }) => {
-  const { t } = useTranslation(); // Оставляем для других частей, если используешь
-  const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation() // Оставляем для других частей, если используешь
+  const [isOpen, setIsOpen] = useState(false)
 
   const toggleDropdown = (e) => {
-    e.stopPropagation();
-    setIsOpen((prev) => !prev);
-  };
+    e.stopPropagation()
+    setIsOpen((prev) => !prev)
+  }
 
   const handleRename = (e) => {
-    e.stopPropagation();
-    onRename(channel.id);
-    setIsOpen(false);
-  };
+    e.stopPropagation()
+    onRename(channel.id)
+    setIsOpen(false)
+  }
 
   const handleRemove = (e) => {
-    e.stopPropagation();
-    onRemove(channel.id);
-    setIsOpen(false);
-  };
+    e.stopPropagation()
+    onRemove(channel.id)
+    setIsOpen(false)
+  }
 
-  const closeDropdown = () => setIsOpen(false);
+  const closeDropdown = () => setIsOpen(false)
 
   return (
     <div
@@ -92,7 +92,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default ChannelItem;
+export default ChannelItem

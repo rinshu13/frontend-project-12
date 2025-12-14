@@ -1,7 +1,7 @@
-import { configureStore } from '@reduxjs/toolkit';
-import channelsReducer from './features/channels/channelsSlice';
-import messagesReducer from './features/messages/messagesSlice';
-import authReducer from './features/auth/authSlice';
+import { configureStore } from '@reduxjs/toolkit'
+import channelsReducer from './features/channels/channelsSlice'
+import messagesReducer from './features/messages/messagesSlice'
+import authReducer from './features/auth/authSlice'
 
 export const store = configureStore({
   reducer: {
@@ -9,7 +9,7 @@ export const store = configureStore({
     messages: messagesReducer,
     auth: authReducer,
   },
-});
+})
 
 // Инициализация auth из localStorage при старте
-store.dispatch({ type: 'auth/initAuth' });
+store.dispatch({ type: 'auth/initAuth' })

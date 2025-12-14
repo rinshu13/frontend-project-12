@@ -1,137 +1,137 @@
 // src/socket.js
-import { io } from 'socket.io-client';
-import { store } from './store';
-import { addMessage } from './features/messages/messagesSlice';
-import { setChannels, setCurrentChannelId } from './features/channels/channelsSlice';
+import { io } from 'socket.io-client'
+import { store } from './store'
+import { addMessage } from './features/messages/messagesSlice'
+import { setChannels, setCurrentChannelId } from './features/channels/channelsSlice'
 
-let socket = null;
+let socket = null
 
 export const connectSocket = (token) => {
-  if (socket) return socket;
+  if (socket) return socket
 
-  const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || '';
+  const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || ''
 
   socket = io(SOCKET_URL, {
     auth: { token },
     transports: ['websocket', 'polling'],
     timeout: 20000,
-  });
+  })
 
   // Новые сообщения
   socket.on('newMessage', (payload) => {
-    store.dispatch(addMessage(payload.message || payload));
-  });
+    store.dispatch(addMessage(payload.message || payload))
+  })
 
   // Создание канала
   socket.on('newChannel', (payload) => {
-    const channelData = payload.data || payload;                    // поддержка обоих форматов
-    const attributes = channelData.attributes || channelData;       // name и removable здесь
+    const channelData = payload.data || payload                    // поддержка обоих форматов
+    const attributes = channelData.attributes || channelData       // name и removable здесь
 
     const newChannel = {
       id: channelData.id,
       name: attributes.name,
       removable: attributes.removable ?? true,
-    };
+    }
 
-    const currentChannels = store.getState().channels.channels;
-    store.dispatch(setChannels([...currentChannels, newChannel]));
-  });
+    const currentChannels = store.getState().channels.channels
+    store.dispatch(setChannels([...currentChannels, newChannel]))
+  })
 
   // Переименование канала — КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ
   socket.on('renameChannel', (payload) => {
-    const channelData = payload.data || payload;
-    const attributes = channelData.attributes || channelData;
+    const channelData = payload.data || payload
+    const attributes = channelData.attributes || channelData
 
-    const updatedId = channelData.id;
-    const updatedName = attributes.name;
+    const updatedId = channelData.id
+    const updatedName = attributes.name
 
-    const currentChannels = store.getState().channels.channels;
+    const currentChannels = store.getState().channels.channels
     const updatedChannels = currentChannels.map((channel) =>
       channel.id === updatedId ? { ...channel, name: updatedName } : channel
-    );
+    )
 
-    store.dispatch(setChannels(updatedChannels));
-  });
+    store.dispatch(setChannels(updatedChannels))
+  })
 
   // Удаление канала
   socket.on('removeChannel', (payload) => {
-    const channelId = payload.data?.id || payload.id;
+    const channelId = payload.data?.id || payload.id
 
-    const currentChannels = store.getState().channels.channels;
-    const filteredChannels = currentChannels.filter((channel) => channel.id !== channelId);
+    const currentChannels = store.getState().channels.channels
+    const filteredChannels = currentChannels.filter((channel) => channel.id !== channelId)
 
-    store.dispatch(setChannels(filteredChannels));
+    store.dispatch(setChannels(filteredChannels))
 
-    const currentChannelId = store.getState().channels.currentChannelId;
+    const currentChannelId = store.getState().channels.currentChannelId
     if (currentChannelId === channelId) {
-      store.dispatch(setCurrentChannelId(1)); // переключаемся на #general
+      store.dispatch(setCurrentChannelId(1)) // переключаемся на #general
     }
-  });
+  })
 
   socket.on('connect_error', (err) => {
-    console.error('Socket connect error:', err.message);
-  });
+    console.error('Socket connect error:', err.message)
+  })
 
   socket.on('connect', () => {
-    console.log('Socket connected successfully');
-  });
+    console.log('Socket connected successfully')
+  })
 
   socket.on('disconnect', (reason) => {
-    console.log('Socket disconnected:', reason);
-  });
+    console.log('Socket disconnected:', reason)
+  })
 
-  return socket;
-};
+  return socket
+}
 
 export const disconnectSocket = () => {
   if (socket) {
-    socket.disconnect();
-    socket = null;
+    socket.disconnect()
+    socket = null
   }
-};
+}
 
 // Промисификация emit
 export const promisifyEmit = (event, data) => {
   return new Promise((resolve, reject) => {
     if (!socket) {
-      reject(new Error('Socket not connected'));
-      return;
+      reject(new Error('Socket not connected'))
+      return
     }
 
     socket.emit(event, data, (ack) => {
       if (ack && ack.error) {
-        reject(new Error(ack.error));
+        reject(new Error(ack.error))
       } else {
-        resolve(ack);
+        resolve(ack)
       }
-    });
-  });
-};
+    })
+  })
+}
 
 export const joinChannel = async (channelId) => {
   try {
-    await promisifyEmit('joinChannel', { channelId });
-    console.log('Joined channel:', channelId);
+    await promisifyEmit('joinChannel', { channelId })
+    console.log('Joined channel:', channelId)
   } catch (error) {
-    console.error('Join channel error:', error);
+    console.error('Join channel error:', error)
   }
-};
+}
 
 export const leaveChannel = async (channelId) => {
   try {
-    await promisifyEmit('leaveChannel', { channelId });
-    console.log('Left channel:', channelId);
+    await promisifyEmit('leaveChannel', { channelId })
+    console.log('Left channel:', channelId)
   } catch (error) {
-    console.error('Leave channel error:', error);
+    console.error('Leave channel error:', error)
   }
-};
+}
 
 export const emitNewMessage = async (data) => {
   try {
-    await promisifyEmit('newMessage', data);
-    console.log('Message emitted:', data);
+    await promisifyEmit('newMessage', data)
+    console.log('Message emitted:', data)
   } catch (error) {
-    console.error('Emit message error:', error);
-    throw error;
+    console.error('Emit message error:', error)
+    throw error
   }
-};
+}

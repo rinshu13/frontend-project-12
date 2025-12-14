@@ -1,9 +1,9 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
   channels: [],
   currentChannelId: null,
-};
+}
 
 const channelsSlice = createSlice({
   name: 'channels',
@@ -11,13 +11,13 @@ const channelsSlice = createSlice({
   reducers: {
     setChannels: (state, action) => {
       // ✅ Гарантируем массив даже при action.payload === undefined
-      state.channels = Array.isArray(action.payload) ? action.payload : [];
+      state.channels = Array.isArray(action.payload) ? action.payload : []
     },
     setCurrentChannelId: (state, action) => {
-      state.currentChannelId = action.payload;
+      state.currentChannelId = action.payload
     },
   },
-});
+})
 
-export const { setChannels, setCurrentChannelId } = channelsSlice.actions;
-export default channelsSlice.reducer;
+export const { setChannels, setCurrentChannelId } = channelsSlice.actions
+export default channelsSlice.reducer

@@ -1,20 +1,20 @@
 // src/pages/LoginPage.jsx
-import React, { useState } from 'react';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { useDispatch } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { login } from '../features/auth/authSlice';
-import { loginUser } from '../api';
-import './AuthPages.css';
+import React, { useState } from 'react'
+import { useFormik } from 'formik'
+import * as Yup from 'yup'
+import { useDispatch } from 'react-redux'
+import { useNavigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { login } from '../features/auth/authSlice'
+import { loginUser } from '../api'
+import './AuthPages.css'
 
 const LoginPage = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { t } = useTranslation();
-  const [authError, setAuthError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const { t } = useTranslation()
+  const [authError, setAuthError] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   const LoginSchema = Yup.object().shape({
     username: Yup.string()
@@ -22,7 +22,7 @@ const LoginPage = () => {
       .required(t('errors.required')),
     password: Yup.string()
       .required(t('errors.required')),
-  });
+  })
 
   const formik = useFormik({
     initialValues: {
@@ -31,34 +31,34 @@ const LoginPage = () => {
     },
     validationSchema: LoginSchema,
     onSubmit: async (values) => {
-      setAuthError(null);
-      setLoading(true);
+      setAuthError(null)
+      setLoading(true)
 
       try {
-        const response = await loginUser(values);
-        const { token, username } = response.data;
+        const response = await loginUser(values)
+        const { token, username } = response.data
 
         if (!token || !username) {
-          throw new Error('Invalid response data');
+          throw new Error('Invalid response data')
         }
 
-        dispatch(login({ token, username }));
-        localStorage.setItem('token', token);
-        localStorage.setItem('username', username);
+        dispatch(login({ token, username }))
+        localStorage.setItem('token', token)
+        localStorage.setItem('username', username)
 
-        navigate('/');
+        navigate('/')
       } catch (err) {
-        console.error('Login error:', err);
+        console.error('Login error:', err)
         if (err.response?.status === 401) {
-          setAuthError('Неверные имя пользователя или пароль');
+          setAuthError('Неверные имя пользователя или пароль')
         } else {
-          setAuthError(t('errors.network') || 'Ошибка сети или сервера. Попробуйте позже.');
+          setAuthError(t('errors.network') || 'Ошибка сети или сервера. Попробуйте позже.')
         }
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
     },
-  });
+  })
 
   return (
     <div className="auth-container">
@@ -125,7 +125,7 @@ const LoginPage = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default LoginPage;
+export default LoginPage
