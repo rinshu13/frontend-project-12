@@ -10,9 +10,10 @@ import './Components.css';
 
 const RenameChannelSchema = Yup.object().shape({
   name: Yup.string()
-    .min(3, 'Имя не короче 3 символов')
-    .max(20, 'Имя не длиннее 20 символов')
-    .required('Имя канала обязательно'),
+    .trim()
+    .min(3, 'От 3 до 20 символов')
+    .max(20, 'От 3 до 20 символов')
+    .required('Обязательное поле'),
 });
 
 const RenameChannelModal = ({ channel, isOpen, onClose }) => {
@@ -20,82 +21,131 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    if (isOpen && inputRef.current && channel) {
+    if (isOpen && inputRef.current) {
       inputRef.current.focus();
       inputRef.current.select();
     }
-  }, [isOpen, channel]);
+  }, [isOpen]);
 
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: { name: channel?.name || '' },
     validationSchema: RenameChannelSchema,
+    validateOnChange: false,
+    validateOnBlur: false,
     onSubmit: async (values, { setSubmitting }) => {
-      if (leoProfanity.check(values.name)) {
-        formik.setFieldError('name', t('modal.renameErrorProfanity'));
+      const trimmedName = values.name.trim();
+
+      if (!trimmedName) {
         setSubmitting(false);
         return;
       }
 
-      try {
-        // Только REST-запрос на сервер — сервер сохранит новое имя
-        await renameChannel(channel.id, values.name.trim());
+      const censoredName = leoProfanity.clean(trimmedName);
 
-        // УДАЛЕНО: локальное обновление Redux — оно не нужно для теста с reload
-        // УДАЛЕНО: leaveChannel/joinChannel — они не нужны для rename
+      if (censoredName !== trimmedName) {
+        toast.warning(t('toast.warning.channelNameCensored') || 'Название канала было отцензурировано');
+      }
+
+      try {
+        await renameChannel(channel.id, censoredName);
 
         toast.success(t('toast.success.renameChannel'));
-        onClose(); // onClose вызовет refetchChannels в App.jsx → каналы обновятся с сервера
+        onClose(); // В App.jsx вызовет refetchChannels → список обновится
       } catch (error) {
         console.error('Rename error:', error);
-        if (error.response?.status === 409) {
-          formik.setFieldError('name', t('modal.renameErrorUnique'));
-        } else {
-          formik.setFieldError('name', t('modal.renameError'));
-        }
-      } finally {
         setSubmitting(false);
+
+        if (error.response?.status === 409) {
+          formik.setFieldError('name', t('modal.renameErrorUnique') || 'Имя должно быть уникальным');
+          toast.error(t('modal.renameErrorUnique'));
+        } else {
+          formik.setFieldError('name', t('modal.renameError') || 'Ошибка сети');
+          toast.error(t('toast.error.renameChannel'));
+        }
       }
     },
   });
 
+  // Ручная валидация перед отправкой — обязательно для прохождения тестов с Enter
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    formik.setTouched({ name: true });
+    formik.validateForm().then((errors) => {
+      if (Object.keys(errors).length === 0) {
+        formik.handleSubmit();
+      } else {
+        formik.setErrors(errors);
+      }
+    });
+  };
+
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget && !formik.isSubmitting) {
+      onClose();
+    }
+  };
+
   if (!isOpen || !channel) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
-        <form onSubmit={formik.handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <div className="modal-header">
             <h5 className="modal-title">{t('modal.renameTitle')}</h5>
-            <button className="modal-close" onClick={onClose} disabled={formik.isSubmitting}>
+            <button
+              type="button"
+              className="modal-close"
+              onClick={onClose}
+              disabled={formik.isSubmitting}
+              aria-label={t('modal.close')}
+            >
               ×
             </button>
           </div>
-          <div className="modal-form-group">
-            <label className="modal-form-label" htmlFor="rename-channel-name">
-              {t('Имя канала')}
-            </label>
-            <input
-              ref={inputRef}
-              type="text"
-              name="name"
-              id="rename-channel-name"
-              aria-label={t('modal.renameNameLabel')}
-              className={`modal-form-input ${formik.touched.name && formik.errors.name ? 'invalid' : ''}`}
-              value={formik.values.name}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              disabled={formik.isSubmitting}
-            />
-            {formik.touched.name && formik.errors.name && (
-              <div className="modal-invalid-feedback">{formik.errors.name}</div>
-            )}
+
+          <div className="modal-body">
+            <div className="modal-form-group">
+              <label htmlFor="rename-channel-name" className="modal-form-label">
+                Имя канала
+              </label>
+              <input
+                ref={inputRef}
+                id="rename-channel-name"
+                type="text"
+                name="name"
+                aria-label="Имя канала"
+                className={`modal-form-input ${
+                  formik.touched.name && formik.errors.name ? 'invalid' : ''
+                }`}
+                value={formik.values.name}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                disabled={formik.isSubmitting}
+                placeholder="Введите новое имя канала"
+                autoComplete="off"
+              />
+              {formik.touched.name && formik.errors.name && (
+                <div className="modal-invalid-feedback">{formik.errors.name}</div>
+              )}
+            </div>
           </div>
+
           <div className="modal-footer">
-            <button type="button" className="modal-btn modal-btn-secondary" onClick={onClose} disabled={formik.isSubmitting}>
+            <button
+              type="button"
+              className="modal-btn modal-btn-secondary"
+              onClick={onClose}
+              disabled={formik.isSubmitting}
+            >
               {t('modal.renameCancel')}
             </button>
-            <button type="submit" className="modal-btn modal-btn-primary" disabled={formik.isSubmitting}>
+            <button
+              type="submit"
+              className="modal-btn modal-btn-primary"
+              disabled={formik.isSubmitting}
+            >
               {formik.isSubmitting ? t('modal.renameLoading') : t('modal.renameSubmit')}
             </button>
           </div>
