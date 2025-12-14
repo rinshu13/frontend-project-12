@@ -1,29 +1,44 @@
 // eslint.config.js
-import stylistic from '@stylistic/eslint-plugin'
+import stylistic from '@stylistic/eslint-plugin';
+import js from '@eslint/js';
 
 export default [
+  js.configs.recommended,
+
   {
     files: ['**/*.js', '**/*.jsx'],
     plugins: {
-      '@stylistic': stylistic,
+      '@stylistic': stylistic
+    },
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        // <<< Добавляем поддержку браузерных глобалов
+        console: 'readonly',
+        localStorage: 'readonly',
+        sessionStorage: 'readonly',
+        document: 'readonly',
+        window: 'readonly',
+        navigator: 'readonly'
+      },
+      parserOptions: {
+        ecmaFeatures: { jsx: true }
+      }
     },
     rules: {
-      // Включаем все рекомендуемые stylistic правила (это покрывает ваши ошибки)
-      ...stylistic.configs['recommended-flat'].rules,
-
-      // Дополнительно усиливаем некоторые, если нужно (по вашим ошибкам)
-      '@stylistic/brace-style': 'error',
       '@stylistic/arrow-parens': 'error',
+      '@stylistic/brace-style': 'error',
       '@stylistic/comma-dangle': ['error', 'always-multiline'],
-      '@stylistic/indent': ['error', 2], // или 4, если у вас отступы по 4
+      '@stylistic/indent': ['error', 2],
       '@stylistic/quotes': ['error', 'single'],
       '@stylistic/no-trailing-spaces': 'error',
       '@stylistic/eol-last': 'error',
       '@stylistic/multiline-ternary': ['error', 'always-multiline'],
       '@stylistic/jsx-one-expression-per-line': 'error',
-
-      // Удаление неиспользуемых переменных (включая React)
       'no-unused-vars': 'error',
-    },
-  },
-]
+      // Если хочешь совсем убрать предупреждения про console в проде — можно отключить
+      // 'no-console': 'warn'
+    }
+  }
+];

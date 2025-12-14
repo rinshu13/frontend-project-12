@@ -46,13 +46,11 @@ const SignupPage = () => {
 
         dispatch(login({ token, username: values.username }))
         navigate('/')
-      } 
-      catch (err) {
+      } catch (err) {
         setSubmitting(false)
         if (err.response?.status === 409) {
           setErrors({ username: 'errors.conflict' })
-        } 
-        else {
+        } else {
           setErrors({ username: 'errors.signup' })
         }
       }
@@ -62,7 +60,9 @@ const SignupPage = () => {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">{t('signup.title')}</h1>
+        <h1 className="auth-title">
+          {t('signup.title')}
+        </h1>
 
         <form onSubmit={formik.handleSubmit} noValidate>
           <div className="form-group">
@@ -143,7 +143,9 @@ const SignupPage = () => {
 
         <p className="text-center mt-4">
           {t('signup.loginLink')}
-          <Link to="/login" className="link">{t('login.title')}</Link>
+          <Link to="/login" className="link">
+            {t('login.title')}
+          </Link>
         </p>
       </div>
     </div>

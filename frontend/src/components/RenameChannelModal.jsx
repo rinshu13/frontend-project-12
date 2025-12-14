@@ -52,12 +52,12 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
         const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]')
 
         const isUnique = !storedChannels.some(
-          (c) => c.name === censoredName && c.id !== channel.id
+          (c) => c.name === censoredName && c.id !== channel.id,
         )
 
         if (isUnique) {
           const updatedChannels = storedChannels.map((c) =>
-            c.id === channel.id ? { ...c, name: censoredName } : c
+            c.id === channel.id ? { ...c, name: censoredName } : c,
           )
           localStorage.setItem('channels', JSON.stringify(updatedChannels))
         } else {
@@ -74,12 +74,12 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
           const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]')
 
           const isUnique = !storedChannels.some(
-            (c) => c.name === censoredName && c.id !== channel.id
+            (c) => c.name === censoredName && c.id !== channel.id,
           )
 
           if (isUnique) {
             const updatedChannels = storedChannels.map((c) =>
-              c.id === channel.id ? { ...c, name: censoredName } : c
+              c.id === channel.id ? { ...c, name: censoredName } : c,
             )
             localStorage.setItem('channels', JSON.stringify(updatedChannels))
 
@@ -125,7 +125,9 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
       <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmit}>
           <div className="modal-header">
-            <h5 className="modal-title">{t('modal.renameTitle')}</h5>
+            <h5 className="modal-title">
+              {t('modal.renameTitle')}
+            </h5>
             <button
               type="button"
               className="modal-close"
@@ -159,7 +161,9 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
                 autoComplete="off"
               />
               {formik.touched.name && formik.errors.name && (
-                <div className="modal-invalid-feedback">{formik.errors.name}</div>
+                <div className="modal-invalid-feedback">
+                  {formik.errors.name}
+                </div>
               )}
             </div>
           </div>

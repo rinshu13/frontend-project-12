@@ -12,7 +12,7 @@ import './Components.css'
 const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
   const dispatch = useDispatch()
   const { t } = useTranslation()
-  const channels = useSelector(state => state.channels.channels)
+  const channels = useSelector((state) => state.channels.channels)
   const [loading, setLoading] = useState(false)
 
   const handleDelete = async () => {
@@ -61,13 +61,15 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
   return (
     <div className="modal-overlay" style={{ pointerEvents: 'none' }}>
       {}
-      <div 
+      <div
         className="modal-dialog"
         style={{ pointerEvents: 'auto' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
-          <h5 className="modal-title">{t('modal.removeTitle')}</h5>
+          <h5 className="modal-title">
+            {t('modal.removeTitle')}
+          </h5>
           <button
             type="button"
             className="modal-close"
@@ -78,7 +80,9 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
           </button>
         </div>
         <div className="modal-body">
-          <p>{t('modal.removeBody')}</p>
+          <p>
+            {t('modal.removeBody')}
+          </p>
         </div>
         <div className="modal-footer">
           <button

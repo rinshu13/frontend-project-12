@@ -9,7 +9,7 @@ import './Components.css'
 export const Header = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { token } = useSelector(state => state.auth)
+  const { token } = useSelector((state) => state.auth)
   const { t } = useTranslation()
 
   const handleLogout = () => {

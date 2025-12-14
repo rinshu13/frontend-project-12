@@ -12,7 +12,7 @@ const ChatComponent = () => {
   const dispatch = useDispatch()
   const inputRef = useRef(null)
 
-  const { token, username, currentChannelId } = useSelector(state => ({
+  const { token, username, currentChannelId } = useSelector((state) => ({
     token: state.auth.token,
     username: state.auth.username,
     currentChannelId: state.channels.currentChannelId,
@@ -88,12 +88,16 @@ const ChatComponent = () => {
   return (
     <div className="chat-container">
       <div className="chat-messages">
-        {messages.map(msg => (
+        {messages.map((msg) => (
           <div key={msg.id} className="message-card">
             <div className="message-header">
-              <strong>{msg.username}</strong>
+              <strong>
+                {msg.username}
+              </strong>
             </div>
-            <div className="message-body">{msg.text}</div>
+            <div className="message-body">
+              {msg.text}
+            </div>
             <div className="message-footer">
               {new Date(msg.createdAt).toLocaleString()}
             </div>
@@ -121,7 +125,9 @@ const ChatComponent = () => {
           autoFocus
         />
         {touched && messageError && (
-          <div className="modal-invalid-feedback">{messageError}</div>
+          <div className="modal-invalid-feedback">
+            {messageError}
+          </div>
         )}
         <button
           type="submit"

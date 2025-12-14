@@ -62,11 +62,15 @@ const LoginPage = () => {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">Войти</h1>
+        <h1 className="auth-title">
+          Войти
+        </h1>
 
         <form onSubmit={formik.handleSubmit} noValidate>
           <div className="form-group">
-            <label htmlFor="username" className="form-label">Ваш ник</label>
+            <label htmlFor="username" className="form-label">
+              Ваш ник
+            </label>
             <input
               id="username"
               type="text"
@@ -81,12 +85,16 @@ const LoginPage = () => {
               required
             />
             {formik.touched.username && formik.errors.username && (
-              <div className="invalid-feedback">{formik.errors.username}</div>
+              <div className="invalid-feedback">
+                {formik.errors.username}
+              </div>
             )}
           </div>
 
           <div className="form-group">
-            <label htmlFor="password" className="form-label">Пароль</label>
+            <label htmlFor="password" className="form-label">
+              Пароль
+            </label>
             <input
               id="password"
               type="password"
@@ -100,7 +108,9 @@ const LoginPage = () => {
               required
             />
             {formik.touched.password && formik.errors.password && (
-              <div className="invalid-feedback">{formik.errors.password}</div>
+              <div className="invalid-feedback">
+                {formik.errors.password}
+              </div>
             )}
           </div>
 
@@ -120,8 +130,10 @@ const LoginPage = () => {
         </form>
 
         <div className="text-center mt-4">
-          Нет аккаунта? 
-          <Link to="/signup" className="link">Регистрация</Link>
+          Нет аккаунта?
+          <Link to="/signup" className="link">
+            Регистрация
+          </Link>
         </div>
       </div>
     </div>

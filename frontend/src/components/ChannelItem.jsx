@@ -7,7 +7,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
 
   const toggleDropdown = (e) => {
     e.stopPropagation()
-    setIsOpen(prev => !prev)
+    setIsOpen((prev) => !prev)
   }
 
   const handleRename = (e) => {
@@ -36,7 +36,10 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
         onClick={() => onChannelClick(channel.id)}
         aria-current={currentChannelId === channel.id ? 'true' : 'false'}
       >
-        <span className="channel-name">#{channel.name}</span>
+        <span className="channel-name">
+          #
+          {channel.name}
+        </span>
       </button>
 
       {channel.removable && (
@@ -49,7 +52,9 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
           >
             {}
             Управление каналом
-            <span aria-hidden="true" style={{ marginLeft: '5px' }}>⋮</span>
+            <span aria-hidden="true" style={{ marginLeft: '5px' }}>
+              ⋮
+            </span>
           </button>
 
           {isOpen && (

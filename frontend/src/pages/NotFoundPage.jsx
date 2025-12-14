@@ -8,9 +8,15 @@ const NotFoundPage = () => {
   return (
     <div className="auth-container not-found">
       <div>
-        <h1>{t('notfound.title')}</h1>
-        <p>{t('notfound.message')}</p>
-        <Link to="/" className="link">{t('notfound.back')}</Link>
+        <h1>
+          {t('notfound.title')}
+        </h1>
+        <p>
+          {t('notfound.message')}
+        </p>
+        <Link to="/" className="link">
+          {t('notfound.back')}
+        </Link>
       </div>
     </div>
   )

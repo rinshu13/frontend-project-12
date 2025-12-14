@@ -53,12 +53,12 @@ const AddChannelModal = ({ isOpen, onClose }) => {
           const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]')
           newChannelId = Math.max(...storedChannels.map((c) => c.id || 0), 0) + 1
 
-          const localChannel = 
-          {
-            id: newChannelId,
-            name: censoredName,
-            removable: true,
-          }
+          const localChannel =
+            {
+              id: newChannelId,
+              name: censoredName,
+              removable: true,
+            }
 
           if (!storedChannels.some((c) => c.name === censoredName)) {
             storedChannels.push(localChannel)
@@ -73,22 +73,18 @@ const AddChannelModal = ({ isOpen, onClose }) => {
         console.error('Error creating channel:', error)
         setSubmitting(false)
 
-        if (error.response) 
-          {
+        if (error.response) {
           if (error.response.status === 409) {
             setFieldError('name', t('modal.addErrorUnique'))
             toast.error(t('modal.addErrorUnique'))
           } else if (error.response.status === 401) {
             toast.error(t('toast.error.unauthorized'))
-          } 
-          else {
+          } else {
             toast.error(t('toast.error.createChannel'))
           }
-        } 
-        else if (error.request) {
+        } else if (error.request) {
           toast.error(t('toast.error.network'))
-        } 
-        else {
+        } else {
           toast.error(t('toast.error.createChannel'))
         }
       }
@@ -108,8 +104,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
     formik.validateForm().then((errors) => {
       if (Object.keys(errors).length === 0) {
         formik.handleSubmit(e)
-      } 
-      else {
+      } else {
         formik.setErrors(errors)
       }
     })
@@ -122,7 +117,9 @@ const AddChannelModal = ({ isOpen, onClose }) => {
       <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmitWithValidation}>
           <div className="modal-header">
-            <h5 className="modal-title">{t('modal.addTitle')}</h5>
+            <h5 className="modal-title">
+              {t('modal.addTitle')}
+            </h5>
             <button
               type="button"
               className="modal-close"
