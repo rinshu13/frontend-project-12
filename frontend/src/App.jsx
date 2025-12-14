@@ -1,3 +1,4 @@
+// src/App.jsx
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -28,11 +29,11 @@ import RemoveChannelModal from './components/RemoveChannelModal';
 import './App.css';
 import ChannelItem from './components/ChannelItem';
 
-// Инициализация leo-profanity с русским словарем (добавляем распространенные нецензурные слова)
+// Инициализация leo-profanity с русским словарем
 leoProfanity.add([
   'блядь', 'блять', 'пизда', 'пиздец', 'пиздеть', 'хуй', 'хуи', 'хуё', 'хуя', 'ебать', 'ебаный', 'еби', 'ебло',
   'нахуй', 'похуй', 'захуй', 'охуеть', 'охуенный', 'пидор', 'пидорас', 'сука', 'суки', 'блядина',
-  'долбоёб', 'уёбище', 'mudak', 'pidor', 'pizda', 'huy', 'ebat', 'blyad' // и транслит
+  'долбоёб', 'уёбище', 'mudak', 'pidor', 'pizda', 'huy', 'ebat', 'blyad'
 ]);
 
 const App = () => {
@@ -42,7 +43,6 @@ const App = () => {
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  // Флаг для защиты от двойного монтирования в Strict Mode
   const hasInitialized = useRef(false);
 
   const { token, username } = useSelector((state) => state.auth);
@@ -56,7 +56,6 @@ const App = () => {
   const [showRenameModal, setShowRenameModal] = useState(null);
   const [showRemoveModal, setShowRemoveModal] = useState(null);
 
-  // Автоскролл к последнему сообщению
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -153,42 +152,55 @@ const App = () => {
       try {
         const response = await getChannels();
 
-        // ПРАВИЛЬНЫЙ ПУТЬ К КАНАЛАМ В HEXLET BACKEND
-        const serverData = response.data?.data || [];
+        let serverChannels = [];
 
-        if (serverData.length > 0) {
-          finalChannels = serverData.map((item) => ({
+        // Формат 1: { data: [{ id, type, attributes: { name, removable } }] }
+        if (Array.isArray(response.data?.data)) {
+          serverChannels = response.data.data.map((item) => ({
             id: item.id,
             name: item.attributes.name,
             removable: item.attributes.removable ?? true,
           }));
+        }
+        // Формат 2: напрямую массив [{ id, name, removable }]
+        else if (Array.isArray(response.data)) {
+          serverChannels = response.data.map((item) => ({
+            id: item.id,
+            name: item.name || item.attributes?.name,
+            removable: item.removable ?? item.attributes?.removable ?? true,
+          }));
+        }
+        // Формат 3: { channels: [...] } (на всякий случай)
+        else if (Array.isArray(response.data?.channels)) {
+          serverChannels = response.data.channels.map((item) => ({
+            id: item.id,
+            name: item.name,
+            removable: item.removable ?? true,
+          }));
+        }
+
+        if (serverChannels.length > 0) {
+          finalChannels = serverChannels;
         } else {
-          // Если сервер вернул пусто — fallback на localStorage
           const stored = loadChannelsFromStorage();
           if (stored.length > 0) {
             finalChannels = stored;
           }
-          // иначе остаются демо-каналы (уже в finalChannels)
         }
       } catch (err) {
         console.error('Failed to fetch channels from server:', err);
         toast.error(t('toast.error.fetchChannels'));
 
-        // Fallback на localStorage при ошибке сети
         const stored = loadChannelsFromStorage();
         if (stored.length > 0) {
           finalChannels = stored;
         }
       }
 
-      // Обновляем Redux
       dispatch(setChannels(finalChannels));
-
-      // Сохраняем актуальные каналы в localStorage
       saveChannelsToStorage(finalChannels);
 
-      // Определяем targetChannelId
-      let targetChannelId = finalChannels[0].id; // по умолчанию первый
+      let targetChannelId = finalChannels[0]?.id || 1;
 
       if (switchToNewChannel && newChannelId && finalChannels.some(c => c.id === newChannelId)) {
         targetChannelId = newChannelId;
@@ -209,7 +221,6 @@ const App = () => {
     ]
   );
 
-  // Инициализация сокета и начальная загрузка — только один раз
   useEffect(() => {
     if (!token) {
       navigate('/login');
@@ -238,7 +249,6 @@ const App = () => {
     };
   }, [token, navigate, dispatch]);
 
-  // Реакция на смену текущего канала
   useEffect(() => {
     if (!currentChannelId || !token) return;
 
