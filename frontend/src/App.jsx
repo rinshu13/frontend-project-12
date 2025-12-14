@@ -153,29 +153,28 @@ const App = () => {
       try {
         const response = await getChannels();
 
-        // ПРАВИЛЬНЫЙ ПУТЬ К КАНАЛАМ В HEXLET
+        // ПРАВИЛЬНЫЙ ПУТЬ К КАНАЛАМ В HEXLET BACKEND
         const serverData = response.data?.data || [];
 
         if (serverData.length > 0) {
-          // Преобразуем из JSON API формата в наш
           finalChannels = serverData.map((item) => ({
             id: item.id,
             name: item.attributes.name,
-            removable: item.attributes.removable ?? true, // по умолчанию true, если не указано
+            removable: item.attributes.removable ?? true,
           }));
         } else {
-          // Если сервер вернул пусто — пробуем localStorage
+          // Если сервер вернул пусто — fallback на localStorage
           const stored = loadChannelsFromStorage();
           if (stored.length > 0) {
             finalChannels = stored;
           }
-          // иначе остаются демо-каналы
+          // иначе остаются демо-каналы (уже в finalChannels)
         }
       } catch (err) {
         console.error('Failed to fetch channels from server:', err);
         toast.error(t('toast.error.fetchChannels'));
 
-        // Fallback только на localStorage (демо — уже в finalChannels)
+        // Fallback на localStorage при ошибке сети
         const stored = loadChannelsFromStorage();
         if (stored.length > 0) {
           finalChannels = stored;
@@ -185,7 +184,7 @@ const App = () => {
       // Обновляем Redux
       dispatch(setChannels(finalChannels));
 
-      // Сохраняем в localStorage для оффлайн/reload
+      // Сохраняем актуальные каналы в localStorage
       saveChannelsToStorage(finalChannels);
 
       // Определяем targetChannelId
@@ -199,10 +198,6 @@ const App = () => {
 
       dispatch(setCurrentChannelId(targetChannelId));
       await loadChannelData(targetChannelId);
-
-      // joinChannel только если сокет подключён
-      // Лучше перенести joinChannel в useEffect по currentChannelId (у вас уже есть)
-      // или проверить socket.connected
     },
     [
       dispatch,
@@ -326,11 +321,11 @@ const App = () => {
     toast.info(t('toast.info.logout'));
   };
 
-  const closeModalsAndRefresh = async () => {
+  const closeModalsAndRefresh = async (newChannelId = null) => {
     setShowAddModal(false);
     setShowRenameModal(null);
     setShowRemoveModal(null);
-    await refetchChannels();
+    await refetchChannels({ switchToNewChannel: !!newChannelId, newChannelId });
   };
 
   if (!token) return null;
@@ -423,14 +418,14 @@ const App = () => {
         <RenameChannelModal
           channel={channels.find((c) => c.id === showRenameModal)}
           isOpen={true}
-          onClose={closeModalsAndRefresh}
+          onClose={() => closeModalsAndRefresh()}
         />
       )}
       {showRemoveModal && (
         <RemoveChannelModal
           channelId={showRemoveModal}
           isOpen={true}
-          onClose={closeModalsAndRefresh}
+          onClose={() => closeModalsAndRefresh()}
         />
       )}
     </div>
