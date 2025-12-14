@@ -45,12 +45,7 @@ export const deleteChannel = async (channelId) => {
 
 // PATCH /channels/:id для переименования канала (ИЗМЕНЕНО С PUT НА PATCH)
 export const renameChannel = async (channelId, name) => {
-  return api.patch(`/channels/${channelId}`, {
-    data: {
-      type: 'channels',
-      attributes: { name },
-    },
-  });
+  return api.patch(`/channels/${channelId}`, { name });
 };
 
 // Логин пользователя
