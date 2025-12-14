@@ -58,7 +58,9 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
+  // Правильный обработчик для overlay
   const handleOverlayClick = (e) => {
+    // Закрываем только если кликнули строго по фону (overlay), а не по содержимому
     if (e.target === e.currentTarget) {
       onClose();
     }
@@ -66,7 +68,7 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
 
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog">
         <div className="modal-header">
           <h5 className="modal-title">{t('modal.removeTitle')}</h5>
           <button
@@ -84,6 +86,7 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
         </div>
         <div className="modal-footer">
           <button
+            type="button"
             className="modal-btn modal-btn-secondary"
             onClick={onClose}
             disabled={loading}
@@ -91,6 +94,7 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
             {t('modal.removeCancel')}
           </button>
           <button
+            type="button"
             className="modal-btn modal-btn-danger"
             onClick={handleDelete}
             disabled={loading}
