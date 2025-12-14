@@ -1,3 +1,4 @@
+// src/socket.js
 import { io } from 'socket.io-client';
 import { store } from './store';
 import { addMessage } from './features/messages/messagesSlice';
