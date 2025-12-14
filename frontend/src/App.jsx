@@ -357,10 +357,7 @@ const App = () => {
     setShowAddModal(false);
     setShowRenameModal(null);
     setShowRemoveModal(null);
-    await refetchChannels({
-    switchToNewChannel: !!newChannelId,
-    newChannelId: newChannelId ?? undefined, 
-  });
+    await refetchChannels
   };
 
   if (!token) return null;
@@ -447,20 +444,28 @@ const App = () => {
 
       <AddChannelModal 
         isOpen={showAddModal} 
-        onClose={(newChannelId) => closeModalsAndRefresh(newChannelId)} 
+        onClose={(newChannelId) => {
+          closeModalsAndRefresh();
+          if (newChannelId) {
+            dispatch(setCurrentChannelId(newChannelId));
+            saveCurrentChannelId(newChannelId);
+          }
+        }} 
       />
+
       {showRenameModal && (
         <RenameChannelModal
           channel={channels.find((c) => c.id === showRenameModal)}
           isOpen={true}
-          onClose={() => closeModalsAndRefresh()}
+          onClose={closeModalsAndRefresh}   // ← просто функция
         />
       )}
+
       {showRemoveModal && (
         <RemoveChannelModal
           channelId={showRemoveModal}
           isOpen={true}
-          onClose={() => closeModalsAndRefresh()}
+          onClose={closeModalsAndRefresh}   // ← просто функция
         />
       )}
     </div>
