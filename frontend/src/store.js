@@ -4,11 +4,11 @@ import messagesReducer from './features/messages/messagesSlice'
 import authReducer from './features/auth/authSlice'
 
 export const store = configureStore({
-  reducer: {
-    channels: channelsReducer,
-    messages: messagesReducer,
-    auth: authReducer,
-  },
+    reducer: {
+        channels: channelsReducer,
+        messages: messagesReducer,
+        auth: authReducer,
+    },
 })
 
 // Инициализация auth из localStorage при старте
