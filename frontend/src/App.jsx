@@ -262,20 +262,28 @@ const App = () => {
     });
 
     socket.on('renameChannel', (payload) => {
-      dispatch(setChannels(channels.map((channel) =>
-        channel.id === payload.id ? { ...channel, name: payload.name } : channel
-      )));
+      dispatch(setChannels((prevChannels) => 
+        prevChannels.map((channel) => 
+          channel.id === payload.id ? { ...channel, name: payload.name } : channel
+        )
+      ));
     });
 
     socket.on('removeChannel', (payload) => {
-      dispatch(setChannels(channels.filter((channel) => channel.id !== payload.id)));
+      dispatch((dispatch, getState) => {
+        const state = getState();
+        const prevChannels = state.channels.channels || [];
+        const prevCurrentId = state.channels.currentChannelId;
 
-      // Если удалили текущий канал — переключаемся на general
-      if (currentChannelId === payload.id) {
-        const generalId = channels.find((c) => c.name === 'general')?.id || channels[0]?.id || 1;
-        dispatch(setCurrentChannelId(generalId));
-        saveCurrentChannelId(generalId);
-      }
+        const newChannels = prevChannels.filter((channel) => channel.id !== payload.id);
+        dispatch(setChannels(newChannels));
+
+        if (prevCurrentId === payload.id) {
+          const fallbackId = newChannels.find((c) => c.name === 'general')?.id || newChannels[0]?.id || 1;
+          dispatch(setCurrentChannelId(fallbackId));
+          saveCurrentChannelId(fallbackId);
+        }
+      });
     });
 
     refetchChannels();
