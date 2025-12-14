@@ -58,14 +58,10 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget && !loading) {
-      onClose();
-    }
-  };
+  // Убрали обработчик клика по оверлею — теперь клик по фону НЕ закрывает модалку
 
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
+    <div className="modal-overlay">
       <div className="modal-dialog">
         <div className="modal-header">
           <h5 className="modal-title">{t('modal.removeTitle')}</h5>
