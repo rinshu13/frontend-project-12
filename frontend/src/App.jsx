@@ -269,19 +269,38 @@ const App = () => {
       ));
     });
 
+        socket.on('newChannel', (payload) => {
+      dispatch(setChannels((prev) => [...prev, payload]));
+    });
+
+    socket.on('renameChannel', (payload) => {
+      dispatch(setChannels((prev) => 
+        prev.map((channel) =>
+          channel.id === payload.id ? { ...channel, name: payload.name } : channel
+        )
+      ));
+    });
+
     socket.on('removeChannel', (payload) => {
       dispatch((dispatch, getState) => {
-        const state = getState();
-        const prevChannels = state.channels.channels || [];
-        const prevCurrentId = state.channels.currentChannelId;
+        const { channels: { channels: prevChannels, currentChannelId } } = getState();
 
-        const newChannels = prevChannels.filter((channel) => channel.id !== payload.id);
+        const newChannels = prevChannels.filter((c) => c.id !== payload.id);
         dispatch(setChannels(newChannels));
 
-        if (prevCurrentId === payload.id) {
+        if (currentChannelId === payload.id) {
           const fallbackId = newChannels.find((c) => c.name === 'general')?.id || newChannels[0]?.id || 1;
           dispatch(setCurrentChannelId(fallbackId));
           saveCurrentChannelId(fallbackId);
+        }
+      });
+    });
+
+    socket.on('newMessage', (payload) => {
+      dispatch((dispatch, getState) => {
+        const state = getState();
+        if (payload.channelId === state.channels.currentChannelId) {
+          dispatch(setMessages((prev) => [...prev, payload.message]));
         }
       });
     });
@@ -291,6 +310,7 @@ const App = () => {
     return () => {
       hasInitialized.current = false;
       socket.off('newMessage');
+      socket.off('newChannel');
       socket.off('renameChannel');
       socket.off('removeChannel');
       disconnectSocket();
