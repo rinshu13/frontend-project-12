@@ -1,3 +1,4 @@
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -12,6 +13,7 @@ import {
   connectSocket,
   disconnectSocket,
   joinChannel,
+  leaveChannel,
   emitNewMessage,
 } from './socket'
 import {
