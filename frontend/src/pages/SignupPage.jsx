@@ -1,4 +1,3 @@
-import React from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { useTranslation } from 'react-i18next'
@@ -47,11 +46,13 @@ const SignupPage = () => {
 
         dispatch(login({ token, username: values.username }))
         navigate('/')
-      } catch (err) {
+      } 
+      catch (err) {
         setSubmitting(false)
         if (err.response?.status === 409) {
           setErrors({ username: 'errors.conflict' })
-        } else {
+        } 
+        else {
           setErrors({ username: 'errors.signup' })
         }
       }
@@ -141,7 +142,7 @@ const SignupPage = () => {
         </form>
 
         <p className="text-center mt-4">
-          {t('signup.loginLink')} 
+          {t('signup.loginLink')}
           <Link to="/login" className="link">{t('login.title')}</Link>
         </p>
       </div>
