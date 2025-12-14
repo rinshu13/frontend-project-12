@@ -17,42 +17,44 @@ export const connectSocket = (token) => {
     timeout: 20000,
   });
 
+  // Обработка новых сообщений
   socket.on('newMessage', (payload) => {
-    // payload: { id, body: text, channelId, username }
-    store.dispatch(addMessage(payload));
+    store.dispatch(addMessage(payload.message || payload));
   });
 
+  // Обработка создания нового канала
   socket.on('newChannel', (payload) => {
-    // payload: { id, name, removable }
     const newChannel = {
       id: payload.id,
-      name: payload.name,
-      removable: payload.removable ?? true,
+      name: payload.name || payload.attributes?.name,
+      removable: true,
     };
     const currentChannels = store.getState().channels.channels;
     store.dispatch(setChannels([...currentChannels, newChannel]));
   });
 
+  // Обработка переименования канала — ЭТО САМОЕ ВАЖНОЕ ДЛЯ ТВОЕГО ТЕСТА
   socket.on('renameChannel', (payload) => {
-    // payload: { id, name, removable } — именно так в Hexlet backend
-    const { id, name, removable } = payload;
+    const updatedId = payload.id;
+    const updatedName = payload.name || payload.attributes?.name;
+
     const currentChannels = store.getState().channels.channels;
     const updatedChannels = currentChannels.map((channel) =>
-      channel.id === id ? { ...channel, name, removable: removable ?? true } : channel
+      channel.id === updatedId ? { ...channel, name: updatedName } : channel
     );
     store.dispatch(setChannels(updatedChannels));
   });
 
+  // Обработка удаления канала
   socket.on('removeChannel', (payload) => {
-    // payload: { id }
-    const { id } = payload;
+    const removedId = payload.id;
     const currentChannels = store.getState().channels.channels;
-    const filteredChannels = currentChannels.filter((channel) => channel.id !== id);
+    const filteredChannels = currentChannels.filter((channel) => channel.id !== removedId);
     store.dispatch(setChannels(filteredChannels));
 
-    // Если удалили текущий канал — переключаемся на #general (id = 1)
-    const currentId = store.getState().channels.currentChannelId;
-    if (currentId === id) {
+    // Если удалили текущий канал — переключаемся на general (id = 1)
+    const currentChannelId = store.getState().channels.currentChannelId;
+    if (currentChannelId === removedId) {
       store.dispatch(setCurrentChannelId(1));
     }
   });
@@ -79,6 +81,7 @@ export const disconnectSocket = () => {
   }
 };
 
+// Промисификация emit для надежной отправки
 export const promisifyEmit = (event, data) => {
   return new Promise((resolve, reject) => {
     if (!socket) {
@@ -99,6 +102,7 @@ export const promisifyEmit = (event, data) => {
 export const joinChannel = async (channelId) => {
   try {
     await promisifyEmit('joinChannel', { channelId });
+    console.log('Joined channel:', channelId);
   } catch (error) {
     console.error('Join channel error:', error);
   }
@@ -107,6 +111,7 @@ export const joinChannel = async (channelId) => {
 export const leaveChannel = async (channelId) => {
   try {
     await promisifyEmit('leaveChannel', { channelId });
+    console.log('Left channel:', channelId);
   } catch (error) {
     console.error('Leave channel error:', error);
   }
@@ -115,6 +120,7 @@ export const leaveChannel = async (channelId) => {
 export const emitNewMessage = async (data) => {
   try {
     await promisifyEmit('newMessage', data);
+    console.log('Message emitted:', data);
   } catch (error) {
     console.error('Emit message error:', error);
     throw error;
