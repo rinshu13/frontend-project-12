@@ -357,7 +357,10 @@ const App = () => {
     setShowAddModal(false);
     setShowRenameModal(null);
     setShowRemoveModal(null);
-    await refetchChannels({ switchToNewChannel: !!newChannelId, newChannelId });
+    await refetchChannels({
+    switchToNewChannel: !!newChannelId,
+    newChannelId: newChannelId ?? undefined, 
+  });
   };
 
   if (!token) return null;
