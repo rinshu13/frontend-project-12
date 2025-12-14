@@ -262,47 +262,20 @@ const App = () => {
     });
 
     socket.on('renameChannel', (payload) => {
-      dispatch(setChannels((prevChannels) => 
-        prevChannels.map((channel) => 
-          channel.id === payload.id ? { ...channel, name: payload.name } : channel
-        )
-      ));
-    });
-
-        socket.on('newChannel', (payload) => {
-      dispatch(setChannels((prev) => [...prev, payload]));
-    });
-
-    socket.on('renameChannel', (payload) => {
-      dispatch(setChannels((prev) => 
-        prev.map((channel) =>
-          channel.id === payload.id ? { ...channel, name: payload.name } : channel
-        )
-      ));
+      dispatch(setChannels(channels.map((channel) =>
+        channel.id === payload.id ? { ...channel, name: payload.name } : channel
+      )));
     });
 
     socket.on('removeChannel', (payload) => {
-      dispatch((dispatch, getState) => {
-        const { channels: { channels: prevChannels, currentChannelId } } = getState();
+      dispatch(setChannels(channels.filter((channel) => channel.id !== payload.id)));
 
-        const newChannels = prevChannels.filter((c) => c.id !== payload.id);
-        dispatch(setChannels(newChannels));
-
-        if (currentChannelId === payload.id) {
-          const fallbackId = newChannels.find((c) => c.name === 'general')?.id || newChannels[0]?.id || 1;
-          dispatch(setCurrentChannelId(fallbackId));
-          saveCurrentChannelId(fallbackId);
-        }
-      });
-    });
-
-    socket.on('newMessage', (payload) => {
-      dispatch((dispatch, getState) => {
-        const state = getState();
-        if (payload.channelId === state.channels.currentChannelId) {
-          dispatch(setMessages((prev) => [...prev, payload.message]));
-        }
-      });
+      // Если удалили текущий канал — переключаемся на general
+      if (currentChannelId === payload.id) {
+        const generalId = channels.find((c) => c.name === 'general')?.id || channels[0]?.id || 1;
+        dispatch(setCurrentChannelId(generalId));
+        saveCurrentChannelId(generalId);
+      }
     });
 
     refetchChannels();
@@ -310,7 +283,6 @@ const App = () => {
     return () => {
       hasInitialized.current = false;
       socket.off('newMessage');
-      socket.off('newChannel');
       socket.off('renameChannel');
       socket.off('removeChannel');
       disconnectSocket();
