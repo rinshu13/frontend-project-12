@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -13,7 +13,6 @@ import {
   connectSocket,
   disconnectSocket,
   joinChannel,
-  leaveChannel,
   emitNewMessage,
 } from './socket'
 import {
@@ -28,11 +27,10 @@ import RemoveChannelModal from './components/RemoveChannelModal'
 import './App.css'
 import ChannelItem from './components/ChannelItem'
 
-// Инициализация leo-profanity с русским словарем
 leoProfanity.add([
   'блядь', 'блять', 'пизда', 'пиздец', 'пиздеть', 'хуй', 'хуи', 'хуё', 'хуя', 'ебать', 'ебаный', 'еби', 'ебло',
   'нахуй', 'похуй', 'захуй', 'охуеть', 'охуенный', 'пидор', 'пидорас', 'сука', 'суки', 'блядина',
-  'долбоёб', 'уёбище', 'mudak', 'pidor', 'pizda', 'huy', 'ebat', 'blyad'
+  'долбоёб', 'уёбище', 'mudak', 'pidor', 'pizda', 'huy', 'ebat', 'blyad',
 ])
 
 const App = () => {
@@ -44,9 +42,9 @@ const App = () => {
 
   const hasInitialized = useRef(false)
 
-  const { token, username } = useSelector((state) => state.auth)
-  const { channels, currentChannelId } = useSelector((state) => state.channels)
-  const messages = useSelector((state) => state.messages.messages) || []
+  const { token, username } = useSelector(state => state.auth)
+  const { channels, currentChannelId } = useSelector(state => state.channels)
+  const messages = useSelector(state => state.messages.messages) || []
 
   const [messageText, setMessageText] = useState('')
   const [messageError, setMessageError] = useState(null)
@@ -145,7 +143,7 @@ const App = () => {
 
       dispatch(setMessages(msgs))
     },
-    [channels, dispatch, getDemoMessages, loadMessagesFromStorage, saveMessagesToStorage]
+    [channels, dispatch, getDemoMessages, loadMessagesFromStorage, saveMessagesToStorage,]
   )
 
   const refetchChannels = useCallback(
@@ -238,7 +236,7 @@ const App = () => {
       saveChannelsToStorage,
       loadChannelData,
       t,
-    ]
+    ],
   )
 
   useEffect(() => {
@@ -254,14 +252,14 @@ const App = () => {
 
     const socket = connectSocket(token)
 
-    socket.on('newMessage', (payload) => {
+    socket.on('newMessage', payload => {
       if (payload.channelId === currentChannelId) {
         dispatch(setMessages([...messages, payload.message]))
       }
     })
 
-    socket.on('renameChannel', (payload) => {
-      dispatch(setChannels(channels.map((channel) =>
+    socket.on('renameChannel', payload => {
+      dispatch(setChannels(channels.map(channel =>
         channel.id === payload.id ? { ...channel, name: payload.name } : channel
       )))
     })
@@ -271,7 +269,7 @@ const App = () => {
 
       // Если удалили текущий канал — переключаемся на general
       if (currentChannelId === payload.id) {
-        const generalId = channels.find((c) => c.name === 'general')?.id || channels[0]?.id || 1
+        const generalId = channels.find(c => c.name === 'general')?.id || channels[0]?.id || 1
         dispatch(setCurrentChannelId(generalId))
         saveCurrentChannelId(generalId)
       }
@@ -321,7 +319,7 @@ const App = () => {
 
   const isMessageValid = () => messageText.trim() && !messageError && currentChannelId
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault()
 
     const rawText = messageText.trim()
