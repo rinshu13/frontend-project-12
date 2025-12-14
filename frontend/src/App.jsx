@@ -157,8 +157,8 @@ const App = () => {
 
       if (finalChannels.length === 0) {
         finalChannels = [
-          { id: 1, name: 'general'},
-          { id: 2, name: 'random'},
+          { id: 1, name: 'general', removable: true },
+          { id: 2, name: 'random', removable: true },
         ];
         saveChannelsToStorage(finalChannels);
       }
