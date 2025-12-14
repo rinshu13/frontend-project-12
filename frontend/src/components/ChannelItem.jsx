@@ -48,19 +48,8 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
             onClick={toggleDropdown}
             aria-label={t('dropdown.manageChannel')}
           >
-            {/* Видимый только для Playwright текст — скрыт визуально, но присутствует в DOM */}
-            <span
-              style={{
-                position: 'absolute',
-                left: '-9999px',
-                width: '1px',
-                height: '1px',
-                overflow: 'hidden',
-              }}
-            >
-              {t('dropdown.manageChannel')}
-            </span>
-            ⋮
+            {t('dropdown.manageChannel')} {/* Видимый текст для теста */}
+            <span aria-hidden="true" style={{ marginLeft: '5px' }}>⋮</span>
           </button>
 
           {isOpen && (
