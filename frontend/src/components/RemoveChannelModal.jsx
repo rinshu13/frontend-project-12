@@ -21,30 +21,27 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
     try {
       await deleteChannel(channelId);
 
-      // Если запрос прошёл — выполняем удаление
+      // Выполняем удаление локально
       performDelete();
     } catch (error) {
       console.error('Delete channel error:', error);
 
-      // === КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: демо-режим ===
-      // Если нет ответа сервера или ошибка запроса — всё равно удаляем локально
+      // Демо-режим: если нет сервера — всё равно удаляем локально
       if (!error.response || error.request) {
         performDelete();
       } else {
         toast.error(t('toast.error.deleteChannel'));
       }
-      // =========================================
     } finally {
       setLoading(false);
     }
   };
 
-  // Выделили общую логику удаления в отдельную функцию
   const performDelete = () => {
     const updatedChannels = channels.filter((c) => c.id !== channelId);
     dispatch(setChannels(updatedChannels));
 
-    // Обновляем localStorage — важно для refetchChannels в App.jsx
+    // Обновляем localStorage, чтобы refetchChannels в App.jsx увидел изменения
     localStorage.setItem('channels', JSON.stringify(updatedChannels));
 
     leaveChannel(channelId);
@@ -53,15 +50,13 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
     dispatch(setCurrentChannelId(generalId));
     joinChannel(generalId);
 
-    // Загружаем сообщения для general (в тестах они придут из localStorage через loadChannelData)
-    // Не ждём ответа API — в демо-режиме он упадёт, но App.jsx потом подгрузит из storage
+    // Загружаем сообщения для general
     fetchMessagesByChannel(generalId)
       .then((response) => {
         dispatch(setMessages(response.data?.messages || []));
       })
       .catch(() => {
-        // Если API упал — dispatch пустого массива или оставим как есть
-        // App.jsx при смене канала сам подгрузит из localStorage
+        // В демо-режиме App.jsx сам подгрузит из localStorage при смене канала
         dispatch(setMessages([]));
       });
 
@@ -69,14 +64,29 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
     onClose();
   };
 
+  // === ИСПРАВЛЕНИЕ: правильная обработка клика по overlay ===
+  const handleOverlayClick = (e) => {
+    // Закрываем только если клик именно по overlay, а не по внутреннему окну
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+  // ==========================================================
+
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h5 className="modal-title">{t('modal.removeTitle')}</h5>
-          <button className="modal-close" onClick={onClose} disabled={loading}>
+          <button
+            type="button"
+            className="modal-close"
+            onClick={onClose}
+            disabled={loading}
+            aria-label={t('modal.close')}
+          >
             ×
           </button>
         </div>
@@ -84,10 +94,18 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
           <p>{t('modal.removeBody')}</p>
         </div>
         <div className="modal-footer">
-          <button className="modal-btn modal-btn-secondary" onClick={onClose} disabled={loading}>
+          <button
+            className="modal-btn modal-btn-secondary"
+            onClick={onClose}
+            disabled={loading}
+          >
             {t('modal.removeCancel')}
           </button>
-          <button className="modal-btn modal-btn-danger" onClick={handleDelete} disabled={loading}>
+          <button
+            className="modal-btn modal-btn-danger"
+            onClick={handleDelete}
+            disabled={loading}
+          >
             {loading ? t('modal.removeLoading') : t('modal.removeSubmit')}
           </button>
         </div>
