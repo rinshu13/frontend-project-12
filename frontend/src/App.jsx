@@ -444,28 +444,20 @@ const App = () => {
 
       <AddChannelModal 
         isOpen={showAddModal} 
-        onClose={(newChannelId) => {
-          closeModalsAndRefresh();
-          if (newChannelId) {
-            dispatch(setCurrentChannelId(newChannelId));
-            saveCurrentChannelId(newChannelId);
-          }
-        }} 
+        onClose={(newChannelId) => closeModalsAndRefresh(newChannelId)} 
       />
-
       {showRenameModal && (
         <RenameChannelModal
           channel={channels.find((c) => c.id === showRenameModal)}
           isOpen={true}
-          onClose={closeModalsAndRefresh}   // ← просто функция
+          onClose={() => closeModalsAndRefresh()}
         />
       )}
-
       {showRemoveModal && (
         <RemoveChannelModal
           channelId={showRemoveModal}
           isOpen={true}
-          onClose={closeModalsAndRefresh}   // ← просто функция
+          onClose={() => closeModalsAndRefresh()}
         />
       )}
     </div>
