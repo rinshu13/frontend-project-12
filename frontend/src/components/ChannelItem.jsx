@@ -1,9 +1,7 @@
 // src/components/ChannelItem.jsx
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRemove }) => {
-  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleDropdown = (e) => {
@@ -29,7 +27,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
     <div
       role="listitem"
       className={`channel-item ${currentChannelId === channel.id ? 'active' : ''}`}
-      onClick={closeDropdown} // Закрываем меню при клике на элемент канала
+      onClick={closeDropdown}
     >
       <button
         type="button"
@@ -46,9 +44,9 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
             type="button"
             className="dropdown-toggle border-0 bg-transparent"
             onClick={toggleDropdown}
-            aria-label={t('dropdown.manageChannel')}
+            aria-label="Управление каналом"
           >
-            {t('dropdown.manageChannel')} {/* Видимый текст для теста */}
+            Управление каналом
             <span aria-hidden="true" style={{ marginLeft: '5px' }}>⋮</span>
           </button>
 
@@ -66,7 +64,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
                 minWidth: '160px',
                 padding: '8px 0',
               }}
-              onClick={(e) => e.stopPropagation()} // Не закрываем при клике внутри меню
+              onClick={(e) => e.stopPropagation()}
             >
               <button
                 type="button"
@@ -74,7 +72,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
                 onClick={handleRename}
                 style={{ cursor: 'pointer' }}
               >
-                {t('dropdown.rename')}
+                Переименовать
               </button>
               <button
                 type="button"
@@ -82,7 +80,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
                 onClick={handleRemove}
                 style={{ cursor: 'pointer' }}
               >
-                {t('dropdown.remove')}
+                Удалить
               </button>
             </div>
           )}
