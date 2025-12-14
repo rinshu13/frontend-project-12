@@ -1,6 +1,7 @@
 import { io } from 'socket.io-client';
 import { store } from './store';
 import { addMessage } from './features/messages/messagesSlice';
+import { setChannels, setCurrentChannelId } from './features/channels/channelsSlice';
 
 let socket = null;
 
@@ -11,12 +12,50 @@ export const connectSocket = (token) => {
 
   socket = io(SOCKET_URL, {
     auth: { token },
-    transports: ['websocket', 'polling'],  // Лучше с fallback
+    transports: ['websocket', 'polling'],
     timeout: 20000,
   });
 
+  // Обработка новых сообщений
   socket.on('newMessage', (payload) => {
     store.dispatch(addMessage(payload.message || payload));
+  });
+
+  // Обработка создания нового канала
+  socket.on('newChannel', (payload) => {
+    const newChannel = {
+      id: payload.id,
+      name: payload.name || payload.attributes?.name,
+      removable: true,
+    };
+    const currentChannels = store.getState().channels.channels;
+    store.dispatch(setChannels([...currentChannels, newChannel]));
+  });
+
+  // Обработка переименования канала — ЭТО САМОЕ ВАЖНОЕ ДЛЯ ТВОЕГО ТЕСТА
+  socket.on('renameChannel', (payload) => {
+    const updatedId = payload.id;
+    const updatedName = payload.name || payload.attributes?.name;
+
+    const currentChannels = store.getState().channels.channels;
+    const updatedChannels = currentChannels.map((channel) =>
+      channel.id === updatedId ? { ...channel, name: updatedName } : channel
+    );
+    store.dispatch(setChannels(updatedChannels));
+  });
+
+  // Обработка удаления канала
+  socket.on('removeChannel', (payload) => {
+    const removedId = payload.id;
+    const currentChannels = store.getState().channels.channels;
+    const filteredChannels = currentChannels.filter((channel) => channel.id !== removedId);
+    store.dispatch(setChannels(filteredChannels));
+
+    // Если удалили текущий канал — переключаемся на general (id = 1)
+    const currentChannelId = store.getState().channels.currentChannelId;
+    if (currentChannelId === removedId) {
+      store.dispatch(setCurrentChannelId(1));
+    }
   });
 
   socket.on('connect_error', (err) => {
@@ -41,7 +80,7 @@ export const disconnectSocket = () => {
   }
 };
 
-// Промисификация emit
+// Промисификация emit для надежной отправки
 export const promisifyEmit = (event, data) => {
   return new Promise((resolve, reject) => {
     if (!socket) {
@@ -59,7 +98,6 @@ export const promisifyEmit = (event, data) => {
   });
 };
 
-// Join channel
 export const joinChannel = async (channelId) => {
   try {
     await promisifyEmit('joinChannel', { channelId });
@@ -69,7 +107,6 @@ export const joinChannel = async (channelId) => {
   }
 };
 
-// Leave channel
 export const leaveChannel = async (channelId) => {
   try {
     await promisifyEmit('leaveChannel', { channelId });
@@ -79,7 +116,6 @@ export const leaveChannel = async (channelId) => {
   }
 };
 
-// Emit newMessage
 export const emitNewMessage = async (data) => {
   try {
     await promisifyEmit('newMessage', data);
