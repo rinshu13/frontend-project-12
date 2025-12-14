@@ -42,9 +42,9 @@ const App = () => {
 
   const hasInitialized = useRef(false)
 
-  const { token, username } = useSelector((state) => state.auth)
-  const { channels, currentChannelId } = useSelector((state) => state.channels)
-  const messages = useSelector((state) => state.messages.messages) || []
+  const { token, username } = useSelector(state => state.auth)
+  const { channels, currentChannelId } = useSelector(state => state.channels)
+  const messages = useSelector(state => state.messages.messages) || []
 
   const [messageText, setMessageText] = useState('')
   const [messageError, setMessageError] = useState(null)
@@ -75,7 +75,8 @@ const App = () => {
     try {
       const parsed = JSON.parse(stored)
       return Array.isArray(parsed) ? parsed : []
-    } catch {
+    }
+    catch {
       return []
     }
   }, [])
@@ -107,7 +108,8 @@ const App = () => {
     try {
       const parsed = JSON.parse(stored)
       return Array.isArray(parsed) ? parsed : []
-    } catch {
+    } 
+    catch {
       return []
     }
   }, [])
@@ -143,7 +145,7 @@ const App = () => {
 
       dispatch(setMessages(msgs))
     },
-    [channels, dispatch, getDemoMessages, loadMessagesFromStorage, saveMessagesToStorage],
+    [channels, dispatch, getDemoMessages, loadMessagesFromStorage, saveMessagesToStorage,]
   )
 
   const refetchChannels = useCallback(
@@ -214,12 +216,14 @@ const App = () => {
       let targetChannelId = finalChannels[0]?.id || 1
 
       const savedChannelId = loadCurrentChannelId()
-      if (savedChannelId && finalChannels.some((c) => c.id === savedChannelId)) {
+      if (savedChannelId && finalChannels.some(c => c.id === savedChannelId)) {
         targetChannelId = savedChannelId
-      } else if (switchToNewChannel && newChannelId && finalChannels.some((c) => c.id === newChannelId)) {
+      }
+      else if (switchToNewChannel && newChannelId && finalChannels.some(c => c.id === newChannelId)) {
         targetChannelId = newChannelId
         saveCurrentChannelId(newChannelId)
-      } else if (currentChannelId && finalChannels.some((c) => c.id === currentChannelId)) {
+      }
+      else if (currentChannelId && finalChannels.some(c => c.id === currentChannelId)) {
         targetChannelId = currentChannelId
       }
 
@@ -250,15 +254,15 @@ const App = () => {
 
     const socket = connectSocket(token)
 
-    socket.on('newMessage', (payload) => {
+    socket.on('newMessage', payload => {
       if (payload.channelId === currentChannelId) {
         dispatch(setMessages([...messages, payload.message]))
       }
     })
 
-    socket.on('renameChannel', (payload) => {
-      dispatch(setChannels(channels.map((channel) =>
-        channel.id === payload.id ? { ...channel, name: payload.name } : channel,
+    socket.on('renameChannel', payload => {
+      dispatch(setChannels(channels.map(channel =>
+        channel.id === payload.id ? { ...channel, name: payload.name } : channel
       )))
     })
 
@@ -267,7 +271,7 @@ const App = () => {
 
       // Если удалили текущий канал — переключаемся на general
       if (currentChannelId === payload.id) {
-        const generalId = channels.find((c) => c.name === 'general')?.id || channels[0]?.id || 1
+        const generalId = channels.find(c => c.name === 'general')?.id || channels[0]?.id || 1
         dispatch(setCurrentChannelId(generalId))
         saveCurrentChannelId(generalId)
       }
@@ -317,7 +321,7 @@ const App = () => {
 
   const isMessageValid = () => messageText.trim() && !messageError && currentChannelId
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault()
 
     const rawText = messageText.trim()
@@ -342,8 +346,8 @@ const App = () => {
 
       await emitNewMessage({
         channelId: currentChannelId,
-        message: {
-          text: censoredText,
+        message: { 
+          text: censoredText, 
           username,
           createdAt: new Date().toISOString(),
         },
@@ -372,9 +376,9 @@ const App = () => {
     setShowRenameModal(null)
     setShowRemoveModal(null)
     await refetchChannels({
-      switchToNewChannel: !!newChannelId,
-      newChannelId: newChannelId ?? undefined,
-    })
+    switchToNewChannel: !!newChannelId,
+    newChannelId: newChannelId ?? undefined, 
+  })
   }
 
   if (!token) return null
@@ -384,9 +388,7 @@ const App = () => {
       <div className="app-body d-flex flex-grow-1">
         <aside className="channels-sidebar">
           <div className="channels-header">
-            <h5>
-              {t('app.channelsTitle')}
-            </h5>
+            <h5>{t('app.channelsTitle')}</h5>
             <button className="btn btn-success w-100 mb-2" onClick={() => setShowAddModal(true)}>
               {t('app.addChannel')}
             </button>
@@ -396,62 +398,46 @@ const App = () => {
           </div>
 
           <div className="channels-list" role="list">
-            {channels?.length > 0
-              ? (
-                channels.map((channel) => (
-                  <ChannelItem
-                    key={channel.id}
-                    channel={channel}
-                    currentChannelId={currentChannelId}
-                    onChannelClick={handleChannelClick}
-                    onRename={setShowRenameModal}
-                    onRemove={setShowRemoveModal}
-                  />
-                ))
-              )
-              : (
-                <p className="text-center text-muted">
-                  {t('app.loadingChannels')}
-                </p>
-              )}
+            {channels?.length > 0 ? (
+              channels.map((channel) => (
+                <ChannelItem
+                  key={channel.id}
+                  channel={channel}
+                  currentChannelId={currentChannelId}
+                  onChannelClick={handleChannelClick}
+                  onRename={setShowRenameModal}
+                  onRemove={setShowRemoveModal}
+                />
+              ))
+            ) : (
+              <p className="text-center text-muted">{t('app.loadingChannels')}</p>
+            )}
           </div>
         </aside>
 
         <section className="chat-section d-flex flex-column">
           <div className="messages-area">
-            {messages.length > 0
-              ? (
-                messages.map((msg) => (
-                  <div key={msg.id} className="message-card">
-                    <div className="message-header">
-                      <strong>
-                        {msg.username}
-                      </strong>
-                    </div>
-                    <div className="message-body">
-                      {msg.text}
-                    </div>
-                    <div className="message-footer">
-                      {new Date(msg.createdAt).toLocaleString()}
-                    </div>
+            {messages.length > 0 ? (
+              messages.map((msg) => (
+                <div key={msg.id} className="message-card">
+                  <div className="message-header">
+                    <strong>{msg.username}</strong>
                   </div>
-                ))
-              )
-              : (
-                <p className="text-center text-muted">
-                  {t('app.noMessages')}
-                </p>
-              )}
+                  <div className="message-body">{msg.text}</div>
+                  <div className="message-footer">
+                    {new Date(msg.createdAt).toLocaleString()}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-muted">{t('app.noMessages')}</p>
+            )}
             <div ref={messagesEndRef} />
           </div>
 
           <form onSubmit={handleSubmit} className="message-form" noValidate>
-            {submitError && <div className="alert alert-danger">
-              {submitError}
-            </div>}
-            {messageError && <div className="alert alert-warning">
-              {messageError}
-            </div>}
+            {submitError && <div className="alert alert-danger">{submitError}</div>}
+            {messageError && <div className="alert alert-warning">{messageError}</div>}
 
             <div className="input-group">
               <input
@@ -477,9 +463,9 @@ const App = () => {
         </section>
       </div>
 
-      <AddChannelModal
-        isOpen={showAddModal}
-        onClose={(newChannelId) => closeModalsAndRefresh(newChannelId)}
+      <AddChannelModal 
+        isOpen={showAddModal} 
+        onClose={(newChannelId) => closeModalsAndRefresh(newChannelId)} 
       />
       {showRenameModal && (
         <RenameChannelModal
