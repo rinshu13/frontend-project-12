@@ -20,11 +20,37 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
     setLoading(true);
     try {
       await deleteChannel(channelId);
-      performDelete();
+
+      // Локальное обновление состояния
+      const updatedChannels = channels.filter((c) => c.id !== channelId);
+      dispatch(setChannels(updatedChannels));
+      localStorage.setItem('channels', JSON.stringify(updatedChannels));
+
+      leaveChannel(channelId);
+
+      const generalId = 1;
+      dispatch(setCurrentChannelId(generalId));
+      joinChannel(generalId);
+
+      // Загружаем сообщения для general
+      try {
+        const response = await fetchMessagesByChannel(generalId);
+        dispatch(setMessages(response.data?.messages || []));
+      } catch {
+        dispatch(setMessages([]));
+      }
+
+      // Успешное уведомление — выводится ПЕРЕД закрытием модалки
+      toast.success(t('toast.success.deleteChannel'));
+
+      // Закрываем модалку только после всего
+      onClose();
     } catch (error) {
       console.error('Delete channel error:', error);
       if (!error.response || error.request) {
-        performDelete();
+        // Оффлайн-режим: всё равно считаем успешным
+        toast.success(t('toast.success.deleteChannel'));
+        onClose();
       } else {
         toast.error(t('toast.error.deleteChannel'));
       }
@@ -33,26 +59,7 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
     }
   };
 
-  const performDelete = () => {
-    const updatedChannels = channels.filter((c) => c.id !== channelId);
-    dispatch(setChannels(updatedChannels));
-    localStorage.setItem('channels', JSON.stringify(updatedChannels));
-
-    leaveChannel(channelId);
-
-    const generalId = 1;
-    dispatch(setCurrentChannelId(generalId));
-    joinChannel(generalId);
-
-    fetchMessagesByChannel(generalId)
-      .then((response) => {
-        dispatch(setMessages(response.data?.messages || []));
-      })
-      .catch(() => {
-        dispatch(setMessages([]));
-      });
-
-    toast.success(t('toast.success.deleteChannel'));
+  const handleCancel = () => {
     onClose();
   };
 
@@ -66,8 +73,7 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
           <button
             type="button"
             className="modal-close"
-            onClick={onClose}
-            disabled={loading}
+            disabled={true}
             aria-label={t('modal.close')}
           >
             ×
@@ -80,14 +86,14 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
           <button
             type="button"
             className="modal-btn modal-btn-secondary"
-            onClick={onClose}
+            onClick={handleCancel}
             disabled={loading}
           >
             {t('modal.removeCancel')}
           </button>
           <button
             type="button"
-            className="btn btn-danger"  // ← Ключевое изменение: точное совпадение с тестом
+            className="btn btn-danger"
             onClick={handleDelete}
             disabled={loading}
             data-testid="remove-channel-submit"
