@@ -1,5 +1,4 @@
-// src/components/ChatComponent.jsx
-import React, { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { toast } from 'react-toastify'
 import { useTranslation } from 'react-i18next'
@@ -13,7 +12,7 @@ const ChatComponent = () => {
   const dispatch = useDispatch()
   const inputRef = useRef(null)
 
-  const { token, username, currentChannelId } = useSelector((state) => ({
+  const { token, username, currentChannelId } = useSelector(state => ({
     token: state.auth.token,
     username: state.auth.username,
     currentChannelId: state.channels.currentChannelId,
@@ -89,7 +88,7 @@ const ChatComponent = () => {
   return (
     <div className="chat-container">
       <div className="chat-messages">
-        {messages.map((msg) => (
+        {messages.map(msg => (
           <div key={msg.id} className="message-card">
             <div className="message-header">
               <strong>{msg.username}</strong>
