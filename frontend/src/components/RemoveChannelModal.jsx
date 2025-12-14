@@ -58,10 +58,8 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  // Правильный обработчик для overlay
   const handleOverlayClick = (e) => {
-    // Закрываем только если кликнули строго по фону (overlay), а не по содержимому
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget && !loading) {
       onClose();
     }
   };
