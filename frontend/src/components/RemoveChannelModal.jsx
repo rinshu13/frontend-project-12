@@ -20,13 +20,9 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
     setLoading(true);
     try {
       await deleteChannel(channelId);
-
-      // Выполняем удаление локально
       performDelete();
     } catch (error) {
       console.error('Delete channel error:', error);
-
-      // Демо-режим: если нет сервера — всё равно удаляем локально
       if (!error.response || error.request) {
         performDelete();
       } else {
@@ -40,8 +36,6 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
   const performDelete = () => {
     const updatedChannels = channels.filter((c) => c.id !== channelId);
     dispatch(setChannels(updatedChannels));
-
-    // Обновляем localStorage, чтобы refetchChannels в App.jsx увидел изменения
     localStorage.setItem('channels', JSON.stringify(updatedChannels));
 
     leaveChannel(channelId);
@@ -50,13 +44,11 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
     dispatch(setCurrentChannelId(generalId));
     joinChannel(generalId);
 
-    // Загружаем сообщения для general
     fetchMessagesByChannel(generalId)
       .then((response) => {
         dispatch(setMessages(response.data?.messages || []));
       })
       .catch(() => {
-        // В демо-режиме App.jsx сам подгрузит из localStorage при смене канала
         dispatch(setMessages([]));
       });
 
@@ -64,16 +56,13 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
     onClose();
   };
 
-  // === ИСПРАВЛЕНИЕ: правильная обработка клика по overlay ===
+  if (!isOpen) return null;
+
   const handleOverlayClick = (e) => {
-    // Закрываем только если клик именно по overlay, а не по внутреннему окну
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
-  // ==========================================================
-
-  if (!isOpen) return null;
 
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
