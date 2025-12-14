@@ -1,3 +1,4 @@
+// src/api.js
 import axios from 'axios';
 
 const api = axios.create({
@@ -42,9 +43,9 @@ export const deleteChannel = async (channelId) => {
   return api.delete(`/channels/${channelId}`);
 };
 
-// PUT /channels/:id для переименования канала
+// PATCH /channels/:id для переименования канала (ИЗМЕНЕНО С PUT НА PATCH)
 export const renameChannel = async (channelId, name) => {
-  return api.put(`/channels/${channelId}`, {
+  return api.patch(`/channels/${channelId}`, {
     data: {
       type: 'channels',
       attributes: { name },
