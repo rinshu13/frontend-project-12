@@ -77,7 +77,7 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
               <input
                 ref={inputRef}
                 type="text"
-                name="name"
+                name="Имя канала"
                 className={`modal-form-input ${formik.touched.name && formik.errors.name ? 'invalid' : ''}`}
                 value={formik.values.name}
                 onChange={formik.handleChange}
