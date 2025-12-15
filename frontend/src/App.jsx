@@ -401,43 +401,41 @@ const App = () => {
             </button>
           </div>
           <div className="channels-list" role="list">
-              {channels?.length 
-              > 0 
-              ? (
-                channels.map(channel => (
-                  <ChannelItem
-                    key={channel.id}
-                    channel={channel}
-                    currentChannelId={currentChannelId}
-                    onChannelClick={handleChannelClick}
-                    onRename={setShowRenameModal}
-                    onRemove={setShowRemoveModal}
-                  />
-                ))
-              ) : (
-                <p className="text-center text-muted">{t('app.loadingChannels')}</p>
-              )}
+                {channels?.length 
+                > 0 
+                ? (channels.map(channel => (
+                    <ChannelItem
+                      key={channel.id}
+                      channel={channel}
+                      currentChannelId={currentChannelId}
+                      onChannelClick={handleChannelClick}
+                      onRename={setShowRenameModal}
+                      onRemove={setShowRemoveModal}
+                    />
+                  ))
+                ) : (
+                  <p className="text-center text-muted">{t('app.loadingChannels')}</p>
+                )}
           </div>
         </aside>
         <section className="chat-section d-flex flex-column">
           <div className="messages-area">
-              {messages.length
-              > 0
-              ? (
-                messages.map(msg => (
-                  <div key={msg.id} className="message-card">
-                    <div className="message-header">
-                      <strong>{msg.username}</strong>
+                {messages.length
+                > 0
+                ? (messages.map(msg => (
+                    <div key={msg.id} className="message-card">
+                      <div className="message-header">
+                        <strong>{msg.username}</strong>
+                      </div>
+                      <div className="message-body">{msg.text}</div>
+                      <div className="message-footer">
+                        {new Date(msg.createdAt).toLocaleString()}
+                      </div>
                     </div>
-                    <div className="message-body">{msg.text}</div>
-                    <div className="message-footer">
-                      {new Date(msg.createdAt).toLocaleString()}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-center text-muted">{t('app.noMessages')}</p>
-              )}
+                  ))
+                ) : (
+                  <p className="text-center text-muted">{t('app.noMessages')}</p>
+                )}
             <div ref={messagesEndRef} />
           </div>
 
