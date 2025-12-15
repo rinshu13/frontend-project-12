@@ -131,13 +131,13 @@ const App = () => {
         try {
           const response = await fetchMessagesByChannel(channelIdToLoad)
           msgs = response.data?.messages || []
-        } 
+        }
         catch (err) {
           console.warn('API messages fetch failed, using demo', err)
         }
 
         if (msgs.length === 0) {
-          const channel = channels.find((c) => c.id === channelIdToLoad)
+          const channel = channels.find(c => c.id === channelIdToLoad)
           msgs = getDemoMessages(channel?.name || 'general')
         }
 
@@ -195,14 +195,15 @@ const App = () => {
 
         if (serverChannels.length > 0) {
           finalChannels = serverChannels
-        } 
+        }
         else {
           const stored = loadChannelsFromStorage()
           if (stored.length > 0) {
             finalChannels = stored
           }
         }
-      } catch (err) {
+      } 
+      catch (err) {
         console.error('Failed to fetch channels from server:', err)
         toast.error(t('toast.error.fetchChannels'))
 
@@ -268,7 +269,7 @@ const App = () => {
       )))
     })
 
-    socket.on('removeChannel', (payload) => {
+    socket.on('removeChannel', payload => {
       dispatch(setChannels(channels.filter((channel) => channel.id !== payload.id)))
 
       // Если удалили текущий канал — переключаемся на general
@@ -348,7 +349,7 @@ const App = () => {
 
       await emitNewMessage({
         channelId: currentChannelId,
-        message: { 
+        message: {
           text: censoredText, 
           username,
           createdAt: new Date().toISOString(),
@@ -378,9 +379,9 @@ const App = () => {
     setShowRenameModal(null)
     setShowRemoveModal(null)
     await refetchChannels({
-    switchToNewChannel: !!newChannelId,
-    newChannelId: newChannelId ?? undefined, 
-  })
+      switchToNewChannel: !!newChannelId,
+      newChannelId: newChannelId ?? undefined,
+    })
   }
 
   if (!token) return null
@@ -398,10 +399,9 @@ const App = () => {
               {t('app.logout')}
             </button>
           </div>
-
           <div className="channels-list" role="list">
             {channels?.length > 0 ? (
-              channels.map((channel) => (
+              channels.map(channel => (
                 <ChannelItem
                   key={channel.id}
                   channel={channel}
@@ -416,11 +416,10 @@ const App = () => {
             )}
           </div>
         </aside>
-
         <section className="chat-section d-flex flex-column">
           <div className="messages-area">
             {messages.length > 0 ? (
-              messages.map((msg) => (
+              messages.map(msg => (
                 <div key={msg.id} className="message-card">
                   <div className="message-header">
                     <strong>{msg.username}</strong>
@@ -465,13 +464,13 @@ const App = () => {
         </section>
       </div>
 
-      <AddChannelModal 
-        isOpen={showAddModal} 
-        onClose={(newChannelId) => closeModalsAndRefresh(newChannelId)} 
+      <AddChannelModal
+        isOpen={showAddModal}
+        onClose={newChannelId => closeModalsAndRefresh(newChannelId)}
       />
       {showRenameModal && (
         <RenameChannelModal
-          channel={channels.find((c) => c.id === showRenameModal)}
+          channel={channels.find(c => c.id === showRenameModal)}
           isOpen={true}
           onClose={() => closeModalsAndRefresh()}
         />

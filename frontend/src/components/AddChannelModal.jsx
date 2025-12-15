@@ -49,12 +49,12 @@ const AddChannelModal = ({ isOpen, onClose }) => {
 
         if (newChannel && newChannel.id) {
           newChannelId = newChannel.id
-        } 
+        }
         else {
           const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]')
           newChannelId = Math.max(...storedChannels.map(c => c.id || 0), 0) + 1
 
-          const localChannel = {id: newChannelId, name: censoredName, removable: true,}
+          const localChannel = { id: newChannelId, name: censoredName, removable: true, }
 
           if (!storedChannels.some(c => c.name === censoredName)) {
             storedChannels.push(localChannel)
@@ -65,7 +65,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
         toast.success(t('toast.success.createChannel'))
         resetForm()
         onClose(newChannelId) // Переключаемся на новый канал
-      } 
+      }
       catch (error) {
         console.error('Error creating channel:', error)
         setSubmitting(false)
@@ -74,17 +74,17 @@ const AddChannelModal = ({ isOpen, onClose }) => {
           if (error.response.status === 409) {
             setFieldError('name', t('modal.addErrorUnique'))
             toast.error(t('modal.addErrorUnique'))
-          } 
+          }
           else if (error.response.status === 401) {
             toast.error(t('toast.error.unauthorized'))
-          } 
+          }
           else {
             toast.error(t('toast.error.createChannel'))
           }
-        } 
+        }
         else if (error.request) {
           toast.error(t('toast.error.network'))
-        } 
+        }
         else {
           toast.error(t('toast.error.createChannel'))
         }
