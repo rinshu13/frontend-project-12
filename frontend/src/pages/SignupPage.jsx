@@ -2,28 +2,39 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { useFormik } from 'formik'
-import * as Yup from 'yup'
 import { login } from '../features/auth/authSlice'
 import api from '../api'
+import signupSchema from '../validation/signupSchema'
 import './AuthPages.css'
 
 const SignupPage = () => {
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
-  const { t } = useTranslation()
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { t } = useTranslation();
 
-  const SignupSchema = Yup.object().shape({
-    username: Yup.string()
-      .min(3, 'errors.min3')
-      .max(20, 'errors.max20')
-      .required('errors.required'),
-    password: Yup.string()
-      .min(6, 'errors.min6')
-      .required('errors.required'),
-    confirmPassword: Yup.string()
-      .oneOf([Yup.ref('password')], 'errors.passwordMismatch')
-      .required('errors.required'),
-  })
+  const handleSubmit = async (values, { setSubmitting, setErrors }) => {
+    try {
+      const response = await api.post('/signup', {
+        username: values.username,
+        password: values.password,
+      });
+
+      const { token } = response.data;
+      if (!token || typeof token !== 'string') {
+        throw new Error('Invalid token in response');
+      }
+
+      dispatch(login({ token, username: values.username }));
+      navigate('/');
+    } catch (err) {
+      setSubmitting(false);
+      if (err.response?.status === 409) {
+        setErrors({ username: 'errors.conflict' });
+      } else {
+        setErrors({ username: 'errors.signup' });
+      }
+    }
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -31,40 +42,14 @@ const SignupPage = () => {
       password: '',
       confirmPassword: '',
     },
-    validationSchema: SignupSchema,
-    onSubmit: async (values, { setSubmitting, setErrors }) => {
-      try {
-        const response = await api.post('/signup', {
-          username: values.username,
-          password: values.password,
-        })
-
-        const { token } = response.data
-        if (!token || typeof token !== 'string') {
-          throw new Error('Invalid token in response')
-        }
-
-        dispatch(login({ token, username: values.username }))
-        navigate('/')
-      }
-      catch (err) {
-        setSubmitting(false)
-        if (err.response?.status === 409) {
-          setErrors({ username: 'errors.conflict' })
-        }
-        else {
-          setErrors({ username: 'errors.signup' })
-        }
-      }
-    },
-  })
+    validationSchema: signupSchema,
+    onSubmit: handleSubmit,
+  });
 
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">
-          {t('signup.title')}
-        </h1>
+        <h1 className="auth-title">{t('signup.title')}</h1>
 
         <form onSubmit={formik.handleSubmit} noValidate>
           <div className="form-group">
@@ -151,7 +136,7 @@ const SignupPage = () => {
         </p>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default SignupPage

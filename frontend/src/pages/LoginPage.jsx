@@ -1,73 +1,62 @@
 import { useState } from 'react'
 import { useFormik } from 'formik'
-import * as Yup from 'yup'
 import { useDispatch } from 'react-redux'
 import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { login } from '../features/auth/authSlice'
 import { loginUser } from '../api'
+import loginSchema from '../validation/loginSchema'
 import './AuthPages.css'
 
 const LoginPage = () => {
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-  const { t } = useTranslation()
-  const [authError, setAuthError] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const [authError, setAuthError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const LoginSchema = Yup.object().shape({
-    username: Yup.string()
-      .min(3, t('errors.min3'))
-      .required(t('errors.required')),
-    password: Yup.string()
-      .required(t('errors.required')),
-  })
+  const handleSubmit = async (values) => {
+    setAuthError(null);
+    setLoading(true);
+
+    try {
+      const response = await loginUser(values);
+      const { token, username } = response.data;
+
+      if (!token || !username) {
+        throw new Error('Invalid response data');
+      }
+
+      dispatch(login({ token, username }));
+      localStorage.setItem('token', token);
+      localStorage.setItem('username', username);
+
+      navigate('/');
+    } catch (err) {
+      console.error('Login error:', err);
+      if (err.response?.status === 401) {
+        setAuthError('Неверные имя пользователя или пароль');
+      } else {
+        setAuthError(t('errors.network') || 'Ошибка сети или сервера. Попробуйте позже.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formik = useFormik({
     initialValues: {
       username: '',
       password: '',
     },
-    validationSchema: LoginSchema,
-    onSubmit: async (values) => {
-      setAuthError(null)
-      setLoading(true)
-
-      try {
-        const response = await loginUser(values)
-        const { token, username } = response.data
-
-        if (!token || !username) {
-          throw new Error('Invalid response data')
-        }
-
-        dispatch(login({ token, username }))
-        localStorage.setItem('token', token)
-        localStorage.setItem('username', username)
-
-        navigate('/')
-      }
-      catch (err) {
-        console.error('Login error:', err)
-        if (err.response?.status === 401) {
-          setAuthError('Неверные имя пользователя или пароль')
-        }
-        else {
-          setAuthError(t('errors.network') || 'Ошибка сети или сервера. Попробуйте позже.')
-        }
-      }
-      finally {
-        setLoading(false)
-      }
-    },
-  })
+    validationSchema: loginSchema(t),
+    onSubmit: handleSubmit,
+  });
 
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">
-          Войти
-        </h1>
+        <h1 className="auth-title">Войти</h1>
 
         <form onSubmit={formik.handleSubmit} noValidate>
           <div className="form-group">
@@ -87,6 +76,11 @@ const LoginPage = () => {
               autoFocus
               required
             />
+            {formik.touched.username && formik.errors.username && (
+              <div className="invalid-feedback">
+                {formik.errors.username}
+              </div>
+            )}
           </div>
 
           <div className="form-group">
@@ -105,6 +99,11 @@ const LoginPage = () => {
               disabled={loading}
               required
             />
+            {formik.touched.password && formik.errors.password && (
+              <div className="invalid-feedback">
+                {formik.errors.password}
+              </div>
+            )}
           </div>
 
           {authError && (
@@ -130,7 +129,7 @@ const LoginPage = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default LoginPage
