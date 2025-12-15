@@ -16,24 +16,22 @@ export const Header = () => {
   };
 
   return (
-    <header className="shadow-sm bg-white border-bottom">
-      <nav className="navbar navbar-expand navbar-light py-3">
-        <div className="container-fluid px-4">
-          <Link to="/" className="navbar-brand fw-bold fs-4 text-primary">
-            {t('header.title')}
-          </Link>
+    <header className="app-header shadow-sm bg-white border-bottom">
+      <div className="header-container container-fluid px-4 py-3 d-flex justify-content-between align-items-center">
+        <Link to="/" className="header-brand fw-bold fs-4 text-primary">
+          {t('header.title')}
+        </Link>
 
-          {token && (
-            <button
-              type="button"
-              className="btn btn-outline-danger"
-              onClick={handleLogout}
-            >
-              {t('header.logout')}
-            </button>
-          )}
-        </div>
-      </nav>
+        {token && (
+          <button
+            type="button"
+            className="header-logout-btn btn btn-outline-danger"
+            onClick={handleLogout}
+          >
+            {t('header.logout')}
+          </button>
+        )}
+      </div>
     </header>
   );
 };
