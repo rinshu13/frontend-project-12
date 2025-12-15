@@ -35,7 +35,6 @@ export default [
       '@stylistic/multiline-ternary': ['error', 'always-multiline'],
       '@stylistic/jsx-one-expression-per-line': 'error',
       'no-unused-vars': 'error',
-      
     },
   },
 ]

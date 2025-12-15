@@ -54,7 +54,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
           const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]')
           newChannelId = Math.max(...storedChannels.map(c => c.id || 0), 0) + 1
 
-          const localChannel = { id: newChannelId, name: censoredName, removable: true, }
+          const localChannel = { id: newChannelId, name: censoredName, removable: true }
 
           if (!storedChannels.some(c => c.name === censoredName)) {
             storedChannels.push(localChannel)
@@ -102,10 +102,10 @@ const AddChannelModal = ({ isOpen, onClose }) => {
   const handleSubmitWithValidation = (e) => {
     e.preventDefault()
     formik.setTouched({ name: true })
-    formik.validateForm().then(errors => {
+    formik.validateForm().then((errors) => {
       if (Object.keys(errors).length === 0) {
         formik.handleSubmit(e)
-      } 
+      }
       else {
         formik.setErrors(errors)
       }
