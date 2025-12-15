@@ -275,8 +275,8 @@ const App = () => {
               : channel,
           ),
         ),
-      );
-    });
+      )
+    })
 
     socket.on('removeChannel', (payload) => {
       dispatch(setChannels(channels.filter(channel => channel.id !== payload.id)))
@@ -426,21 +426,19 @@ const App = () => {
         </aside>
         <section className="chat-section d-flex flex-column">
           <div className="messages-area">
-            {messages.length > 0 ? (
-              messages.map(msg => (
-                <div key={msg.id} className="message-card">
-                  <div className="message-header">
-                    <strong>{msg.username}</strong>
+            {messages.length > 0
+              ? messages.map(msg => (
+                  <div key={msg.id} className="message-card">
+                    <div className="message-header">
+                      <strong>{msg.username}</strong>
+                    </div>
+                    <div className="message-body">{msg.text}</div>
+                    <div className="message-footer">
+                      {new Date(msg.createdAt).toLocaleString()}
+                    </div>
                   </div>
-                  <div className="message-body">{msg.text}</div>
-                  <div className="message-footer">
-                    {new Date(msg.createdAt).toLocaleString()}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-muted">{t('app.noMessages')}</p>
-            )}
+                ))
+              : <p className="text-center text-muted">{t('app.noMessages')}</p>}
             <div ref={messagesEndRef} />
           </div>
 
