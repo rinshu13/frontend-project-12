@@ -12,7 +12,6 @@ import App from './App.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import SignupPage from './pages/SignupPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
-import './index.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
