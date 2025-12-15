@@ -74,7 +74,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
 
   const formik = useFormik({
     initialValues: { name: '' },
-    validationSchema: addChannelSchema(t),
+    validationSchema: addChannelSchema,
     validateOnChange: false,
     validateOnBlur: true,
     onSubmit: handleSubmit,
