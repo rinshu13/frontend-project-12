@@ -17,8 +17,8 @@ export const Header = () => {
 
   return (
     <header className="app-header shadow-sm bg-white border-bottom">
-      <div className="header-container container-fluid px-4 py-3 d-flex justify-content-between align-items-center">
-        <Link to="/" className="header-brand fw-bold fs-4 text-primary">
+      <div className="header-container container-fluid px-4 d-flex justify-content-between align-items-center py-3">
+        <Link to="/" className="header-brand navbar-brand fw-bold fs-4 text-primary">
           {t('header.title')}
         </Link>
 
