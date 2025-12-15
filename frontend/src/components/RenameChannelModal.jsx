@@ -109,7 +109,7 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
     formik.validateForm().then((errors) => {
       if (Object.keys(errors).length === 0) {
         formik.handleSubmit()
-      }
+      } 
       else {
         formik.setErrors(errors)
       }
