@@ -16,10 +16,10 @@ export const Header = () => {
   };
 
   return (
-    <header className="shadow-sm">
-      <nav className="navbar navbar-expand navbar-light bg-white py-3">
-        <div className="container-fluid">
-          <Link to="/" className="navbar-brand fw-bold fs-4">
+    <header className="shadow-sm bg-white border-bottom">
+      <nav className="navbar navbar-expand navbar-light py-3">
+        <div className="container-fluid px-4">
+          <Link to="/" className="navbar-brand fw-bold fs-4 text-primary">
             {t('header.title')}
           </Link>
 
