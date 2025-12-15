@@ -146,7 +146,7 @@ const App = () => {
 
       dispatch(setMessages(msgs))
     },
-    [channels, dispatch, getDemoMessages, loadMessagesFromStorage, saveMessagesToStorage,],
+    [channels, dispatch, getDemoMessages, loadMessagesFromStorage, saveMessagesToStorage],
   )
 
   const refetchChannels = useCallback(
@@ -202,7 +202,7 @@ const App = () => {
             finalChannels = stored
           }
         }
-      } 
+      }
       catch (err) {
         console.error('Failed to fetch channels from server:', err)
         toast.error(t('toast.error.fetchChannels'))
@@ -257,20 +257,20 @@ const App = () => {
 
     const socket = connectSocket(token)
 
-    socket.on('newMessage', payload => {
+    socket.on('newMessage', (payload) => {
       if (payload.channelId === currentChannelId) {
         dispatch(setMessages([...messages, payload.message]))
       }
     })
 
-    socket.on('renameChannel', payload => {
+    socket.on('renameChannel', (payload) => {
       dispatch(setChannels(channels.map(channel =>
-        channel.id === payload.id ? { ...channel, name: payload.name } : channel
+        channel.id === payload.id ? { ...channel, name: payload.name, } : channel
       )))
     })
 
-    socket.on('removeChannel', payload => {
-      dispatch(setChannels(channels.filter((channel) => channel.id !== payload.id)))
+    socket.on('removeChannel', (payload) => {
+      dispatch(setChannels(channels.filter(channel => channel.id !== payload.id)))
 
       // Если удалили текущий канал — переключаемся на general
       if (currentChannelId === payload.id) {
@@ -324,7 +324,7 @@ const App = () => {
 
   const isMessageValid = () => messageText.trim() && !messageError && currentChannelId
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     const rawText = messageText.trim()
@@ -350,7 +350,7 @@ const App = () => {
       await emitNewMessage({
         channelId: currentChannelId,
         message: {
-          text: censoredText, 
+          text: censoredText,
           username,
           createdAt: new Date().toISOString(),
         },
@@ -360,7 +360,8 @@ const App = () => {
       setMessageError(null)
       setSubmitError(null)
       inputRef.current?.focus()
-    } catch (err) {
+    }
+    catch (err) {
       console.error(err)
       const errorMsg = t('toast.error.sendMessage')
       setSubmitError(errorMsg)
@@ -400,7 +401,9 @@ const App = () => {
             </button>
           </div>
           <div className="channels-list" role="list">
-            {channels?.length > 0 ? (
+            {channels?.length 
+            > 0 
+            ? (
               channels.map(channel => (
                 <ChannelItem
                   key={channel.id}
@@ -418,7 +421,9 @@ const App = () => {
         </aside>
         <section className="chat-section d-flex flex-column">
           <div className="messages-area">
-            {messages.length > 0 ? (
+            {messages.length 
+            > 0 
+            ? (
               messages.map(msg => (
                 <div key={msg.id} className="message-card">
                   <div className="message-header">
