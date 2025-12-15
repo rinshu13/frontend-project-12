@@ -266,17 +266,17 @@ const App = () => {
     socket.on('renameChannel', (payload) => {
       dispatch(
         setChannels(
-          channels.map((channel) => (
+          channels.map(channel =>
             channel.id === payload.id
               ? {
                   ...channel,
                   name: payload.name,
                 }
               : channel
-          ))
+          )
         )
       );
-    });
+    }); 
 
     socket.on('removeChannel', (payload) => {
       dispatch(setChannels(channels.filter(channel => channel.id !== payload.id)))
@@ -411,7 +411,7 @@ const App = () => {
           </div>
           <div className="channels-list" role="list">
             {channels?.length > 0 ? (
-              channels.map(channel => 
+              channels.map(channel => (
                 <ChannelItem
                   key={channel.id}
                   channel={channel}
@@ -420,7 +420,7 @@ const App = () => {
                   onRename={setShowRenameModal}
                   onRemove={setShowRemoveModal}
                 />
-              )
+              ))
             ) : (
               <p className="text-center text-muted">{t('app.loadingChannels')}</p>
             )}
@@ -429,7 +429,7 @@ const App = () => {
         <section className="chat-section d-flex flex-column">
           <div className="messages-area">
             {messages.length > 0 ? (
-              messages.map(msg => 
+              messages.map(msg => (
                 <div key={msg.id} className="message-card">
                   <div className="message-header">
                     <strong>{msg.username}</strong>
@@ -439,7 +439,7 @@ const App = () => {
                     {new Date(msg.createdAt).toLocaleString()}
                   </div>
                 </div>
-              )
+              ))
             ) : (
               <p className="text-center text-muted">{t('app.noMessages')}</p>
             )}
