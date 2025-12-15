@@ -20,11 +20,11 @@ export default [
         sessionStorage: 'readonly',
         document: 'readonly',
         window: 'readonly',
-        navigator: 'readonly'
+        navigator: 'readonly',
       },
       parserOptions: {
-        ecmaFeatures: { jsx: true }
-      }
+        ecmaFeatures: { jsx: true },
+      },
     },
     rules: {
       '@stylistic/arrow-parens': 'error',
@@ -39,6 +39,6 @@ export default [
       'no-unused-vars': 'error',
       // Если хочешь совсем убрать предупреждения про console в проде — можно отключить
       // 'no-console': 'warn'
-    }
-  }
-];
+    },
+  },
+]

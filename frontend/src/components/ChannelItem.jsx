@@ -2,12 +2,11 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRemove }) => {
-  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleDropdown = (e) => {
     e.stopPropagation()
-    setIsOpen((prev) => !prev)
+    setIsOpen(prev => !prev)
   }
 
   const handleRename = (e) => {
@@ -71,7 +70,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
                 minWidth: '160px',
                 padding: '8px 0',
               }}
-              onClick={(e) => e.stopPropagation()}
+              onClick={e => e.stopPropagation()}
             >
               <button
                 type="button"

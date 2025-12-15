@@ -1,4 +1,3 @@
-import React from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
@@ -9,7 +8,7 @@ import './Components.css'
 export const Header = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { token } = useSelector((state) => state.auth)
+  const { token } = useSelector(state => state.auth)
   const { t } = useTranslation()
 
   const handleLogout = () => {

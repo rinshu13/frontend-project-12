@@ -42,7 +42,7 @@ export const connectSocket = (token) => {
     const updatedName = attributes.name
 
     const currentChannels = store.getState().channels.channels
-    const updatedChannels = currentChannels.map((channel) =>
+    const updatedChannels = currentChannels.map(channel =>
       channel.id === updatedId ? { ...channel, name: updatedName } : channel,
     )
 
@@ -53,7 +53,7 @@ export const connectSocket = (token) => {
     const channelId = payload.data?.id || payload.id
 
     const currentChannels = store.getState().channels.channels
-    const filteredChannels = currentChannels.filter((channel) => channel.id !== channelId)
+    const filteredChannels = currentChannels.filter(channel => channel.id !== channelId)
 
     store.dispatch(setChannels(filteredChannels))
 
@@ -95,7 +95,8 @@ export const promisifyEmit = (event, data) => {
     socket.emit(event, data, (ack) => {
       if (ack && ack.error) {
         reject(new Error(ack.error))
-      } else {
+      } 
+      else {
         resolve(ack)
       }
     })
@@ -106,7 +107,8 @@ export const joinChannel = async (channelId) => {
   try {
     await promisifyEmit('joinChannel', { channelId })
     console.log('Joined channel:', channelId)
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Join channel error:', error)
   }
 }
@@ -115,7 +117,8 @@ export const leaveChannel = async (channelId) => {
   try {
     await promisifyEmit('leaveChannel', { channelId })
     console.log('Left channel:', channelId)
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Leave channel error:', error)
   }
 }
@@ -124,7 +127,8 @@ export const emitNewMessage = async (data) => {
   try {
     await promisifyEmit('newMessage', data)
     console.log('Message emitted:', data)
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Emit message error:', error)
     throw error
   }

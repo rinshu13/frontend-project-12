@@ -12,7 +12,7 @@ import './Components.css'
 const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
   const dispatch = useDispatch()
   const { t } = useTranslation()
-  const channels = useSelector((state) => state.channels.channels)
+  const channels = useSelector(state => state.channels.channels)
   const [loading, setLoading] = useState(false)
 
   const handleDelete = async () => {
@@ -20,7 +20,7 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
     try {
       await deleteChannel(channelId)
 
-      const updatedChannels = channels.filter((c) => c.id !== channelId)
+      const updatedChannels = channels.filter(c => c.id !== channelId)
       dispatch(setChannels(updatedChannels))
       localStorage.setItem('channels', JSON.stringify(updatedChannels))
 
@@ -33,21 +33,25 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
       try {
         const response = await fetchMessagesByChannel(generalId)
         dispatch(setMessages(response.data?.messages || []))
-      } catch {
+      } 
+      catch {
         dispatch(setMessages([]))
       }
 
       toast.success(t('toast.success.deleteChannel'))
       onClose()
-    } catch (error) {
+    } 
+    catch (error) {
       console.error('Delete channel error:', error)
       if (!error.response || error.request) {
         toast.success(t('toast.success.deleteChannel'))
         onClose()
-      } else {
+      } 
+      else {
         toast.error(t('toast.error.deleteChannel'))
       }
-    } finally {
+    } 
+    finally {
       setLoading(false)
     }
   }
@@ -64,7 +68,7 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
       <div
         className="modal-dialog"
         style={{ pointerEvents: 'auto' }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         <div className="modal-header">
           <h5 className="modal-title">

@@ -81,7 +81,7 @@ const App = () => {
     }
   }, [])
 
-  const getDemoMessages = useCallback((channelName) => [
+  const getDemoMessages = useCallback(channelName => [
     {
       id: Date.now() - 1000,
       text: `Добро пожаловать в канал #${channelName}!`,
@@ -108,7 +108,7 @@ const App = () => {
     try {
       const parsed = JSON.parse(stored)
       return Array.isArray(parsed) ? parsed : []
-    } 
+    }
     catch {
       return []
     }
@@ -131,7 +131,8 @@ const App = () => {
         try {
           const response = await fetchMessagesByChannel(channelIdToLoad)
           msgs = response.data?.messages || []
-        } catch (err) {
+        } 
+        catch (err) {
           console.warn('API messages fetch failed, using demo', err)
         }
 
@@ -145,7 +146,7 @@ const App = () => {
 
       dispatch(setMessages(msgs))
     },
-    [channels, dispatch, getDemoMessages, loadMessagesFromStorage, saveMessagesToStorage,]
+    [channels, dispatch, getDemoMessages, loadMessagesFromStorage, saveMessagesToStorage,],
   )
 
   const refetchChannels = useCallback(
@@ -169,7 +170,7 @@ const App = () => {
 
         // Формат 1: { data: [{ id, type, attributes: { name, removable } }] }
         if (Array.isArray(response.data?.data)) {
-          serverChannels = response.data.data.map((item) => ({
+          serverChannels = response.data.data.map(item => ({
             id: item.id,
             name: item.attributes.name,
             removable: item.attributes.removable ?? true,
@@ -177,7 +178,7 @@ const App = () => {
         }
         // Формат 2: напрямую массив [{ id, name, removable }]
         else if (Array.isArray(response.data)) {
-          serverChannels = response.data.map((item) => ({
+          serverChannels = response.data.map(item => ({
             id: item.id,
             name: item.name || item.attributes?.name,
             removable: item.removable ?? item.attributes?.removable ?? true,
@@ -185,7 +186,7 @@ const App = () => {
         }
         // Формат 3: { channels: [...] } (на всякий случай)
         else if (Array.isArray(response.data?.channels)) {
-          serverChannels = response.data.channels.map((item) => ({
+          serverChannels = response.data.channels.map(item => ({
             id: item.id,
             name: item.name,
             removable: item.removable ?? true,
@@ -194,7 +195,8 @@ const App = () => {
 
         if (serverChannels.length > 0) {
           finalChannels = serverChannels
-        } else {
+        } 
+        else {
           const stored = loadChannelsFromStorage()
           if (stored.length > 0) {
             finalChannels = stored
