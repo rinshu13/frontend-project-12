@@ -94,12 +94,16 @@ const App = () => {
     },
   ], []);
 
-  const saveMessagesToStorage = useCallback((channelId, msgs) => {
-    if (token) localStorage.setItem(`messages_${channelId}`, JSON.stringify(msgs));
+  const saveMessagesToStorage = useCallback((channelId, messagesList) => {
+    if (token) {
+      const key = `messages_${channelId}`;
+      localStorage.setItem(key, JSON.stringify(messagesList));
+    }
   }, [token]);
 
   const loadMessagesFromStorage = useCallback((channelId) => {
-    const stored = localStorage.getItem(`messages_${channelId}`);
+    const key = `messages_${channelId}`;
+    const stored = localStorage.getItem(key);
     if (!stored) return [];
     try {
       const parsed = JSON.parse(stored);
@@ -109,23 +113,92 @@ const App = () => {
     }
   }, []);
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
-  };
+  const fetchChannels = useCallback(async () => {
+    try {
+      const response = await getChannels();
+      const fetchedChannels = response.data.channels || [];
+      dispatch(setChannels(fetchedChannels));
+      saveChannelsToStorage(fetchedChannels);
+
+      if (fetchedChannels.length > 0 && !currentChannelId) {
+        dispatch(setCurrentChannelId(fetchedChannels[0].id));
+      }
+    } catch (error) {
+      console.error('Error fetching channels:', error);
+      const storedChannels = loadChannelsFromStorage();
+      if (storedChannels.length > 0) {
+        dispatch(setChannels(storedChannels));
+        toast.info(t('app.usingLocalChannels'));
+      } else {
+        toast.error(t('app.channelsError'));
+      }
+    }
+  }, [dispatch, currentChannelId, saveChannelsToStorage, loadChannelsFromStorage, t]);
+
+  const fetchMessages = useCallback(async (channelId) => {
+    try {
+      const response = await fetchMessagesByChannel(channelId);
+      const fetchedMessages = response.data.messages || [];
+      dispatch(setMessages(fetchedMessages));
+      saveMessagesToStorage(channelId, fetchedMessages);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      const storedMessages = loadMessagesFromStorage(channelId);
+      if (storedMessages.length > 0) {
+        dispatch(setMessages(storedMessages));
+        toast.info(t('app.usingLocalMessages'));
+      } else {
+        const demoMessages = getDemoMessages(channels.find(c => c.id === channelId)?.name || 'general');
+        dispatch(setMessages(demoMessages));
+        saveMessagesToStorage(channelId, demoMessages);
+        toast.info(t('app.usingDemoMessages'));
+      }
+    }
+  }, [dispatch, channels, saveMessagesToStorage, loadMessagesFromStorage, getDemoMessages, t]);
+
+  useEffect(() => {
+    if (!hasInitialized.current && token) {
+      hasInitialized.current = true;
+      fetchChannels();
+      connectSocket(token);
+
+      const handleNewMessage = (message) => {
+        dispatch(setMessages([...messages, message]));
+        scrollToBottom();
+      };
+
+      // Assume socket events are set up here
+    }
+
+    return () => {
+      disconnectSocket();
+    };
+  }, [token, fetchChannels, dispatch, messages]);
+
+  useEffect(() => {
+    if (currentChannelId) {
+      fetchMessages(currentChannelId);
+      joinChannel(currentChannelId);
+    }
+  }, [currentChannelId, fetchMessages]);
 
   const handleChannelClick = (id) => {
     dispatch(setCurrentChannelId(id));
   };
 
-  const closeModalsAndRefresh = (newChannelId) => {
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
+  const closeModalsAndRefresh = (newChannelId = null) => {
     setShowAddModal(false);
     setShowRenameModal(null);
     setShowRemoveModal(null);
+    fetchChannels();
     if (newChannelId) {
       dispatch(setCurrentChannelId(newChannelId));
     }
-    // Refresh channels if needed
   };
 
   const isMessageValid = () => messageText.trim().length > 0;
@@ -141,15 +214,23 @@ const App = () => {
 
     const censoredText = leoProfanity.clean(messageText.trim());
     if (censoredText !== messageText.trim()) {
-      setMessageError(t('app.messageCensored'));
+      setMessageError(t('app.profanityWarning'));
     }
 
     try {
-      await sendMessage(currentChannelId, censoredText, username);
+      const newMessage = {
+        text: censoredText,
+        channelId: currentChannelId,
+        username,
+      };
+      await sendMessage(newMessage);
+      emitNewMessage(newMessage);
       setMessageText('');
-      inputRef.current?.focus();
+      setSubmitError(null);
+      inputRef.current.focus();
     } catch (error) {
-      setSubmitError(t('app.submitError'));
+      console.error('Error sending message:', error);
+      setSubmitError(t('app.messageError'));
     }
   };
 
@@ -159,71 +240,74 @@ const App = () => {
   }
 
   return (
-    <div className="container-fluid h-100 bg-light">
-      <div className="row h-100">
-        <aside className="col-3 col-md-2 bg-white border-end shadow-sm d-flex flex-column p-3">
-          <div className="d-flex flex-column gap-2 mb-3">
-            <button className="btn btn-success w-100 mb-2" onClick={() => setShowAddModal(true)}>
-              {t('app.addChannel')}
-            </button>
-            <button className="btn btn-outline-danger w-100" onClick={handleLogout}>
-              {t('app.logout')}
+    <div className="container-fluid h-100 p-0">
+      <div className="row h-100 m-0">
+        <aside className="col-12 col-md-3 col-lg-2 bg-light border-end d-flex flex-column p-3">
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h5 className="mb-0">{t('app.channels')}</h5>
+            <button className="btn btn-sm btn-outline-secondary" onClick={() => setShowAddModal(true)}>
+              +
             </button>
           </div>
-          <div className="list-group overflow-auto flex-grow-1" role="list">
-            {channels?.length > 0
-              ? channels.map(channel => (
-                  <ChannelItem
-                    key={channel.id}
-                    channel={channel}
-                    currentChannelId={currentChannelId}
-                    onChannelClick={handleChannelClick}
-                    onRename={setShowRenameModal}
-                    onRemove={setShowRemoveModal}
-                  />
-                ))
-              : <p className="text-center text-muted mt-3">{t('app.loadingChannels')}</p>}
+          <div className="list-group flex-grow-1 overflow-auto">
+            {channels?.length > 0 ? (
+              channels.map(channel => (
+                <ChannelItem
+                  key={channel.id}
+                  channel={channel}
+                  currentChannelId={currentChannelId}
+                  onChannelClick={handleChannelClick}
+                  onRename={setShowRenameModal}
+                  onRemove={setShowRemoveModal}
+                />
+              ))
+            ) : (
+              <div className="text-center text-muted">{t('app.loadingChannels')}</div>
+            )}
           </div>
+          <button className="btn btn-outline-danger w-100 mt-3" onClick={handleLogout}>
+            {t('app.logout')}
+          </button>
         </aside>
-        <section className="col-9 col-md-10 d-flex flex-column bg-white p-4">
-          <div className="flex-grow-1 overflow-auto mb-3">
-            {messages.length > 0
-              ? messages.map(msg => (
-                  <div key={msg.id} className="card mb-3 shadow-sm">
-                    <div className="card-header bg-light d-flex justify-content-between">
-                      <strong>{msg.username}</strong>
-                      <small className="text-muted">{new Date(msg.createdAt).toLocaleString()}</small>
-                    </div>
-                    <div className="card-body">
-                      <p className="mb-0">{msg.text}</p>
-                    </div>
+        <section className="col-12 col-md-9 col-lg-10 d-flex flex-column bg-white p-0">
+          <div className="chat-header bg-light border-bottom p-3">
+            <h6 className="mb-0">
+              # {channels.find(c => c.id === currentChannelId)?.name || t('app.general')}
+            </h6>
+          </div>
+          <div className="messages-area flex-grow-1 overflow-auto p-3">
+            {messages.length > 0 ? (
+              messages.map(msg => (
+                <div key={msg.id} className="mb-3">
+                  <div className="d-flex align-items-baseline">
+                    <strong className="me-2">{msg.username}</strong>
+                    <small className="text-muted">
+                      {new Date(msg.createdAt).toLocaleString()}
+                    </small>
                   </div>
-                ))
-              : <p className="text-center text-muted mt-5">{t('app.noMessages')}</p>}
+                  <p className="mb-0">{msg.text}</p>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-muted mt-5">{t('app.noMessages')}</div>
+            )}
             <div ref={messagesEndRef} />
           </div>
-
-          <form onSubmit={handleSubmit} className="mt-auto" noValidate>
+          <form onSubmit={handleSubmit} className="border-top p-3" noValidate>
             {submitError && <div className="alert alert-danger mb-3">{submitError}</div>}
             {messageError && <div className="alert alert-warning mb-3">{messageError}</div>}
-
             <div className="input-group">
               <input
                 ref={inputRef}
                 type="text"
                 value={messageText}
-                aria-label="Новое сообщение"
                 onChange={handleMessageChange}
                 placeholder={t('app.messagePlaceholder')}
                 disabled={!currentChannelId}
                 className="form-control"
                 autoFocus
               />
-              <button
-                type="submit"
-                disabled={!isMessageValid()}
-                className="btn btn-primary"
-              >
+              <button type="submit" disabled={!isMessageValid()} className="btn btn-primary">
                 {t('app.send')}
               </button>
             </div>
@@ -233,24 +317,24 @@ const App = () => {
 
       <AddChannelModal
         isOpen={showAddModal}
-        onClose={newChannelId => closeModalsAndRefresh(newChannelId)}
+        onClose={closeModalsAndRefresh}
       />
       {showRenameModal && (
         <RenameChannelModal
           channel={channels.find(c => c.id === showRenameModal)}
           isOpen={true}
-          onClose={() => closeModalsAndRefresh()}
+          onClose={closeModalsAndRefresh}
         />
       )}
       {showRemoveModal && (
         <RemoveChannelModal
           channelId={showRemoveModal}
           isOpen={true}
-          onClose={() => closeModalsAndRefresh()}
+          onClose={closeModalsAndRefresh}
         />
       )}
     </div>
   );
 };
 
-export default App
+export default App;
