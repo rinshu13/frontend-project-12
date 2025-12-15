@@ -80,9 +80,6 @@ const LoginPage = () => {
                     autoFocus
                     required
                   />
-                  {formik.touched.username && formik.errors.username && (
-                    <div className="invalid-feedback">{formik.errors.username}</div>
-                  )}
                 </div>
 
                 <div className="mb-3">
@@ -103,9 +100,6 @@ const LoginPage = () => {
                     disabled={loading}
                     required
                   />
-                  {formik.touched.password && formik.errors.password && (
-                    <div className="invalid-feedback">{formik.errors.password}</div>
-                  )}
                 </div>
 
                 {authError && (
