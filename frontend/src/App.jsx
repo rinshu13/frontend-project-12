@@ -274,7 +274,9 @@ const App = () => {
                 }
               : channel,
           ),
-        ),);});
+        ),
+      );
+    });
 
     socket.on('removeChannel', (payload) => {
       dispatch(setChannels(channels.filter(channel => channel.id !== payload.id)))
