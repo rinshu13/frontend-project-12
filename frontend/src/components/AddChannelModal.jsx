@@ -49,18 +49,14 @@ const AddChannelModal = ({ isOpen, onClose }) => {
 
         if (newChannel && newChannel.id) {
           newChannelId = newChannel.id
-        } else {
+        } 
+        else {
           const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]')
-          newChannelId = Math.max(...storedChannels.map((c) => c.id || 0), 0) + 1
+          newChannelId = Math.max(...storedChannels.map(c => c.id || 0), 0) + 1
 
-          const localChannel =
-            {
-              id: newChannelId,
-              name: censoredName,
-              removable: true,
-            }
+          const localChannel = {id: newChannelId, name: censoredName, removable: true,}
 
-          if (!storedChannels.some((c) => c.name === censoredName)) {
+          if (!storedChannels.some(c => c.name === censoredName)) {
             storedChannels.push(localChannel)
             localStorage.setItem('channels', JSON.stringify(storedChannels))
           }
@@ -69,7 +65,8 @@ const AddChannelModal = ({ isOpen, onClose }) => {
         toast.success(t('toast.success.createChannel'))
         resetForm()
         onClose(newChannelId) // Переключаемся на новый канал
-      } catch (error) {
+      } 
+      catch (error) {
         console.error('Error creating channel:', error)
         setSubmitting(false)
 
@@ -77,14 +74,18 @@ const AddChannelModal = ({ isOpen, onClose }) => {
           if (error.response.status === 409) {
             setFieldError('name', t('modal.addErrorUnique'))
             toast.error(t('modal.addErrorUnique'))
-          } else if (error.response.status === 401) {
+          } 
+          else if (error.response.status === 401) {
             toast.error(t('toast.error.unauthorized'))
-          } else {
+          } 
+          else {
             toast.error(t('toast.error.createChannel'))
           }
-        } else if (error.request) {
+        } 
+        else if (error.request) {
           toast.error(t('toast.error.network'))
-        } else {
+        } 
+        else {
           toast.error(t('toast.error.createChannel'))
         }
       }
@@ -101,10 +102,11 @@ const AddChannelModal = ({ isOpen, onClose }) => {
   const handleSubmitWithValidation = (e) => {
     e.preventDefault()
     formik.setTouched({ name: true })
-    formik.validateForm().then((errors) => {
+    formik.validateForm().then(errors => {
       if (Object.keys(errors).length === 0) {
         formik.handleSubmit(e)
-      } else {
+      } 
+      else {
         formik.setErrors(errors)
       }
     })
@@ -114,7 +116,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog" onClick={e => e.stopPropagation()}>
         <form onSubmit={handleSubmitWithValidation}>
           <div className="modal-header">
             <h5 className="modal-title">

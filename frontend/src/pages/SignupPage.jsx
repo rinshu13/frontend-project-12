@@ -46,12 +46,12 @@ const SignupPage = () => {
 
         dispatch(login({ token, username: values.username }))
         navigate('/')
-      } 
+      }
       catch (err) {
         setSubmitting(false)
         if (err.response?.status === 409) {
           setErrors({ username: 'errors.conflict' })
-        } 
+        }
         else {
           setErrors({ username: 'errors.signup' })
         }

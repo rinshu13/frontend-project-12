@@ -60,14 +60,14 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
             c.id === channel.id ? { ...c, name: censoredName } : c,
           )
           localStorage.setItem('channels', JSON.stringify(updatedChannels))
-        } 
+        }
         else {
           throw { response: { status: 409 } }
         }
 
         toast.success(t('toast.success.renameChannel'))
         onClose()
-      } 
+      }
       catch (error) {
         console.error('Rename error:', error)
         setSubmitting(false)
@@ -94,7 +94,7 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
         if (error.response?.status === 409) {
           formik.setFieldError('name', t('modal.renameErrorUnique') || 'Имя должно быть уникальным')
           toast.error(t('modal.renameErrorUnique'))
-        } 
+        }
         else {
           formik.setFieldError('name', t('modal.renameError') || 'Ошибка сети')
           toast.error(t('toast.error.renameChannel'))
@@ -109,7 +109,7 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
     formik.validateForm().then((errors) => {
       if (Object.keys(errors).length === 0) {
         formik.handleSubmit()
-      } 
+      }
       else {
         formik.setErrors(errors)
       }

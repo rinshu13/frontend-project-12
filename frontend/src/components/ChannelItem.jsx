@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRemove }) => {
   const [isOpen, setIsOpen] = useState(false)

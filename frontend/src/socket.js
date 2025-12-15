@@ -95,7 +95,7 @@ export const promisifyEmit = (event, data) => {
     socket.emit(event, data, (ack) => {
       if (ack && ack.error) {
         reject(new Error(ack.error))
-      } 
+      }
       else {
         resolve(ack)
       }
@@ -107,7 +107,7 @@ export const joinChannel = async (channelId) => {
   try {
     await promisifyEmit('joinChannel', { channelId })
     console.log('Joined channel:', channelId)
-  } 
+  }
   catch (error) {
     console.error('Join channel error:', error)
   }
@@ -117,7 +117,7 @@ export const leaveChannel = async (channelId) => {
   try {
     await promisifyEmit('leaveChannel', { channelId })
     console.log('Left channel:', channelId)
-  } 
+  }
   catch (error) {
     console.error('Leave channel error:', error)
   }
@@ -127,7 +127,7 @@ export const emitNewMessage = async (data) => {
   try {
     await promisifyEmit('newMessage', data)
     console.log('Message emitted:', data)
-  } 
+  }
   catch (error) {
     console.error('Emit message error:', error)
     throw error
