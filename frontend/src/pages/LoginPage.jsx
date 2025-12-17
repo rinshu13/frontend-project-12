@@ -1,47 +1,49 @@
-import { useState } from 'react';
-import { useFormik } from 'formik';
-import { useDispatch } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { login } from '../features/auth/authSlice';
-import { loginUser } from '../api';
-import loginSchema from '../validation/loginSchema';
+import { useState } from 'react'
+import { useFormik } from 'formik'
+import { useDispatch } from 'react-redux'
+import { useNavigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { login } from '../features/auth/authSlice'
+import { loginUser } from '../api'
+import loginSchema from '../validation/loginSchema'
 
 const LoginPage = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { t } = useTranslation();
-  const [authError, setAuthError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const { t } = useTranslation()
+  const [authError, setAuthError] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (values) => {
-    setAuthError(null);
-    setLoading(true);
+    setAuthError(null)
+    setLoading(true)
 
     try {
-      const response = await loginUser(values);
-      const { token, username } = response.data;
+      const response = await loginUser(values)
+      const { token, username } = response.data
 
       if (!token || !username) {
-        throw new Error('Invalid response data');
+        throw new Error('Invalid response data')
       }
 
-      dispatch(login({ token, username }));
-      localStorage.setItem('token', token);
-      localStorage.setItem('username', username);
+      dispatch(login({ token, username }))
+      localStorage.setItem('token', token)
+      localStorage.setItem('username', username)
 
-      navigate('/');
-    } catch (err) {
-      console.error('Login error:', err);
+      navigate('/')
+    } 
+    catch (err) {
+      console.error('Login error:', err)
       if (err.response?.status === 401) {
-        setAuthError('Неверные имя пользователя или пароль');
-      } else {
-        setAuthError(t('errors.network') || 'Ошибка сети или сервера. Попробуйте позже.');
+        setAuthError('Неверные имя пользователя или пароль')
+      } 
+      else {
+        setAuthError(t('errors.network') || 'Ошибка сети или сервера. Попробуйте позже.')
       }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const formik = useFormik({
     initialValues: {
@@ -50,7 +52,7 @@ const LoginPage = () => {
     },
     validationSchema: loginSchema(t),
     onSubmit: handleSubmit,
-  });
+  })
 
   return (
     <div className="container py-5 h-100">
@@ -128,7 +130,7 @@ const LoginPage = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default LoginPage;
+export default LoginPage

@@ -1,39 +1,41 @@
-import { useNavigate, Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { useTranslation } from 'react-i18next';
-import { useFormik } from 'formik';
-import { login } from '../features/auth/authSlice';
-import api from '../api';
-import signupSchema from '../validation/signupSchema';
+import { useNavigate, Link } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { useTranslation } from 'react-i18next'
+import { useFormik } from 'formik'
+import { login } from '../features/auth/authSlice'
+import api from '../api'
+import signupSchema from '../validation/signupSchema'
 
 const SignupPage = () => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { t } = useTranslation()
 
   const handleSubmit = async (values, { setSubmitting, setErrors }) => {
     try {
       const response = await api.post('/signup', {
         username: values.username,
         password: values.password,
-      });
+      })
 
       const { token } = response.data;
       if (!token || typeof token !== 'string') {
-        throw new Error('Invalid token in response');
+        throw new Error('Invalid token in response')
       }
 
-      dispatch(login({ token, username: values.username }));
-      navigate('/');
-    } catch (err) {
-      setSubmitting(false);
+      dispatch(login({ token, username: values.username }))
+      navigate('/')
+    } 
+    catch (err) {
+      setSubmitting(false)
       if (err.response?.status === 409) {
-        setErrors({ username: 'errors.conflict' });
-      } else {
-        setErrors({ username: 'errors.signup' });
+        setErrors({ username: 'errors.conflict' })
+      } 
+      else {
+        setErrors({ username: 'errors.signup' })
       }
     }
-  };
+  }
 
   const formik = useFormik({
     initialValues: {
@@ -43,7 +45,7 @@ const SignupPage = () => {
     },
     validationSchema: signupSchema,
     onSubmit: handleSubmit,
-  });
+  })
 
   return (
     <div className="container py-5 h-100">
@@ -156,7 +158,7 @@ const SignupPage = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default SignupPage;
+export default SignupPage

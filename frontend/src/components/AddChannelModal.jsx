@@ -36,10 +36,10 @@ const AddChannelModal = ({ isOpen, onClose }) => {
 
       if (newChannel && newChannel.id) {
         newChannelId = newChannel.id
-      } 
+      }
       else {
         const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]')
-        newChannelId = Math.max(...storedChannels.map(c => c.id || 0), 0) + 1;
+        newChannelId = Math.max(...storedChannels.map(c => c.id || 0), 0) + 1
 
         const localChannel = { id: newChannelId, name: censoredName, removable: true }
 
@@ -52,7 +52,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
       toast.success(t('toast.success.createChannel'))
       resetForm()
       onClose(newChannelId)
-    } 
+    }
     catch (error) {
       console.error('Error creating channel:', error)
       setSubmitting(false)
@@ -61,20 +61,22 @@ const AddChannelModal = ({ isOpen, onClose }) => {
         if (error.response.status === 409) {
           setFieldError('name', t('modal.addErrorUnique'))
           toast.error(t('modal.addErrorUnique'))
-        } 
+        }
         else if (error.response.status === 401) {
           toast.error(t('toast.error.unauthorized'))
-        } 
+        }
         else {
           toast.error(t('toast.error.createChannel'))
         }
-      } else if (error.request) {
+      } 
+      else if (error.request) {
         toast.error(t('toast.error.network'))
-      } else {
+      } 
+      else {
         toast.error(t('toast.error.createChannel'))
       }
     }
-  };
+  }
 
   const formik = useFormik({
     initialValues: { name: '' },
@@ -82,14 +84,14 @@ const AddChannelModal = ({ isOpen, onClose }) => {
     validateOnChange: false,
     validateOnBlur: true,
     onSubmit: handleSubmit,
-  });
+  })
 
   const handleClose = (e) => {
     e?.stopPropagation();
     if (!formik.isSubmitting) {
       onClose();
     }
-  };
+  }
 
   const handleSubmitWithValidation = (e) => {
     e.preventDefault();
@@ -100,10 +102,10 @@ const AddChannelModal = ({ isOpen, onClose }) => {
       } else {
         formik.setErrors(errors);
       }
-    });
-  };
+    })
+  }
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <div className="modal-overlay" onClick={handleClose}>
@@ -170,7 +172,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
 export default AddChannelModal

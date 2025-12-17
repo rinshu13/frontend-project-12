@@ -7,6 +7,6 @@ const loginSchema = (t) =>
       .required(t('errors.required')),
     password: Yup.string()
       .required(t('errors.required')),
-  });
+  })
 
 export default loginSchema

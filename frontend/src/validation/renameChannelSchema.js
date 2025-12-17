@@ -7,6 +7,6 @@ const renameChannelSchema = (t) =>
       .min(3, t('modal.channelNameLength'))
       .max(20, t('modal.channelNameLength'))
       .required(t('modal.channelNameRequired')),
-  });
+  })
 
 export default renameChannelSchema

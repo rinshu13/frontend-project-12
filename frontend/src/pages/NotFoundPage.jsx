@@ -1,8 +1,8 @@
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 const NotFoundPage = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
 
   return (
     <div className="d-flex align-items-center justify-content-center min-vh-100 bg-light">
@@ -19,7 +19,7 @@ const NotFoundPage = () => {
         </Link>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default NotFoundPage;
+export default NotFoundPage

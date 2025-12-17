@@ -11,6 +11,6 @@ const signupSchema = Yup.object().shape({
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password')], 'errors.passwordMismatch')
     .required('errors.required'),
-});
+})
 
 export default signupSchema
