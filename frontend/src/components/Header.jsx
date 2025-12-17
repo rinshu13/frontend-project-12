@@ -1,37 +1,33 @@
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { logout } from '../features/auth/authSlice';
+import { useSelector, useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { logout } from '../features/auth/authSlice'
+import './Components.css'
 
 export const Header = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { token } = useSelector((state) => state.auth);
-  const { t } = useTranslation();
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const { token } = useSelector(state => state.auth)
+  const { t } = useTranslation()
 
   const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
-  };
+    dispatch(logout())
+    navigate('/login')
+  }
 
   return (
-    <header className="app-header shadow-sm bg-white border-bottom">
-      <div className="header-container container-fluid px-4 py-3 d-flex justify-content-between align-items-center">
-        <Link to="/" className="header-brand navbar-brand fw-bold fs-4 text-primary">
+    <header className="app-header">
+      <div className="header-container">
+        <Link to="/" className="header-brand">
           {t('header.title')}
         </Link>
-
         {token && (
-          <button
-            type="button"
-            className="header-logout-btn btn btn-outline-danger"
-            onClick={handleLogout}
-          >
+          <button className="header-logout-btn" onClick={handleLogout}>
             {t('header.logout')}
           </button>
         )}
       </div>
     </header>
-  );
-};
+  )
+}
