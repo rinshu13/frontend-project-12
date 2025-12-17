@@ -25,6 +25,7 @@ import AddChannelModal from './components/AddChannelModal';
 import RenameChannelModal from './components/RenameChannelModal';
 import RemoveChannelModal from './components/RemoveChannelModal';
 import ChannelItem from './components/ChannelItem';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 leoProfanity.add([
   'блядь', 'блять', 'пизда', 'пиздец', 'пиздеть', 'хуй', 'хуи', 'хуё', 'хуя', 'ебать', 'ебаный', 'еби', 'ебло',
