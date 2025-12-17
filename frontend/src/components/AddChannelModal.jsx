@@ -8,66 +8,70 @@ import addChannelSchema from '../validation/addChannelSchema'
 import './Components.css'
 
 const AddChannelModal = ({ isOpen, onClose }) => {
-  const { t } = useTranslation();
-  const inputRef = useRef(null);
+  const { t } = useTranslation()
+  const inputRef = useRef(null)
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
+      inputRef.current.focus()
+      inputRef.current.select()
     }
-  }, [isOpen]);
+  }, [isOpen])
 
   const handleSubmit = async (values, { setSubmitting, resetForm, setFieldError }) => {
-    const originalName = values.name.trim();
-    if (!originalName) return;
+    const originalName = values.name.trim()
+    if (!originalName) return
 
-    const censoredName = leoProfanity.clean(originalName);
+    const censoredName = leoProfanity.clean(originalName)
 
     if (censoredName !== originalName) {
-      toast.warning(t('toast.warning.channelNameCensored') || 'Название канала было отцензурировано');
+      toast.warning(t('toast.warning.channelNameCensored') || 'Название канала было отцензурировано')
     }
 
     try {
-      const response = await createChannel(censoredName);
-      const newChannel = response.data?.data || response.data;
+      const response = await createChannel(censoredName)
+      const newChannel = response.data?.data || response.data
 
-      let newChannelId;
+      let newChannelId
 
       if (newChannel && newChannel.id) {
-        newChannelId = newChannel.id;
-      } else {
-        const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]');
-        newChannelId = Math.max(...storedChannels.map((c) => c.id || 0), 0) + 1;
+        newChannelId = newChannel.id
+      } 
+      else {
+        const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]')
+        newChannelId = Math.max(...storedChannels.map(c => c.id || 0), 0) + 1;
 
-        const localChannel = { id: newChannelId, name: censoredName, removable: true };
+        const localChannel = { id: newChannelId, name: censoredName, removable: true }
 
-        if (!storedChannels.some((c) => c.name === censoredName)) {
-          storedChannels.push(localChannel);
-          localStorage.setItem('channels', JSON.stringify(storedChannels));
+        if (!storedChannels.some(c => c.name === censoredName)) {
+          storedChannels.push(localChannel)
+          localStorage.setItem('channels', JSON.stringify(storedChannels))
         }
       }
 
-      toast.success(t('toast.success.createChannel'));
-      resetForm();
-      onClose(newChannelId);
-    } catch (error) {
-      console.error('Error creating channel:', error);
-      setSubmitting(false);
+      toast.success(t('toast.success.createChannel'))
+      resetForm()
+      onClose(newChannelId)
+    } 
+    catch (error) {
+      console.error('Error creating channel:', error)
+      setSubmitting(false)
 
       if (error.response) {
         if (error.response.status === 409) {
-          setFieldError('name', t('modal.addErrorUnique'));
-          toast.error(t('modal.addErrorUnique'));
-        } else if (error.response.status === 401) {
-          toast.error(t('toast.error.unauthorized'));
-        } else {
-          toast.error(t('toast.error.createChannel'));
+          setFieldError('name', t('modal.addErrorUnique'))
+          toast.error(t('modal.addErrorUnique'))
+        } 
+        else if (error.response.status === 401) {
+          toast.error(t('toast.error.unauthorized'))
+        } 
+        else {
+          toast.error(t('toast.error.createChannel'))
         }
       } else if (error.request) {
-        toast.error(t('toast.error.network'));
+        toast.error(t('toast.error.network'))
       } else {
-        toast.error(t('toast.error.createChannel'));
+        toast.error(t('toast.error.createChannel'))
       }
     }
   };
