@@ -379,9 +379,9 @@ const App = () => {
   if (!token) return null;
 
   return (
-    <div className="app vh-100 d-flex flex-column bg-light">
+    <div className="app vh-100 d-flex flex-column">
       <div className="app-body d-flex flex-grow-1">
-        <aside className="channels-sidebar bg-white border-end">
+        <aside className="channels-sidebar">
           <div className="channels-header">
             <h5>{t('app.channelsTitle')}</h5>
             <button className="btn btn-success w-100 mb-2" onClick={() => setShowAddModal(true)}>
@@ -428,7 +428,7 @@ const App = () => {
             {submitError && <div className="alert alert-danger">{submitError}</div>}
             {messageError && <div className="alert alert-warning">{messageError}</div>}
 
-            <div className="input-group">
+            <div className="input-group mt-3">
               <input
                 ref={inputRef}
                 type="text"
