@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { logout } from '../features/auth/authSlice'
-import './Components.css'
 
 export const Header = () => {
   const dispatch = useDispatch()
@@ -17,17 +16,23 @@ export const Header = () => {
   }
 
   return (
-    <header className="app-header">
-      <div className="header-container">
-        <Link to="/" className="header-brand">
-          {t('header.title')}
-        </Link>
-        {token && (
-          <button className="header-logout-btn" onClick={handleLogout}>
-            {t('header.logout')}
-          </button>
-        )}
-      </div>
+    <header className="shadow-sm bg-white border-bottom">
+      <nav className="navbar navbar-expand navbar-light py-3">
+        <div className="container-fluid px-4 d-flex justify-content-between align-items-center">
+          <Link to="/" className="navbar-brand fw-bold fs-4 text-primary">
+            {t('header.title')}
+          </Link>
+          {token && (
+            <button
+              type="button"
+              className="btn btn-outline-danger"
+              onClick={handleLogout}
+            >
+              {t('header.logout')}
+            </button>
+          )}
+        </div>
+      </nav>
     </header>
   )
 }
