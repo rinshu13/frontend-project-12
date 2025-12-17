@@ -425,8 +425,8 @@ const App = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="message-form" noValidate>
-            {submitError && <div className="alert alert-danger mb-3">{submitError}</div>}
-            {messageError && <div className="alert alert-warning mb-3">{messageError}</div>}
+            {submitError && <div className="alert alert-danger">{submitError}</div>}
+            {messageError && <div className="alert alert-warning">{messageError}</div>}
 
             <div className="input-group">
               <input
