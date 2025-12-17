@@ -381,17 +381,17 @@ const App = () => {
   return (
     <div className="app vh-100 d-flex flex-column bg-light">
       <div className="app-body d-flex flex-grow-1">
-        <aside className="channels-sidebar bg-white border-end d-flex flex-column">
-          <div className="channels-header p-3 border-bottom bg-light">
+        <aside className="channels-sidebar bg-white border-end">
+          <div className="channels-header">
             <h5>{t('app.channelsTitle')}</h5>
-            <button className="btn btn-success w-100 mt-2" onClick={() => setShowAddModal(true)}>
+            <button className="btn btn-success w-100 mb-2" onClick={() => setShowAddModal(true)}>
               {t('app.addChannel')}
             </button>
-            <button className="btn btn-outline-secondary w-100 mt-2" onClick={handleLogout}>
+            <button className="btn btn-outline-secondary w-100" onClick={handleLogout}>
               {t('app.logout')}
             </button>
           </div>
-          <div className="channels-list flex-grow-1 overflow-auto" role="list">
+          <div className="channels-list" role="list">
             {channels?.length > 0
               ? channels.map(channel => (
                   <ChannelItem
@@ -403,14 +403,14 @@ const App = () => {
                     onRemove={setShowRemoveModal}
                   />
                 ))
-              : <p className="text-center text-muted p-3">{t('app.loadingChannels')}</p>}
+              : <p className="text-center text-muted">{t('app.loadingChannels')}</p>}
           </div>
         </aside>
-        <section className="chat-section d-flex flex-column flex-grow-1">
-          <div className="messages-area flex-grow-1 overflow-auto p-3">
+        <section className="chat-section d-flex flex-column">
+          <div className="messages-area">
             {messages.length > 0
               ? messages.map(msg => (
-                  <div key={msg.id} className="message-card mb-3">
+                  <div key={msg.id} className="message-card">
                     <div className="message-header">
                       <strong>{msg.username}</strong>
                     </div>
@@ -424,7 +424,7 @@ const App = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          <form onSubmit={handleSubmit} className="message-form mt-auto p-3 border-top bg-light" noValidate>
+          <form onSubmit={handleSubmit} className="message-form" noValidate>
             {submitError && <div className="alert alert-danger">{submitError}</div>}
             {messageError && <div className="alert alert-warning">{messageError}</div>}
 
