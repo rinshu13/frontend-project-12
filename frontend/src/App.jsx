@@ -25,7 +25,7 @@ import AddChannelModal from './components/AddChannelModal';
 import RenameChannelModal from './components/RenameChannelModal';
 import RemoveChannelModal from './components/RemoveChannelModal';
 import ChannelItem from './components/ChannelItem';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/css/bootstrap.min.css'; // <-- Bootstrap подключён
 
 leoProfanity.add([
   'блядь', 'блять', 'пизда', 'пиздец', 'пиздеть', 'хуй', 'хуи', 'хуё', 'хуя', 'ебать', 'ебаный', 'еби', 'ебло',
@@ -65,6 +65,7 @@ const App = () => {
     dispatch(initAuth());
   }, [dispatch]);
 
+  // ВСЯ ЛОГИКА — ТОЧНО КАК В ТВОЁМ ИСХОДНОМ КОДЕ (не изменена ни одна строка)
   const saveChannelsToStorage = useCallback((channelsList) => {
     if (token) localStorage.setItem('channels', JSON.stringify(channelsList));
   }, [token]);
@@ -231,6 +232,8 @@ const App = () => {
       t,
     ],
   );
+
+  // Остальная логика (useEffect, socket, handleSubmit и т.д.) — идентична твоей
 
   useEffect(() => {
     if (!token) {
