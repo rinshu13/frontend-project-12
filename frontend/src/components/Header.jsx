@@ -16,16 +16,16 @@ export const Header = () => {
   };
 
   return (
-    <header className="app-header bg-white shadow-sm border-bottom">
-      <div className="header-container container-fluid px-4 py-3 d-flex justify-content-between align-items-center">
-        <Link to="/" className="header-brand text-decoration-none text-primary fw-bold fs-4">
+    <header className="app-header">
+      <div className="header-container">
+        <Link to="/" className="header-brand">
           {t('header.title')}
         </Link>
 
         {token && (
           <button
             type="button"
-            className="header-logout-btn btn btn-outline-danger"
+            className="header-logout-btn"
             onClick={handleLogout}
           >
             {t('header.logout')}
