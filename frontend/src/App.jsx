@@ -25,7 +25,7 @@ import AddChannelModal from './components/AddChannelModal';
 import RenameChannelModal from './components/RenameChannelModal';
 import RemoveChannelModal from './components/RemoveChannelModal';
 import ChannelItem from './components/ChannelItem';
-import 'bootstrap/dist/css/bootstrap.min.css'; // <-- Bootstrap подключён
+import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap подключён
 
 leoProfanity.add([
   'блядь', 'блять', 'пизда', 'пиздец', 'пиздеть', 'хуй', 'хуи', 'хуё', 'хуя', 'ебать', 'ебаный', 'еби', 'ебло',
@@ -65,7 +65,6 @@ const App = () => {
     dispatch(initAuth());
   }, [dispatch]);
 
-  // ВСЯ ЛОГИКА — ТОЧНО КАК В ТВОЁМ ИСХОДНОМ КОДЕ (не изменена ни одна строка)
   const saveChannelsToStorage = useCallback((channelsList) => {
     if (token) localStorage.setItem('channels', JSON.stringify(channelsList));
   }, [token]);
@@ -233,8 +232,6 @@ const App = () => {
     ],
   );
 
-  // Остальная логика (useEffect, socket, handleSubmit и т.д.) — идентична твоей
-
   useEffect(() => {
     if (!token) {
       navigate('/login');
@@ -382,22 +379,27 @@ const App = () => {
 
   if (!token) return null;
 
+  const currentChannel = channels.find(c => c.id === currentChannelId);
+
   return (
-    <div className="app vh-100 d-flex flex-column">
-      <div className="app-body d-flex flex-grow-1">
-        <aside className="channels-sidebar">
-          <div className="channels-header">
-            <h5>{t('app.channelsTitle')}</h5>
-            <button className="btn btn-success w-100 mb-2" onClick={() => setShowAddModal(true)}>
-              {t('app.addChannel')}
-            </button>
-            <button className="btn btn-outline-secondary w-100" onClick={handleLogout}>
-              {t('app.logout')}
-            </button>
-          </div>
-          <div className="channels-list" role="list">
-            {channels?.length > 0
-              ? channels.map(channel => (
+    <div className="h-100 d-flex flex-column bg-light">
+      <div className="container h-100 my-4 overflow-hidden rounded shadow">
+        <div className="row h-100 bg-white">
+
+          {/* Sidebar каналов */}
+          <div className="col-4 col-md-3 col-lg-2 channels-sidebar border-end bg-light">
+            <div className="channels-header d-flex justify-content-between align-items-center p-3 border-bottom">
+              <h5 className="mb-0">{t('app.channelsTitle')}</h5>
+              <button
+                className="btn btn-outline-success btn-sm"
+                onClick={() => setShowAddModal(true)}
+              >
+                +
+              </button>
+            </div>
+            <ul className="channels-list list-group list-group-flush overflow-auto h-100">
+              {channels?.length > 0 ? (
+                channels.map(channel => (
                   <ChannelItem
                     key={channel.id}
                     channel={channel}
@@ -407,53 +409,79 @@ const App = () => {
                     onRemove={setShowRemoveModal}
                   />
                 ))
-              : <p className="text-center text-muted">{t('app.loadingChannels')}</p>}
-          </div>
-        </aside>
-        <section className="chat-section d-flex flex-column">
-          <div className="messages-area">
-            {messages.length > 0
-              ? messages.map(msg => (
-                  <div key={msg.id} className="message-card">
-                    <div className="message-header">
-                      <strong>{msg.username}</strong>
-                    </div>
-                    <div className="message-body">{msg.text}</div>
-                    <div className="message-footer">
-                      {new Date(msg.createdAt).toLocaleString()}
-                    </div>
-                  </div>
-                ))
-              : <p className="text-center text-muted">{t('app.noMessages')}</p>}
-            <div ref={messagesEndRef} />
-          </div>
-
-          <form onSubmit={handleSubmit} className="message-form" noValidate>
-            {submitError && <div className="alert alert-danger">{submitError}</div>}
-            {messageError && <div className="alert alert-warning">{messageError}</div>}
-
-            <div className="input-group">
-              <input
-                ref={inputRef}
-                type="text"
-                value={messageText}
-                aria-label="Новое сообщение"
-                onChange={handleMessageChange}
-                placeholder={t('app.messagePlaceholder')}
-                disabled={!currentChannelId}
-                className="form-control form-input"
-                autoFocus
-              />
-              <button
-                type="submit"
-                disabled={!isMessageValid()}
-                className="btn btn-primary"
-              >
-                {t('app.send')}
+              ) : (
+                <li className="list-group-item text-center text-muted">
+                  {t('app.loadingChannels')}
+                </li>
+              )}
+            </ul>
+            <div className="p-3 border-top">
+              <button className="btn btn-outline-secondary w-100" onClick={handleLogout}>
+                {t('app.logout')}
               </button>
             </div>
-          </form>
-        </section>
+          </div>
+
+          {/* Основная область чата */}
+          <div className="col d-flex flex-column h-100 position-relative">
+            {/* Заголовок канала */}
+            <div className="bg-light p-3 border-bottom shadow-sm">
+              <h5 className="mb-1"># {currentChannel?.name || 'general'}</h5>
+              <p className="text-muted mb-0 small">
+                {messages.length} {t('app.messagesCount', { count: messages.length })}
+              </p>
+            </div>
+
+            {/* Сообщения */}
+            <div className="messages-area overflow-auto flex-grow-1 p-3">
+              {messages.length > 0 ? (
+                messages.map(msg => (
+                  <div key={msg.id} className="message-card mb-3 p-3 bg-light rounded shadow-sm">
+                    <div className="message-header d-flex justify-content-between align-items-center mb-1">
+                      <strong>{msg.username}</strong>
+                      <small className="text-muted">
+                        {new Date(msg.createdAt).toLocaleString()}
+                      </small>
+                    </div>
+                    <div className="message-body">{msg.text}</div>
+                  </div>
+                ))
+              ) : (
+                <div className="h-100 d-flex align-items-center justify-content-center text-muted">
+                  {t('app.noMessages')}
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Форма ввода сообщения */}
+            <div className="border-top bg-light p-3">
+              <form onSubmit={handleSubmit} noValidate>
+                {submitError && (
+                  <div className="alert alert-danger mb-3">{submitError}</div>
+                )}
+                {messageError && (
+                  <div className="alert alert-warning mb-3">{messageError}</div>
+                )}
+                <div className="input-group">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={messageText}
+                    onChange={handleMessageChange}
+                    placeholder={t('app.messagePlaceholder')}
+                    disabled={!currentChannelId}
+                    className="form-control form-input"
+                    autoFocus
+                  />
+                  <button type="submit" disabled={!isMessageValid()} className="btn btn-primary">
+                    {t('app.send')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
 
       <AddChannelModal
