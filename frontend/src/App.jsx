@@ -381,14 +381,17 @@ const App = () => {
   return (
     <div className="app vh-100 d-flex flex-column bg-light">
       <div className="app-body d-flex flex-grow-1">
-        <aside className="channels-sidebar bg-white border-end">
-          <div className="channels-header p-3 border-bottom d-flex justify-content-between align-items-center">
-            <h5 className="mb-0">{t('app.channelsTitle')}</h5>
-            <button className="btn btn-success btn-sm" onClick={() => setShowAddModal(true)}>
+        <aside className="channels-sidebar bg-white border-end d-flex flex-column">
+          <div className="channels-header p-3 border-bottom bg-light">
+            <h5>{t('app.channelsTitle')}</h5>
+            <button className="btn btn-success w-100 mt-2" onClick={() => setShowAddModal(true)}>
               {t('app.addChannel')}
             </button>
+            <button className="btn btn-outline-secondary w-100 mt-2" onClick={handleLogout}>
+              {t('app.logout')}
+            </button>
           </div>
-          <div className="channels-list overflow-auto flex-grow-1" role="list">
+          <div className="channels-list flex-grow-1 overflow-auto" role="list">
             {channels?.length > 0
               ? channels.map(channel => (
                   <ChannelItem
@@ -402,31 +405,28 @@ const App = () => {
                 ))
               : <p className="text-center text-muted p-3">{t('app.loadingChannels')}</p>}
           </div>
-          <div className="p-3 border-top">
-            <button className="btn btn-outline-secondary w-100" onClick={handleLogout}>
-              {t('app.logout')}
-            </button>
-          </div>
         </aside>
         <section className="chat-section d-flex flex-column flex-grow-1">
-          <div className="messages-area overflow-auto p-3 flex-grow-1">
+          <div className="messages-area flex-grow-1 overflow-auto p-3">
             {messages.length > 0
               ? messages.map(msg => (
-                  <div key={msg.id} className="message-card p-3 mb-3 bg-light rounded">
-                    <div className="message-header d-flex justify-content-between">
+                  <div key={msg.id} className="message-card mb-3">
+                    <div className="message-header">
                       <strong>{msg.username}</strong>
-                      <small className="text-muted">{new Date(msg.createdAt).toLocaleString()}</small>
                     </div>
-                    <div className="message-body mt-2">{msg.text}</div>
+                    <div className="message-body">{msg.text}</div>
+                    <div className="message-footer">
+                      {new Date(msg.createdAt).toLocaleString()}
+                    </div>
                   </div>
                 ))
               : <p className="text-center text-muted">{t('app.noMessages')}</p>}
             <div ref={messagesEndRef} />
           </div>
 
-          <form onSubmit={handleSubmit} className="message-form p-3 border-top bg-light" noValidate>
-            {submitError && <div className="alert alert-danger mb-3">{submitError}</div>}
-            {messageError && <div className="alert alert-warning mb-3">{messageError}</div>}
+          <form onSubmit={handleSubmit} className="message-form mt-auto p-3 border-top bg-light" noValidate>
+            {submitError && <div className="alert alert-danger">{submitError}</div>}
+            {messageError && <div className="alert alert-warning">{messageError}</div>}
 
             <div className="input-group">
               <input
