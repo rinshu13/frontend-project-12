@@ -18,19 +18,19 @@ const SignupPage = () => {
         password: values.password,
       })
 
-      const { token } = response.data;
+      const { token } = response.data
       if (!token || typeof token !== 'string') {
         throw new Error('Invalid token in response')
       }
 
       dispatch(login({ token, username: values.username }))
       navigate('/')
-    } 
+    }
     catch (err) {
       setSubmitting(false)
       if (err.response?.status === 409) {
         setErrors({ username: 'errors.conflict' })
-      } 
+      }
       else {
         setErrors({ username: 'errors.signup' })
       }
@@ -148,7 +148,7 @@ const SignupPage = () => {
               </form>
 
               <div className="text-center mt-4">
-                {t('signup.loginLink')}{' '}
+                {t('signup.loginLink')}{''}
                 <Link to="/login" className="link-primary text-decoration-none">
                   {t('login.title')}
                 </Link>

@@ -31,16 +31,17 @@ const LoginPage = () => {
       localStorage.setItem('username', username)
 
       navigate('/')
-    } 
+    }
     catch (err) {
       console.error('Login error:', err)
       if (err.response?.status === 401) {
         setAuthError('Неверные имя пользователя или пароль')
-      } 
+      }
       else {
         setAuthError(t('errors.network') || 'Ошибка сети или сервера. Попробуйте позже.')
       }
-    } finally {
+    } 
+    finally {
       setLoading(false)
     }
   }

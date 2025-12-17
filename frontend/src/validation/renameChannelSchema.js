@@ -1,6 +1,6 @@
 import * as Yup from 'yup'
 
-const renameChannelSchema = (t) =>
+const renameChannelSchema = t =>
   Yup.object().shape({
     name: Yup.string()
       .trim()

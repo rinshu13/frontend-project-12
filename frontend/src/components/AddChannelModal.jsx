@@ -68,10 +68,10 @@ const AddChannelModal = ({ isOpen, onClose }) => {
         else {
           toast.error(t('toast.error.createChannel'))
         }
-      } 
+      }
       else if (error.request) {
         toast.error(t('toast.error.network'))
-      } 
+      }
       else {
         toast.error(t('toast.error.createChannel'))
       }
@@ -87,20 +87,21 @@ const AddChannelModal = ({ isOpen, onClose }) => {
   })
 
   const handleClose = (e) => {
-    e?.stopPropagation();
+    e?.stopPropagation()
     if (!formik.isSubmitting) {
-      onClose();
+      onClose()
     }
   }
 
   const handleSubmitWithValidation = (e) => {
-    e.preventDefault();
-    formik.setTouched({ name: true });
+    e.preventDefault()
+    formik.setTouched({ name: true })
     formik.validateForm().then((errors) => {
       if (Object.keys(errors).length === 0) {
-        formik.handleSubmit(e);
-      } else {
-        formik.setErrors(errors);
+        formik.handleSubmit(e)
+      } 
+      else {
+        formik.setErrors(errors)
       }
     })
   }
@@ -109,7 +110,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog" onClick={e => e.stopPropagation()}>
         <form onSubmit={handleSubmitWithValidation}>
           <div className="modal-header">
             <h5 className="modal-title">{t('modal.addTitle')}</h5>
