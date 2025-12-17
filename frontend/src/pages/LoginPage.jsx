@@ -40,7 +40,7 @@ const LoginPage = () => {
       else {
         setAuthError(t('errors.network') || 'Ошибка сети или сервера. Попробуйте позже.')
       }
-    } 
+    }
     finally {
       setLoading(false)
     }
@@ -121,7 +121,8 @@ const LoginPage = () => {
               </form>
 
               <div className="text-center mt-4">
-                {t('login.noAccount') || 'Нет аккаунта?'}{' '}
+                {t('login.noAccount') || 'Нет аккаунта?'}
+                {' '}
                 <Link to="/signup" className="link-primary text-decoration-none">
                   {t('login.signupLink') || 'Регистрация'}
                 </Link>

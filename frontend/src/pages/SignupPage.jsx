@@ -148,7 +148,8 @@ const SignupPage = () => {
               </form>
 
               <div className="text-center mt-4">
-                {t('signup.loginLink')}{''}
+                {t('signup.loginLink')}
+                {' '}
                 <Link to="/login" className="link-primary text-decoration-none">
                   {t('login.title')}
                 </Link>

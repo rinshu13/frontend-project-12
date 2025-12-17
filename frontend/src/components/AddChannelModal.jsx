@@ -99,7 +99,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
     formik.validateForm().then((errors) => {
       if (Object.keys(errors).length === 0) {
         formik.handleSubmit(e)
-      } 
+      }
       else {
         formik.setErrors(errors)
       }
