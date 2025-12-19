@@ -7,10 +7,16 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "cd frontend && npm run build"
   },
-  "keywords": ["chat", "slack", "react", "vite"],
+  "keywords": [
+    "chat",
+    "slack",
+    "react",
+    "vite"
+  ],
   "author": "Your Name",
   "license": "ISC",
   "dependencies": {
-    "@hexlet/chat-server": "^1.1.6"
+    "@hexlet/chat-server": "^1.1.6",
+    "bootstrap": "^5.3.8"
   }
 }
