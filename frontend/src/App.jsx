@@ -25,7 +25,7 @@ import AddChannelModal from './components/AddChannelModal';
 import RenameChannelModal from './components/RenameChannelModal';
 import RemoveChannelModal from './components/RemoveChannelModal';
 import ChannelItem from './components/ChannelItem';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap подключён
 
 leoProfanity.add([
   'блядь', 'блять', 'пизда', 'пиздец', 'пиздеть', 'хуй', 'хуи', 'хуё', 'хуя', 'ебать', 'ебаный', 'еби', 'ебло',
@@ -367,27 +367,34 @@ const App = () => {
     toast.info(t('toast.info.logout'));
   };
 
+  const closeModalsAndRefresh = async (newChannelId = null) => {
+    setShowAddModal(false);
+    setShowRenameModal(null);
+    setShowRemoveModal(null);
+    await refetchChannels({
+      switchToNewChannel: !!newChannelId,
+      newChannelId: newChannelId ?? undefined,
+    });
+  };
+
   if (!token) return null;
 
   return (
-    <div className="h-100 d-flex flex-column">
-      <div className="container h-100 my-4 overflow-hidden rounded shadow">
-        <div className="row h-100 bg-white">
-
-          {/* Сайдбар каналов — КЛЮЧЕВОЕ: кнопка logout здесь */}
-          <div className="col-4 col-md-3 col-lg-2 channels-sidebar border-end bg-light">
-            <div className="channels-header p-3 border-bottom">
-              <h5 className="mb-3">{t('app.channelsTitle')}</h5>
-              <button
-                className="btn btn-success w-100 mb-2"
-                onClick={() => setShowAddModal(true)}
-              >
-                {t('app.addChannel')}
-              </button>
-            </div>
-            <div className="channels-list list-group list-group-flush overflow-auto flex-grow-1">
-              {channels?.length > 0 ? (
-                channels.map(channel => (
+    <div className="app vh-100 d-flex flex-column">
+      <div className="app-body d-flex flex-grow-1">
+        <aside className="channels-sidebar">
+          <div className="channels-header">
+            <h5>{t('app.channelsTitle')}</h5>
+            <button className="btn btn-success w-100 mb-2" onClick={() => setShowAddModal(true)}>
+              {t('app.addChannel')}
+            </button>
+            <button className="btn btn-outline-secondary w-100" onClick={handleLogout}>
+              {t('app.logout')}
+            </button>
+          </div>
+          <div className="channels-list" role="list">
+            {channels?.length > 0
+              ? channels.map(channel => (
                   <ChannelItem
                     key={channel.id}
                     channel={channel}
@@ -397,82 +404,55 @@ const App = () => {
                     onRemove={setShowRemoveModal}
                   />
                 ))
-              ) : (
-                <div className="p-3 text-center text-muted">{t('app.loadingChannels')}</div>
-              )}
-            </div>
-            {/* КНОПКА ВЫХОДА — ОБЯЗАТЕЛЬНО ЗДЕСЬ */}
-            <div className="p-3 border-top bg-light">
-              <button
-                className="btn btn-outline-secondary w-100"
-                onClick={handleLogout}
-              >
-                {t('app.logout')}
-              </button>
-            </div>
+              : <p className="text-center text-muted">{t('app.loadingChannels')}</p>}
           </div>
-
-          {/* Основной чат */}
-          <div className="col d-flex flex-column h-100">
-            <div className="p-3 border-bottom bg-light shadow-sm">
-              <h5 className="mb-1">
-                # {channels.find(c => c.id === currentChannelId)?.name || 'general'}
-              </h5>
-              <small className="text-muted">
-                {messages.length} {t('app.messagesCount', { count: messages.length })}
-              </small>
-            </div>
-
-            <div className="messages-area overflow-auto flex-grow-1 p-3">
-              {messages.length > 0 ? (
-                messages.map(msg => (
-                  <div key={msg.id} className="message-card mb-3 p-3 bg-light rounded">
-                    <div className="message-header d-flex justify-content-between align-items-center mb-1">
-                      <strong className="text-primary">{msg.username}</strong>
-                      <small className="text-muted">
-                        {new Date(msg.createdAt).toLocaleString()}
-                      </small>
+        </aside>
+        <section className="chat-section d-flex flex-column">
+          <div className="messages-area">
+            {messages.length > 0
+              ? messages.map(msg => (
+                  <div key={msg.id} className="message-card">
+                    <div className="message-header">
+                      <strong>{msg.username}</strong>
                     </div>
                     <div className="message-body">{msg.text}</div>
+                    <div className="message-footer">
+                      {new Date(msg.createdAt).toLocaleString()}
+                    </div>
                   </div>
                 ))
-              ) : (
-                <div className="h-100 d-flex align-items-center justify-content-center text-muted">
-                  {t('app.noMessages')}
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            <form onSubmit={handleSubmit} className="message-form p-3 border-top bg-light" noValidate>
-              {submitError && <div className="alert alert-danger mb-3">{submitError}</div>}
-              {messageError && <div className="alert alert-warning mb-3">{messageError}</div>}
-
-              <div className="input-group">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={messageText}
-                  onChange={handleMessageChange}
-                  placeholder={t('app.messagePlaceholder')}
-                  disabled={!currentChannelId}
-                  className="form-control form-input"
-                  autoFocus
-                />
-                <button
-                  type="submit"
-                  disabled={!isMessageValid()}
-                  className="btn btn-primary"
-                >
-                  {t('app.send')}
-                </button>
-              </div>
-            </form>
+              : <p className="text-center text-muted">{t('app.noMessages')}</p>}
+            <div ref={messagesEndRef} />
           </div>
-        </div>
+
+          <form onSubmit={handleSubmit} className="message-form" noValidate>
+            {submitError && <div className="alert alert-danger">{submitError}</div>}
+            {messageError && <div className="alert alert-warning">{messageError}</div>}
+
+            <div className="input-group">
+              <input
+                ref={inputRef}
+                type="text"
+                value={messageText}
+                aria-label="Новое сообщение"
+                onChange={handleMessageChange}
+                placeholder={t('app.messagePlaceholder')}
+                disabled={!currentChannelId}
+                className="form-control form-input"
+                autoFocus
+              />
+              <button
+                type="submit"
+                disabled={!isMessageValid()}
+                className="btn btn-primary"
+              >
+                {t('app.send')}
+              </button>
+            </div>
+          </form>
+        </section>
       </div>
 
-      {/* Модалки */}
       <AddChannelModal
         isOpen={showAddModal}
         onClose={newChannelId => closeModalsAndRefresh(newChannelId)}
