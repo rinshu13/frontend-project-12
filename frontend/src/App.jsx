@@ -394,17 +394,17 @@ const App = () => {
           </div>
           <div className="channels-list" role="list">
             {channels?.length > 0
-              ? channels.map(channel => (
-                  <ChannelItem
-                    key={channel.id}
-                    channel={channel}
-                    currentChannelId={currentChannelId}
-                    onChannelClick={handleChannelClick}
-                    onRename={setShowRenameModal}
-                    onRemove={setShowRemoveModal}
-                  />
-                ))
-              : <p className="text-center text-muted">{t('app.loadingChannels')}</p>}
+            ? channels.map(channel => (
+                <ChannelItem
+                  key={channel.id}
+                  channel={channel}
+                  currentChannelId={currentChannelId}
+                  onChannelClick={handleChannelClick}
+                  onRename={(id) => setShowRenameModal(id)}
+                  onRemove={(id) => setShowRemoveModal(id)}
+                />
+              ))
+            : <p className="text-center text-muted">{t('app.loadingChannels')}</p>}
           </div>
         </aside>
         <section className="chat-section d-flex flex-column">
