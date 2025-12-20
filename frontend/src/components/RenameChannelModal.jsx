@@ -78,7 +78,7 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
   });
 
   return (
-    <Modal show={isOpen} onHide={onClose} centered backdrop="static">
+    <Modal show={isOpen} onHide={onClose} centered backdrop="static" data-testid="rename-channel-modal">
       <Modal.Header closeButton>
         <Modal.Title>{t('modal.renameTitle')}</Modal.Title>
       </Modal.Header>
@@ -97,6 +97,7 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
               disabled={formik.isSubmitting}
               autoFocus
               aria-label="Имя канала"
+              data-testid="rename-channel-input"  // ← Добавь для надёжности
             />
             <Form.Control.Feedback type="invalid">
               {formik.errors.name}
@@ -106,7 +107,12 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
             <Button variant="secondary" onClick={onClose} disabled={formik.isSubmitting}>
               {t('modal.renameCancel')}
             </Button>
-            <Button type="submit" variant="primary" disabled={formik.isSubmitting}>
+            <Button 
+              type="submit" 
+              variant="primary" 
+              disabled={formik.isSubmitting}
+              data-testid="rename-channel-submit"  // ← КРИТИЧЕСКИ ВАЖНО ДЛЯ ТЕСТА
+            >
               {formik.isSubmitting ? t('modal.renameLoading') : t('modal.renameSubmit')}
             </Button>
           </div>

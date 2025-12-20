@@ -63,7 +63,7 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
           <Button variant="secondary" onClick={onClose} disabled={loading}>
             {t('modal.removeCancel')}
           </Button>
-          <Button variant="danger" onClick={handleDelete} disabled={loading}>
+          <Button variant="danger" onClick={handleDelete} disabled={loading} data-testid="remove-channel-submit">
             {loading ? t('modal.removeLoading') : t('modal.removeSubmit')}
           </Button>
         </div>

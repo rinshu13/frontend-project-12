@@ -109,6 +109,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
               type="submit"
               variant="primary"
               disabled={formik.isSubmitting}
+              data-testid="add-channel-submit"
             >
               {formik.isSubmitting ? t('modal.addLoading') : t('modal.addSubmit')}
             </Button>
