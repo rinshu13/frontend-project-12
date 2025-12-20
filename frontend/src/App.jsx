@@ -453,24 +453,19 @@ const App = () => {
         </section>
       </div>
 
-      <AddChannelModal
-        isOpen={showAddModal}
-        onClose={newChannelId => closeModalsAndRefresh(newChannelId)}
+      <AddChannelModal isOpen={showAddModal} onClose={(newId) => closeModalsAndRefresh(newId)} />
+
+      <RenameChannelModal
+        channel={channels.find(c => c.id === showRenameModal)}
+        isOpen={!!showRenameModal}
+        onClose={() => closeModalsAndRefresh()}
       />
-      {showRenameModal && (
-        <RenameChannelModal
-          channel={channels.find(c => c.id === showRenameModal)}
-          isOpen={true}
-          onClose={() => closeModalsAndRefresh()}
-        />
-      )}
-      {showRemoveModal && (
-        <RemoveChannelModal
-          channelId={showRemoveModal}
-          isOpen={true}
-          onClose={() => closeModalsAndRefresh()}
-        />
-      )}
+
+      <RemoveChannelModal
+        channelId={showRemoveModal}
+        isOpen={!!showRemoveModal}
+        onClose={() => closeModalsAndRefresh()}
+      />
     </div>
   );
 };

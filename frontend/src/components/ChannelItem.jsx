@@ -6,29 +6,34 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
   return (
     <div
       role="listitem"
-      className={`d-flex align-items-stretch px-2 py-1 channel-item ${isActive ? 'bg-light' : ''}`}
+      className="d-flex align-items-center justify-content-between px-3 py-2 channel-item"
+      style={{ cursor: 'pointer' }}
     >
+      {/* Кнопка переключения на канал */}
       <button
         type="button"
-        className="flex-grow-1 text-start btn btn-link text-decoration-none text-dark py-2"
+        className={`flex-grow-1 text-start btn border-0 p-0 text-decoration-none ${
+          isActive ? 'fw-bold' : 'text-muted'
+        }`}
         onClick={() => onChannelClick(channel.id)}
         aria-current={isActive ? 'true' : 'false'}
-        style={{ borderRadius: '0' }}
+        style={{ background: 'transparent', color: 'inherit' }}
       >
-        <strong>#</strong> {channel.name}
+        # {channel.name}
       </button>
 
+      {/* Dropdown с действиями — только для removable каналов */}
       {channel.removable && (
-        <Dropdown align="end" className="d-inline">
+        <Dropdown align="end" autoClose="outside">
           <Dropdown.Toggle
             variant="link"
             bsPrefix="p-0"
-            className="text-muted shadow-none border-0 dropdown-toggle-no-caret"
+            className="text-muted border-0 shadow-none btn btn-link dropdown-toggle-no-caret"
             id={`dropdown-channel-${channel.id}`}
-            style={{ lineHeight: '1' }}
+            aria-label="Управление каналом"
+            style={{ lineHeight: '1', padding: '0.5rem' }}
           >
-            <span className="visually-hidden">Управление каналом</span>
-            ⋮
+            <span aria-hidden="true" className="fs-5">⋮</span>
           </Dropdown.Toggle>
 
           <Dropdown.Menu>
