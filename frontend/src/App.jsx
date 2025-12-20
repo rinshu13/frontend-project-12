@@ -49,17 +49,17 @@ const App = () => {
   const [messageText, setMessageText] = useState('')
   const [messageError, setMessageError] = useState(null)
   const [submitError, setSubmitError] = useState(null)
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false)
   const [showRenameModal, setShowRenameModal] = useState(null)
   const [showRemoveModal, setShowRemoveModal] = useState(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  };
+  }
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages]);
+  }, [messages])
 
   useEffect(() => {
     dispatch(initAuth())
@@ -75,12 +75,13 @@ const App = () => {
     try {
       const parsed = JSON.parse(stored)
       return Array.isArray(parsed) ? parsed : []
-    } catch {
+    } 
+    catch {
       return []
     }
   }, [])
 
-  const getDemoMessages = useCallback((channelName) => [
+  const getDemoMessages = useCallback(channelName => [
     {
       id: Date.now() - 1000,
       text: `Добро пожаловать в канал #${channelName}!`,
@@ -107,7 +108,8 @@ const App = () => {
     try {
       const parsed = JSON.parse(stored)
       return Array.isArray(parsed) ? parsed : []
-    } catch {
+    } 
+    catch {
       return []
     }
   }, [])
@@ -129,7 +131,8 @@ const App = () => {
         try {
           const response = await fetchMessagesByChannel(channelIdToLoad)
           msgs = response.data?.messages || []
-        } catch (err) {
+        } 
+        catch (err) {
           console.warn('API messages fetch failed, using demo', err)
         }
 
@@ -171,13 +174,15 @@ const App = () => {
             name: item.attributes.name,
             removable: item.attributes.removable ?? true,
           }))
-        } else if (Array.isArray(response.data)) {
+        } 
+        else if (Array.isArray(response.data)) {
           serverChannels = response.data.map(item => ({
             id: item.id,
             name: item.name || item.attributes?.name,
             removable: item.removable ?? item.attributes?.removable ?? true,
           }))
-        } else if (Array.isArray(response.data?.channels)) {
+        } 
+        else if (Array.isArray(response.data?.channels)) {
           serverChannels = response.data.channels.map(item => ({
             id: item.id,
             name: item.name,
@@ -187,13 +192,15 @@ const App = () => {
 
         if (serverChannels.length > 0) {
           finalChannels = serverChannels
-        } else {
+        } 
+        else {
           const stored = loadChannelsFromStorage()
           if (stored.length > 0) {
             finalChannels = stored
           }
         }
-      } catch (err) {
+      } 
+      catch (err) {
         console.error('Failed to fetch channels from server:', err)
         toast.error(t('toast.error.fetchChannels'))
 
@@ -211,10 +218,12 @@ const App = () => {
       const savedChannelId = loadCurrentChannelId()
       if (savedChannelId && finalChannels.some(c => c.id === savedChannelId)) {
         targetChannelId = savedChannelId
-      } else if (switchToNewChannel && newChannelId && finalChannels.some(c => c.id === newChannelId)) {
+      } 
+      else if (switchToNewChannel && newChannelId && finalChannels.some(c => c.id === newChannelId)) {
         targetChannelId = newChannelId
         saveCurrentChannelId(newChannelId)
-      } else if (currentChannelId && finalChannels.some(c => c.id === currentChannelId)) {
+      } 
+      else if (currentChannelId && finalChannels.some(c => c.id === currentChannelId)) {
         targetChannelId = currentChannelId
       }
 
@@ -353,7 +362,8 @@ const App = () => {
       setMessageError(null)
       setSubmitError(null)
       inputRef.current?.focus()
-    } catch (err) {
+    } 
+    catch (err) {
       console.error(err);
       const errorMsg = t('toast.error.sendMessage')
       setSubmitError(errorMsg)
@@ -384,17 +394,17 @@ const App = () => {
       <div className="app-body d-flex flex-grow-1">
         <aside className="channels-sidebar">
           <div className="channels-header">
-            <h5>{t('app.channelsTitle')}</h5>
-            <button className="btn btn-success w-100 mb-2" onClick={() => setShowAddModal(true)}>
-              {t('app.addChannel')}
-            </button>
-            <button className="btn btn-outline-secondary w-100" onClick={handleLogout}>
-              {t('app.logout')}
-            </button>
-          </div>
-          <div className="channels-list" role="list">
-            {channels?.length > 0
-                ? channels.map(channel => (
+        <h5>{t('app.channelsTitle')}</h5>
+        <button className="btn btn-success w-100 mb-2" onClick={() => setShowAddModal(true)}>
+          {t('app.addChannel')}
+        </button>
+        <button className="btn btn-outline-secondary w-100" onClick={handleLogout}>
+          {t('app.logout')}
+        </button>
+      </div>
+      <div className="channels-list" role="list">
+        {channels?.length > 0
+            ? channels.map(channel => (
                     <ChannelItem
                       key={channel.id}
                       channel={channel}

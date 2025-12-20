@@ -18,7 +18,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
         aria-current={isActive ? 'true' : 'false'}
         style={{ background: 'transparent' }}
       >
-        # 
+        #
         {channel.name}
       </button>
 

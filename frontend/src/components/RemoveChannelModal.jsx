@@ -33,24 +33,24 @@ const RemoveChannelModal = ({ channelId, isOpen, onClose }) => {
       try {
         const response = await fetchMessagesByChannel(generalId)
         dispatch(setMessages(response.data?.messages || []))
-      } 
+      }
       catch {
         dispatch(setMessages([]))
       }
 
       toast.success(t('toast.success.deleteChannel'))
       onClose()
-    } 
+    }
     catch (error) {
       console.error('Delete channel error:', error)
       if (!error.response || error.request) {
         toast.success(t('toast.success.deleteChannel'))
         onClose()
-      } 
+      }
       else {
         toast.error(t('toast.error.deleteChannel'))
       }
-    } 
+    }
     finally {
       setLoading(false)
     }

@@ -41,7 +41,8 @@ const AddChannelModal = ({ isOpen, onClose }) => {
 
         if (newChannel && newChannel.id) {
           newChannelId = newChannel.id
-        } else {
+        } 
+        else {
           const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]')
           newChannelId = Math.max(...storedChannels.map(c => c.id || 0), 0) + 1
 
@@ -56,16 +57,19 @@ const AddChannelModal = ({ isOpen, onClose }) => {
         toast.success(t('toast.success.createChannel'))
         resetForm()
         onClose(newChannelId)
-      } catch (error) {
+      } 
+      catch (error) {
         console.error('Error creating channel:', error)
         setSubmitting(false)
 
         if (error.response?.status === 409) {
           setFieldError('name', t('modal.addErrorUnique'))
           toast.error(t('modal.addErrorUnique'))
-        } else if (error.response?.status === 401) {
+        } 
+        else if (error.response?.status === 401) {
           toast.error(t('toast.error.unauthorized'))
-        } else {
+        } 
+        else {
           toast.error(t('toast.error.createChannel'))
         }
       }
