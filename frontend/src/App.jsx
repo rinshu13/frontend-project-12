@@ -400,8 +400,8 @@ const App = () => {
                     channel={channel}
                     currentChannelId={currentChannelId}
                     onChannelClick={handleChannelClick}
-                    onRename={() => setShowRenameModal(channel.id)}
-                    onRemove={() => setShowRemoveModal(channel.id)}
+                    onRename={(id) => setShowRenameModal(id)}
+                    onRemove={(id) => setShowRemoveModal(id)}
                   />
                 ))
               : <p className="text-center text-muted">{t('app.loadingChannels')}</p>}
