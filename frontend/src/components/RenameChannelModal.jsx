@@ -1,11 +1,11 @@
-import { useEffect, useRef } from 'react'
-import { useFormik } from 'formik'
-import * as Yup from 'yup'
-import { useTranslation } from 'react-i18next'
-import { toast } from 'react-toastify'
-import leoProfanity from 'leo-profanity'
-import { renameChannel } from '../api'
-import './Components.css'
+import { useEffect, useRef } from 'react';
+import { Modal, Button, Form } from 'react-bootstrap';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
+import leoProfanity from 'leo-profanity';
+import { renameChannel } from '../api';
 
 const RenameChannelSchema = Yup.object().shape({
   name: Yup.string()
@@ -13,18 +13,18 @@ const RenameChannelSchema = Yup.object().shape({
     .min(3, 'От 3 до 20 символов')
     .max(20, 'От 3 до 20 символов')
     .required('Обязательное поле'),
-})
+});
 
 const RenameChannelModal = ({ channel, isOpen, onClose }) => {
-  const { t } = useTranslation()
-  const inputRef = useRef(null)
+  const { t } = useTranslation();
+  const inputRef = useRef(null);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      inputRef.current.focus()
-      inputRef.current.select()
+      inputRef.current.focus();
+      inputRef.current.select();
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -33,166 +33,86 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
     validateOnChange: false,
     validateOnBlur: false,
     onSubmit: async (values, { setSubmitting }) => {
-      const trimmedName = values.name.trim()
-
-      if (!trimmedName) {
-        setSubmitting(false)
-        return
+      const trimmedName = values.name.trim();
+      if (!trimmedName || trimmedName === channel?.name) {
+        onClose();
+        return;
       }
 
-      const censoredName = leoProfanity.clean(trimmedName)
+      const censoredName = leoProfanity.clean(trimmedName);
 
       if (censoredName !== trimmedName) {
-        toast.warning(t('toast.warning.channelNameCensored') || 'Название канала было отцензурировано')
+        toast.warning(t('toast.warning.channelNameCensored') || 'Название канала было отцензурировано');
       }
 
       try {
-        await renameChannel(channel.id, censoredName)
+        await renameChannel(channel.id, censoredName);
 
-        const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]')
-
-        const isUnique = !storedChannels.some(
-          c => c.name === censoredName && c.id !== channel.id,
-        )
+        const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]');
+        const isUnique = !storedChannels.some(c => c.name === censoredName && c.id !== channel.id);
 
         if (isUnique) {
           const updatedChannels = storedChannels.map(c =>
-            c.id === channel.id ? { ...c, name: censoredName } : c,
-          )
-          localStorage.setItem('channels', JSON.stringify(updatedChannels))
+            c.id === channel.id ? { ...c, name: censoredName } : c
+          );
+          localStorage.setItem('channels', JSON.stringify(updatedChannels));
+        } else {
+          throw { response: { status: 409 } };
         }
-        else {
-          throw { response: { status: 409 } }
-        }
 
-        toast.success(t('toast.success.renameChannel'))
-        onClose()
-      }
-      catch (error) {
-        console.error('Rename error:', error)
-        setSubmitting(false)
-
-        if (!error.response || error.request) {
-          const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]')
-
-          const isUnique = !storedChannels.some(
-            c => c.name === censoredName && c.id !== channel.id,
-          )
-
-          if (isUnique) {
-            const updatedChannels = storedChannels.map(c =>
-              c.id === channel.id ? { ...c, name: censoredName } : c,
-            )
-            localStorage.setItem('channels', JSON.stringify(updatedChannels))
-
-            toast.success(t('toast.success.renameChannel'))
-            onClose()
-            return
-          }
-        }
+        toast.success(t('toast.success.renameChannel'));
+        onClose();
+      } catch (error) {
+        console.error('Rename error:', error);
+        setSubmitting(false);
 
         if (error.response?.status === 409) {
-          formik.setFieldError('name', t('modal.renameErrorUnique') || 'Имя должно быть уникальным')
-          toast.error(t('modal.renameErrorUnique'))
-        }
-        else {
-          formik.setFieldError('name', t('modal.renameError') || 'Ошибка сети')
-          toast.error(t('toast.error.renameChannel'))
+          formik.setFieldError('name', t('modal.renameErrorUnique') || 'Имя должно быть уникальным');
+          toast.error(t('modal.renameErrorUnique'));
+        } else {
+          formik.setFieldError('name', t('modal.renameError') || 'Ошибка сети');
+          toast.error(t('toast.error.renameChannel'));
         }
       }
     },
-  })
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    formik.setTouched({ name: true })
-    formik.validateForm().then((errors) => {
-      if (Object.keys(errors).length === 0) {
-        formik.handleSubmit()
-      }
-      else {
-        formik.setErrors(errors)
-      }
-    })
-  }
-
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget && !formik.isSubmitting) {
-      onClose()
-    }
-  }
-
-  if (!isOpen || !channel) return null
+  });
 
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal-dialog" onClick={e => e.stopPropagation()}>
-        <form onSubmit={handleSubmit}>
-          <div className="modal-header">
-            <h5 className="modal-title">
-              {t('modal.renameTitle')}
-            </h5>
-            <button
-              type="button"
-              className="modal-close"
-              onClick={onClose}
+    <Modal show={isOpen} onHide={onClose} centered backdrop="static">
+      <Modal.Header closeButton>
+        <Modal.Title>{t('modal.renameTitle')}</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form onSubmit={formik.handleSubmit}>
+          <Form.Group className="mb-3">
+            <Form.Label>Имя канала</Form.Label>
+            <Form.Control
+              ref={inputRef}
+              name="name"
+              type="text"
+              value={formik.values.name}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              isInvalid={formik.touched.name && !!formik.errors.name}
               disabled={formik.isSubmitting}
-              aria-label={t('modal.close')}
-            >
-              ×
-            </button>
-          </div>
-
-          <div className="modal-body">
-            <div className="modal-form-group">
-              <label htmlFor="rename-channel-name" className="modal-form-label">
-                Имя канала
-              </label>
-              <input
-                ref={inputRef}
-                id="rename-channel-name"
-                type="text"
-                name="name"
-                aria-label="Имя канала"
-                className={`modal-form-input ${
-                  formik.touched.name && formik.errors.name ? 'invalid' : ''
-                }`}
-                value={formik.values.name}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                disabled={formik.isSubmitting}
-                placeholder="Введите новое имя канала"
-                autoComplete="off"
-              />
-              {formik.touched.name && formik.errors.name && (
-                <div className="modal-invalid-feedback">
-                  {formik.errors.name}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="modal-footer">
-            <button
-              type="button"
-              className="modal-btn modal-btn-secondary"
-              onClick={onClose}
-              disabled={formik.isSubmitting}
-            >
+              autoFocus
+            />
+            <Form.Control.Feedback type="invalid">
+              {formik.errors.name}
+            </Form.Control.Feedback>
+          </Form.Group>
+          <div className="d-flex justify-content-end gap-2">
+            <Button variant="secondary" onClick={onClose} disabled={formik.isSubmitting}>
               {t('modal.renameCancel')}
-            </button>
-            <button
-              type="submit"
-              className="modal-btn modal-btn-primary"
-              disabled={formik.isSubmitting}
-            >
+            </Button>
+            <Button type="submit" variant="primary" disabled={formik.isSubmitting}>
               {formik.isSubmitting ? t('modal.renameLoading') : t('modal.renameSubmit')}
-            </button>
+            </Button>
           </div>
-        </form>
-      </div>
-    </div>
-  )
-}
+        </Form>
+      </Modal.Body>
+    </Modal>
+  );
+};
 
-export default RenameChannelModal
+export default RenameChannelModal;

@@ -453,10 +453,13 @@ const App = () => {
         </section>
       </div>
 
-      <AddChannelModal isOpen={showAddModal} onClose={(newId) => closeModalsAndRefresh(newId)} />
+      <AddChannelModal
+        isOpen={showAddModal}
+        onClose={(newChannelId) => closeModalsAndRefresh(newChannelId)}
+      />
 
       <RenameChannelModal
-        channel={channels.find(c => c.id === showRenameModal)}
+        channel={channels.find((c) => c.id === showRenameModal)}
         isOpen={!!showRenameModal}
         onClose={() => closeModalsAndRefresh()}
       />
