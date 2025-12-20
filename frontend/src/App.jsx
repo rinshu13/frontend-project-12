@@ -75,7 +75,7 @@ const App = () => {
     try {
       const parsed = JSON.parse(stored)
       return Array.isArray(parsed) ? parsed : []
-    } 
+    }
     catch {
       return []
     }
@@ -108,7 +108,7 @@ const App = () => {
     try {
       const parsed = JSON.parse(stored)
       return Array.isArray(parsed) ? parsed : []
-    } 
+    }
     catch {
       return []
     }
@@ -131,7 +131,7 @@ const App = () => {
         try {
           const response = await fetchMessagesByChannel(channelIdToLoad)
           msgs = response.data?.messages || []
-        } 
+        }
         catch (err) {
           console.warn('API messages fetch failed, using demo', err)
         }
@@ -174,14 +174,14 @@ const App = () => {
             name: item.attributes.name,
             removable: item.attributes.removable ?? true,
           }))
-        } 
+        }
         else if (Array.isArray(response.data)) {
           serverChannels = response.data.map(item => ({
             id: item.id,
             name: item.name || item.attributes?.name,
             removable: item.removable ?? item.attributes?.removable ?? true,
           }))
-        } 
+        }
         else if (Array.isArray(response.data?.channels)) {
           serverChannels = response.data.channels.map(item => ({
             id: item.id,
@@ -192,14 +192,14 @@ const App = () => {
 
         if (serverChannels.length > 0) {
           finalChannels = serverChannels
-        } 
+        }
         else {
           const stored = loadChannelsFromStorage()
           if (stored.length > 0) {
             finalChannels = stored
           }
         }
-      } 
+      }
       catch (err) {
         console.error('Failed to fetch channels from server:', err)
         toast.error(t('toast.error.fetchChannels'))
@@ -218,11 +218,11 @@ const App = () => {
       const savedChannelId = loadCurrentChannelId()
       if (savedChannelId && finalChannels.some(c => c.id === savedChannelId)) {
         targetChannelId = savedChannelId
-      } 
+      }
       else if (switchToNewChannel && newChannelId && finalChannels.some(c => c.id === newChannelId)) {
         targetChannelId = newChannelId
         saveCurrentChannelId(newChannelId)
-      } 
+      }
       else if (currentChannelId && finalChannels.some(c => c.id === currentChannelId)) {
         targetChannelId = currentChannelId
       }
@@ -362,9 +362,9 @@ const App = () => {
       setMessageError(null)
       setSubmitError(null)
       inputRef.current?.focus()
-    } 
+    }
     catch (err) {
-      console.error(err);
+      console.error(err)
       const errorMsg = t('toast.error.sendMessage')
       setSubmitError(errorMsg)
       toast.error(errorMsg)
@@ -464,21 +464,21 @@ const App = () => {
       </div>
 
       <AddChannelModal
-        isOpen={showAddModal}
-        onClose={newChannelId => closeModalsAndRefresh(newChannelId)}
-      />
+                      isOpen={showAddModal}
+                      onClose={newChannelId => closeModalsAndRefresh(newChannelId)}
+                    />
 
-      <RenameChannelModal
-        channel={channels.find(c => c.id === showRenameModal)}
-        isOpen={!!showRenameModal}
-        onClose={() => closeModalsAndRefresh()}
-      />
+                    <RenameChannelModal
+                      channel={channels.find(c => c.id === showRenameModal)}
+                      isOpen={!!showRenameModal}
+                      onClose={() => closeModalsAndRefresh()}
+                    />
 
-      <RemoveChannelModal
-        channelId={showRemoveModal}
-        isOpen={!!showRemoveModal}
-        onClose={() => closeModalsAndRefresh()}
-      />
+                    <RemoveChannelModal
+                      channelId={showRemoveModal}
+                      isOpen={!!showRemoveModal}
+                      onClose={() => closeModalsAndRefresh()}
+                    />
     </div>
   )
 }
