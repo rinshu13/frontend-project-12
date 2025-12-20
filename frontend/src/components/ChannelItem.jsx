@@ -20,13 +20,13 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
     setIsOpen(false);
   };
 
-  const closeDropdown = () => setIsOpen(false);
+  // Убираем onClick с корневого div — теперь закрытие только по клику вне (через документ или модалку)
 
   return (
     <div
       role="listitem"
       className={`channel-item ${currentChannelId === channel.id ? 'active' : ''}`}
-      onClick={closeDropdown}
+      // УДАЛЕНА строка onClick={closeDropdown}
     >
       <button
         type="button"
@@ -34,9 +34,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
         onClick={() => onChannelClick(channel.id)}
         aria-current={currentChannelId === channel.id ? 'true' : 'false'}
       >
-        <span className="channel-name">
-          #{channel.name}
-        </span>
+        <span className="channel-name">#{channel.name}</span>
       </button>
 
       {channel.removable && (
@@ -66,7 +64,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
                 minWidth: '160px',
                 padding: '8px 0',
               }}
-              onClick={e => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
             >
               <button
                 type="button"
