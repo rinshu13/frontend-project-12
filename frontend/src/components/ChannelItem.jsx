@@ -1,26 +1,26 @@
-import { useState } from 'react'
+import { useState } from 'react';
 
 const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRemove }) => {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   const toggleDropdown = (e) => {
-    e.stopPropagation()
-    setIsOpen(prev => !prev)
-  }
+    e.stopPropagation();
+    setIsOpen(prev => !prev);
+  };
 
   const handleRename = (e) => {
-    e.stopPropagation()
-    onRename(channel.id)
-    setIsOpen(false)
-  }
+    e.stopPropagation();
+    onRename(channel.id);
+    setIsOpen(false);
+  };
 
   const handleRemove = (e) => {
-    e.stopPropagation()
-    onRemove(channel.id)
-    setIsOpen(false)
-  }
+    e.stopPropagation();
+    onRemove(channel.id);
+    setIsOpen(false);
+  };
 
-  const closeDropdown = () => setIsOpen(false)
+  const closeDropdown = () => setIsOpen(false);
 
   return (
     <div
@@ -35,8 +35,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
         aria-current={currentChannelId === channel.id ? 'true' : 'false'}
       >
         <span className="channel-name">
-          #
-          {channel.name}
+          #{channel.name}
         </span>
       </button>
 
@@ -46,13 +45,12 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
             type="button"
             className="dropdown-toggle border-0 bg-transparent"
             onClick={toggleDropdown}
-            aria-label="Управление каналом"
+            aria-label="Управление каналом" // остаётся для скринридеров
+            aria-haspopup="true"
+            aria-expanded={isOpen}
           >
-            {}
-            Управление каналом
-            <span aria-hidden="true" style={{ marginLeft: '5px' }}>
-              ⋮
-            </span>
+            {/* Убираем видимый текст "Управление каналом" */}
+            <span aria-hidden="true">⋮</span>
           </button>
 
           {isOpen && (
@@ -77,7 +75,6 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
                 onClick={handleRename}
                 style={{ cursor: 'pointer' }}
               >
-                {}
                 Переименовать
               </button>
               <button
@@ -86,7 +83,6 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
                 onClick={handleRemove}
                 style={{ cursor: 'pointer' }}
               >
-                {}
                 Удалить
               </button>
             </div>
@@ -94,7 +90,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default ChannelItem
+export default ChannelItem;
