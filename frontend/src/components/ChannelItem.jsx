@@ -31,6 +31,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
             aria-label="Управление каналом"
             style={{ lineHeight: '1', padding: '8px' }}
           >
+            <span className="visually-hidden">Управление каналом</span>
             <span aria-hidden="true" className="fs-5">⋮</span>
           </Dropdown.Toggle>
 
