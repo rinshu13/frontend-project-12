@@ -45,11 +45,10 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
             type="button"
             className="dropdown-toggle border-0 bg-transparent"
             onClick={toggleDropdown}
-            aria-label="Управление каналом" // остаётся для скринридеров
+            aria-label="Управление каналом"
             aria-haspopup="true"
             aria-expanded={isOpen}
           >
-            {/* Убираем видимый текст "Управление каналом" */}
             <span aria-hidden="true">⋮</span>
           </button>
 
@@ -73,7 +72,6 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
                 type="button"
                 className="dropdown-item text-start w-100 border-0 bg-transparent px-3 py-2"
                 onClick={handleRename}
-                style={{ cursor: 'pointer' }}
               >
                 Переименовать
               </button>
@@ -81,7 +79,6 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
                 type="button"
                 className="dropdown-item text-start w-100 border-0 bg-transparent px-3 py-2 text-danger"
                 onClick={handleRemove}
-                style={{ cursor: 'pointer' }}
               >
                 Удалить
               </button>
