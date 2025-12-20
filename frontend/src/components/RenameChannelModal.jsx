@@ -96,6 +96,7 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
               isInvalid={formik.touched.name && !!formik.errors.name}
               disabled={formik.isSubmitting}
               autoFocus
+              aria-label="Имя канала"
             />
             <Form.Control.Feedback type="invalid">
               {formik.errors.name}

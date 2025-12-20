@@ -91,6 +91,7 @@ const AddChannelModal = ({ isOpen, onClose }) => {
               isInvalid={formik.touched.name && !!formik.errors.name}
               disabled={formik.isSubmitting}
               autoFocus
+              aria-label={t('modal.addNameLabel') || 'Имя канала'}
             />
             <Form.Control.Feedback type="invalid">
               {formik.errors.name}
