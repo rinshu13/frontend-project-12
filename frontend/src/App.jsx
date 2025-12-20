@@ -394,27 +394,27 @@ const App = () => {
       <div className="app-body d-flex flex-grow-1">
         <aside className="channels-sidebar">
           <div className="channels-header">
-        <h5>{t('app.channelsTitle')}</h5>
-        <button className="btn btn-success w-100 mb-2" onClick={() => setShowAddModal(true)}>
-          {t('app.addChannel')}
-        </button>
-        <button className="btn btn-outline-secondary w-100" onClick={handleLogout}>
-          {t('app.logout')}
-        </button>
-      </div>
-      <div className="channels-list" role="list">
-        {channels?.length > 0
-            ? channels.map(channel => (
-                    <ChannelItem
-                      key={channel.id}
-                      channel={channel}
-                      currentChannelId={currentChannelId}
-                      onChannelClick={handleChannelClick}
-                      onRename={id => setShowRenameModal(id)}
-                      onRemove={id => setShowRemoveModal(id)}
-                    />
-                  ))
-                : <p className="text-center text-muted">{t('app.loadingChannels')}</p>}
+            <h5>{t('app.channelsTitle')}</h5>
+            <button className="btn btn-success w-100 mb-2" onClick={() => setShowAddModal(true)}>
+              {t('app.addChannel')}
+            </button>
+            <button className="btn btn-outline-secondary w-100" onClick={handleLogout}>
+              {t('app.logout')}
+            </button>
+          </div>
+          <div className="channels-list" role="list">
+            {channels?.length > 0
+              ? channels.map(channel => (
+                  <ChannelItem
+                    key={channel.id}
+                    channel={channel}
+                    currentChannelId={currentChannelId}
+                    onChannelClick={handleChannelClick}
+                    onRename={id => setShowRenameModal(id)}
+                    onRemove={id => setShowRemoveModal(id)}
+                  />
+                ))
+              : <p className="text-center text-muted">{t('app.loadingChannels')}</p>}
           </div>
         </aside>
         <section className="chat-section d-flex flex-column">
@@ -464,22 +464,22 @@ const App = () => {
       </div>
 
       <AddChannelModal
-              isOpen={showAddModal}
-              onClose={newChannelId => closeModalsAndRefresh(newChannelId)}
-            />
+        isOpen={showAddModal}
+        onClose={newChannelId => closeModalsAndRefresh(newChannelId)}
+      />
 
-            <RenameChannelModal
-              channel={channels.find(c => c.id === showRenameModal)}
-              isOpen={!!showRenameModal}
-              onClose={() => closeModalsAndRefresh()}
-            />
+      <RenameChannelModal
+        channel={channels.find(c => c.id === showRenameModal)}
+        isOpen={!!showRenameModal}
+        onClose={() => closeModalsAndRefresh()}
+      />
 
-            <RemoveChannelModal
-              channelId={showRemoveModal}
-              isOpen={!!showRemoveModal}
-              onClose={() => closeModalsAndRefresh()}
-            />
-          </div>
+      <RemoveChannelModal
+        channelId={showRemoveModal}
+        isOpen={!!showRemoveModal}
+        onClose={() => closeModalsAndRefresh()}
+      />
+    </div>
   )
 }
 
