@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRemove }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const toggleDropdown = (e) => {
     e.stopPropagation();
@@ -20,39 +21,55 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
     setIsOpen(false);
   };
 
-  // Убираем onClick с корневого div — теперь закрытие только по клику вне (через документ или модалку)
+  // Закрываем dropdown при клике вне его
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isOpen]);
 
   return (
     <div
       role="listitem"
-      className={`channel-item ${currentChannelId === channel.id ? 'active' : ''}`}
-      // УДАЛЕНА строка onClick={closeDropdown}
+      className={`channel-item d-flex align-items-center ${currentChannelId === channel.id ? 'active' : ''}`}
+      style={{ padding: '8px 12px', cursor: 'pointer' }}
     >
       <button
         type="button"
-        className="channel-button flex-grow-1 text-start border-0 bg-transparent"
+        className="channel-button flex-grow-1 text-start border-0 bg-transparent text-decoration-none"
         onClick={() => onChannelClick(channel.id)}
-        aria-current={currentChannelId === channel.id ? 'true' : 'false'}
+        style={{ color: 'inherit' }}
       >
         <span className="channel-name">#{channel.name}</span>
       </button>
 
       {channel.removable && (
-        <div className="channel-dropdown" style={{ position: 'relative' }}>
+        <div className="channel-dropdown" ref={dropdownRef} style={{ position: 'relative' }}>
           <button
             type="button"
-            className="dropdown-toggle border-0 bg-transparent"
+            className="dropdown-toggle border-0 bg-transparent p-1"
             onClick={toggleDropdown}
             aria-label="Управление каналом"
             aria-haspopup="true"
             aria-expanded={isOpen}
+            style={{ fontSize: '1.2rem', lineHeight: '1' }}
           >
             <span aria-hidden="true">⋮</span>
           </button>
 
           {isOpen && (
             <div
-              className="dropdown-menu"
+              className="dropdown-menu show"
               style={{
                 position: 'absolute',
                 top: '100%',
@@ -63,8 +80,8 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
                 zIndex: 1000,
                 minWidth: '160px',
                 padding: '8px 0',
+                marginTop: '4px',
               }}
-              onClick={(e) => e.stopPropagation()}
             >
               <button
                 type="button"
