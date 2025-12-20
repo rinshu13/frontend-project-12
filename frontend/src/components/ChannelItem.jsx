@@ -1,7 +1,7 @@
-import { Dropdown } from 'react-bootstrap';
+import { Dropdown } from 'react-bootstrap'
 
 const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRemove }) => {
-  const isActive = currentChannelId === channel.id;
+  const isActive = currentChannelId === channel.id
 
   return (
     <div
@@ -18,7 +18,8 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
         aria-current={isActive ? 'true' : 'false'}
         style={{ background: 'transparent' }}
       >
-        # {channel.name}
+        # 
+        {channel.name}
       </button>
 
       {channel.removable && (
@@ -46,7 +47,7 @@ const ChannelItem = ({ channel, currentChannelId, onChannelClick, onRename, onRe
         </Dropdown>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default ChannelItem;
+export default ChannelItem

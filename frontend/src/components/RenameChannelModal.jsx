@@ -1,11 +1,11 @@
-import { useEffect, useRef } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { useTranslation } from 'react-i18next';
-import { toast } from 'react-toastify';
-import leoProfanity from 'leo-profanity';
-import { renameChannel } from '../api';
+import { useEffect, useRef } from 'react'
+import { Modal, Button, Form } from 'react-bootstrap'
+import { useFormik } from 'formik'
+import * as Yup from 'yup'
+import { useTranslation } from 'react-i18next'
+import { toast } from 'react-toastify'
+import leoProfanity from 'leo-profanity'
+import { renameChannel } from '../api'
 
 const RenameChannelSchema = Yup.object().shape({
   name: Yup.string()
@@ -13,18 +13,18 @@ const RenameChannelSchema = Yup.object().shape({
     .min(3, 'От 3 до 20 символов')
     .max(20, 'От 3 до 20 символов')
     .required('Обязательное поле'),
-});
+})
 
 const RenameChannelModal = ({ channel, isOpen, onClose }) => {
-  const { t } = useTranslation();
-  const inputRef = useRef(null);
+  const { t } = useTranslation()
+  const inputRef = useRef(null)
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
+      inputRef.current.focus()
+      inputRef.current.select()
     }
-  }, [isOpen]);
+  }, [isOpen])
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -35,47 +35,50 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
     onSubmit: async (values, { setSubmitting }) => {
       const trimmedName = values.name.trim();
       if (!trimmedName || trimmedName === channel?.name) {
-        onClose();
-        return;
+        onClose()
+        return
       }
 
-      const censoredName = leoProfanity.clean(trimmedName);
+      const censoredName = leoProfanity.clean(trimmedName)
 
       if (censoredName !== trimmedName) {
-        toast.warning(t('toast.warning.channelNameCensored') || 'Название канала было отцензурировано');
+        toast.warning(t('toast.warning.channelNameCensored') || 'Название канала было отцензурировано')
       }
 
       try {
-        await renameChannel(channel.id, censoredName);
+        await renameChannel(channel.id, censoredName)
 
-        const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]');
-        const isUnique = !storedChannels.some(c => c.name === censoredName && c.id !== channel.id);
+        const storedChannels = JSON.parse(localStorage.getItem('channels') || '[]')
+        const isUnique = !storedChannels.some(c => c.name === censoredName && c.id !== channel.id)
 
         if (isUnique) {
           const updatedChannels = storedChannels.map(c =>
             c.id === channel.id ? { ...c, name: censoredName } : c
-          );
-          localStorage.setItem('channels', JSON.stringify(updatedChannels));
-        } else {
-          throw { response: { status: 409 } };
+          )
+          localStorage.setItem('channels', JSON.stringify(updatedChannels))
+        } 
+        else {
+          throw { response: { status: 409 } }
         }
 
-        toast.success(t('toast.success.renameChannel'));
-        onClose();
-      } catch (error) {
-        console.error('Rename error:', error);
-        setSubmitting(false);
+        toast.success(t('toast.success.renameChannel'))
+        onClose()
+      } 
+      catch (error) {
+        console.error('Rename error:', error)
+        setSubmitting(false)
 
         if (error.response?.status === 409) {
-          formik.setFieldError('name', t('modal.renameErrorUnique') || 'Имя должно быть уникальным');
-          toast.error(t('modal.renameErrorUnique'));
-        } else {
-          formik.setFieldError('name', t('modal.renameError') || 'Ошибка сети');
-          toast.error(t('toast.error.renameChannel'));
+          formik.setFieldError('name', t('modal.renameErrorUnique') || 'Имя должно быть уникальным')
+          toast.error(t('modal.renameErrorUnique'))
+        } 
+        else {
+          formik.setFieldError('name', t('modal.renameError') || 'Ошибка сети')
+          toast.error(t('toast.error.renameChannel'))
         }
       }
     },
-  });
+  })
 
   return (
     <Modal show={isOpen} onHide={onClose} centered backdrop="static" data-testid="rename-channel-modal">
@@ -97,7 +100,7 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
               disabled={formik.isSubmitting}
               autoFocus
               aria-label="Имя канала"
-              data-testid="rename-channel-input"  // ← Добавь для надёжности
+              data-testid="rename-channel-input"
             />
             <Form.Control.Feedback type="invalid">
               {formik.errors.name}
@@ -107,11 +110,11 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
             <Button variant="secondary" onClick={onClose} disabled={formik.isSubmitting}>
               {t('modal.renameCancel')}
             </Button>
-            <Button 
-              type="submit" 
-              variant="primary" 
+            <Button
+              type="submit"
+              variant="primary"
               disabled={formik.isSubmitting}
-              data-testid="rename-channel-submit"  // ← КРИТИЧЕСКИ ВАЖНО ДЛЯ ТЕСТА
+              data-testid="rename-channel-submit"
             >
               {formik.isSubmitting ? t('modal.renameLoading') : t('modal.renameSubmit')}
             </Button>
@@ -119,7 +122,7 @@ const RenameChannelModal = ({ channel, isOpen, onClose }) => {
         </Form>
       </Modal.Body>
     </Modal>
-  );
-};
+  )
+}
 
-export default RenameChannelModal;
+export default RenameChannelModal
