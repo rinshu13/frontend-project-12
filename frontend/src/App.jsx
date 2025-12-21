@@ -18,9 +18,9 @@ import {
 import {
   setChannels,
   setCurrentChannelId,
-} from './features/channels/channelsSlice'
-import { setMessages } from './features/messages/messagesSlice'
-import { logout, initAuth } from './features/auth/authSlice'
+} from './store/channels/channelsSlice'
+import { setMessages } from './store/messages/messagesSlice'
+import { logout, initAuth } from './store/auth/authSlice'
 import AddChannelModal from './components/AddChannelModal'
 import RenameChannelModal from './components/RenameChannelModal'
 import RemoveChannelModal from './components/RemoveChannelModal'

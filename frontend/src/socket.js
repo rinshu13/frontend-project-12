@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client'
 import { store } from './store'
-import { addMessage } from './features/messages/messagesSlice'
-import { setChannels, setCurrentChannelId } from './features/channels/channelsSlice'
+import { addMessage } from './store/messages/messagesSlice'
+import { setChannels, setCurrentChannelId } from './store/channels/channelsSlice'
 
 let socket = null
 

@@ -2,7 +2,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { useFormik } from 'formik'
-import { login } from '../features/auth/authSlice'
+import { login } from '../store/auth/authSlice'
 import api from '../api'
 import signupSchema from '../validation/signupSchema'
 

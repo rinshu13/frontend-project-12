@@ -3,7 +3,7 @@ import { useFormik } from 'formik'
 import { useDispatch } from 'react-redux'
 import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { login } from '../features/auth/authSlice'
+import { login } from '../store/auth/authSlice'
 import { loginUser } from '../api'
 import loginSchema from '../validation/loginSchema'
 
