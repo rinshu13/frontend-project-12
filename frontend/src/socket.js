@@ -1,5 +1,5 @@
 import { io } from 'socket.io-client'
-import { store } from './store'
+import store from './store'
 import { addMessage } from './store/messages/messagesSlice'
 import { setChannels, setCurrentChannelId } from './store/channels/channelsSlice'
 
