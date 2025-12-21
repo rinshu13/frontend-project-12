@@ -2,7 +2,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { logout } from '../features/auth/authSlice'
+import { logout } from '../store/auth/authSlice'
 
 export const Header = () => {
   const dispatch = useDispatch()
